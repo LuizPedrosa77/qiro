@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}QIRO — Mapa de Senhas e Secretaria{% endblock %}
+
+{% block content %}
+<div class="card bg-qiro-card border-qiro shadow-lg p-3 p-md-4 rounded-4">
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade show small py-2" role="alert">
+            <i class="bi bi-check-circle-fill me-1"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ABAS DAS CATEGORIAS (MOCKUP IMAGEM 7 E 8) -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-3 border-bottom border-qiro">
+        <div class="d-flex flex-wrap gap-1.5">
+            {% for cat in categorias %}
+            <a href="?categoria={{ cat.id }}&dia={{ dia_selecionado }}" 
+                class="btn btn-sm text-uppercase fw-bold px-3 py-1.5 rounded-pill {% if cat.id == categoria_atual.id %}btn-warning text-black shadow{% else %}btn-dark text-secondary border-secondary{% endif %}"
+                style="font-size: 0.75rem;">
+                {{ cat.nome_exibicao }}
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- Seletor do Dia da Corrida -->
+        <div class="d-flex align-items-center gap-2 small">
+            <span class="text-secondary fw-semibold">Qual dia você quer correr?</span>
+            <select class="form-select form-select-sm bg-dark text-white border-secondary w-auto" onchange="location = this.value;">
+                <option value="?categoria={{ categoria_atual.id }}&dia=Quinta" {% if dia_selecionado == 'Quinta' %}selected{% endif %}>Quinta</option>
+                <option value="?categoria={{ categoria_atual.id }}&dia=Sexta" {% if dia_selecionado == 'Sexta' %}selected{% endif %}>Sexta</option>
+                <option value="?categoria={{ categoria_atual.id }}&dia=Sábado" {% if dia_selecionado == 'Sábado' %}selected{% endif %}>Sábado</option>
+                <option value="?categoria={{ categoria_atual.id }}&dia=Domingo" {% if dia_selecionado == 'Domingo' %}selected{% endif %}>Domingo</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- MAPA VISUAL DE SENHAS (MOCKUP IMAGEM 7) -->
+    <div class="my-4">
+        <div class="d-flex align-items-center gap-4 small mb-2 fw-semibold">
+            <div class="d-flex align-items-center gap-1.5">
+                <span class="d-inline-block bg-white rounded border border-secondary" style="width: 16px; height: 16px;"></span>
+                <span class="text-secondary">Senhas disponíveis para compra</span>
+            </div>
+            <div class="d-flex align-items-center gap-1.5">
+                <span class="d-inline-block bg-danger rounded" style="width: 16px; height: 16px;"></span>
+                <span class="text-secondary">Senhas feitas / pagas</span>
+            </div>
+        </div>
+
+        <!-- Grade de 75 a 100 Quadrados -->
+        <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+            <div class="d-flex flex-wrap gap-1.5 justify-content-start">
+                {% for s in grade_senhas %}
+                <a href="?categoria={{ categoria_atual.id }}&dia={{ dia_selecionado }}&senha_num={{ s.numero }}"
+                    class="d-flex align-items-center justify-content-center text-decoration-none fw-bold rounded transition 
+                    {% if s.numero == senha_selecionada %}bg-warning text-black ring-2 shadow
+                    {% elif s.ocupada %}bg-danger text-white pe-none opacity-85
+                    {% else %}bg-white text-dark hover-bg-gray{% endif %}"
+                    style="width: 44px; height: 38px; font-size: 0.8rem;">
+                    {{ s.numero }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULÁRIO DE INSCRIÇÃO DA SENHA (MOCKUP IMAGEM 8) -->
+    <form method="POST" action="/senhas/finalizar-inscricao/" class="p-4 rounded-4 bg-dark border border-secondary border-opacity-25 mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="categoria_id" value="{{ categoria_atual.id }}">
+        <input type="hidden" name="dia_corrida" value="{{ dia_selecionado }}">
+
+        <div class="mb-3">
+            <h5 class="fw-black text-white text-uppercase m-0">
+                {{ categoria_atual.nome_exibicao }} — SENHA SELECIONADA #{{ senha_selecionada }}
+            </h5>
+            <div class="text-danger small fw-bold mt-1">
+                <i class="bi bi-exclamation-octagon-fill me-1"></i> EVITE PROBLEMAS! Preencha o CPF com o dado do vaqueiro que irá correr a senha.
+            </div>
+        </div>
+
+        <div class="row g-2 small mb-3">
+            <div class="col-md-3">
+                <label class="form-label text-secondary mb-1">CPF do vaqueiro *</label>
+                <input type="text" name="cpf" value="055.483.014-30" required class="form-control form-control-sm bg-black text-white border-secondary">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-secondary mb-1">Nome completo do vaqueiro *</label>
+                <input type="text" name="nome" value="Romulo Emanuel" required class="form-control form-control-sm bg-black text-white border-secondary">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-secondary mb-1">Nome chamado pela locução *</label>
+                <input type="text" name="apelido" value="Romulo Emanuel" required class="form-control form-control-sm bg-black text-white border-secondary">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label text-secondary mb-1">UF</label>
+                <input type="text" name="estado" value="PE" class="form-control form-control-sm bg-black text-white border-secondary text-center">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label text-secondary mb-1">Cidade</label>
+                <input type="text" name="cidade" value="Caruaru" class="form-control form-control-sm bg-black text-white border-secondary">
+            </div>
+        </div>
+
+        <!-- Card da 1ª Senha com Boi na TV -->
+        <div class="card bg-qiro-card border-secondary border-opacity-50 p-3 rounded-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 mb-3 border-bottom border-secondary border-opacity-25">
+                <span class="fw-bold fs-6 text-white">
+                    <i class="bi bi-ticket-perforated-fill text-warning me-1"></i> 1ª Senha — R$ {{ categoria_atual.valor_senha }}
+                </span>
+
+                <!-- CHECKBOX OPCIONAL DE BOI NA TV (MOCKUP IMAGEM 8) -->
+                <div class="form-check p-2 rounded bg-dark border border-warning border-opacity-50">
+                    <input class="form-check-input ms-0 me-2" type="checkbox" name="tem_boi_tv" id="checkBoiTv" checked onchange="atualizarTotal()">
+                    <label class="form-check-label text-warning small fw-bold cursor-pointer" for="checkBoiTv">
+                        Prêmio extra + Boi na TV + R$ {{ categoria_atual.valor_boi_tv }} <span class="badge bg-secondary" style="font-size: 0.6rem;">OPCIONAL</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="row g-2 small">
+                <div class="col-md-2">
+                    <label class="form-label text-secondary mb-1">Nº da senha *</label>
+                    <input type="number" name="numero_senha" value="{{ senha_selecionada }}" readonly class="form-control form-control-sm bg-dark text-warning fw-bold border-secondary">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-secondary mb-1">Cavalo puxador *</label>
+                    <input type="text" name="cavalo_puxador" value="Silver Wild SLN" required class="form-control form-control-sm bg-black text-white border-secondary">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-secondary mb-1">Esteireiro</label>
+                    <input type="text" name="esteireiro" value="Matheus Leonardo" class="form-control form-control-sm bg-black text-white border-secondary">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label text-secondary mb-1">Cavalo esteireiro</label>
+                    <input type="text" name="cavalo_esteira" value="King" class="form-control form-control-sm bg-black text-white border-secondary">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label text-secondary mb-1">Representação</label>
+                    <input type="text" name="representacao" value="Haras QIRO" class="form-control form-control-sm bg-black text-white border-secondary">
+                </div>
+            </div>
+
+            <!-- Botão de Finalização -->
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-secondary border-opacity-25">
+                <div class="fs-6 fw-bold">
+                    Total: <strong class="text-success fs-5" id="valorTotalTexto">R$ 510,00</strong>
+                </div>
+
+                <button type="submit" class="btn btn-success fw-bold px-4 py-2 rounded-3 shadow">
+                    <i class="bi bi-cart-check-fill me-1"></i> Escolher forma de pagamento
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function atualizarTotal() {
+        const base = parseFloat("{{ categoria_atual.valor_senha }}") || 410.0;
+        const adicionalTv = parseFloat("{{ categoria_atual.valor_boi_tv }}") || 100.0;
+        const temTv = document.getElementById('checkBoiTv').checked;
+        const total = base + (temTv ? adicionalTv : 0);
+        document.getElementById('valorTotalTexto').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    }
+    atualizarTotal();
+</script>
+{% endblock %}

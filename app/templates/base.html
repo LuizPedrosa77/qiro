@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}QIRO — Tecnologia e tradição na palma da sua mão{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --qiro-green-dark: #192D21;
+            --qiro-green-black: #0F1F17;
+            --qiro-neutral: #BCB9B5;
+            --qiro-white: #FBFBFB;
+            --qiro-card-bg: #14261C;
+            --qiro-border: #254231;
+            --qiro-yellow: #FACC15;
+            --qiro-cyan: #22D3EE;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--qiro-green-black);
+            color: var(--qiro-white);
+            min-height: 100vh;
+        }
+
+        .bg-qiro-dark { background-color: var(--qiro-green-dark) !important; }
+        .bg-qiro-black { background-color: var(--qiro-green-black) !important; }
+        .bg-qiro-card { background-color: var(--qiro-card-bg) !important; }
+        .text-qiro-yellow { color: var(--qiro-yellow) !important; }
+        .text-qiro-cyan { color: var(--qiro-cyan) !important; }
+        .border-qiro { border-color: var(--qiro-border) !important; }
+
+        /* Botões Arredondados do Topo (Mockup Fundador) */
+        .btn-qiro-tab {
+            background-color: #1F3A2B;
+            color: #FBFBFB;
+            border: 1px solid #3A614A;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.35rem 0.9rem;
+            transition: all 0.2s;
+        }
+        .btn-qiro-tab:hover {
+            background-color: #2D543E;
+            color: #FFF;
+        }
+
+        /* Seletor de Perfis */
+        .role-pill {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            color: #9CA3AF;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .role-pill.active {
+            background-color: var(--qiro-green-dark);
+            color: #FFF;
+            font-weight: 700;
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            background-color: var(--qiro-green-dark);
+            border: 1px solid var(--qiro-border);
+            color: #FFF;
+            border-radius: 16px;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+    <!-- ──────────────── HEADER GLOBAL QIRO ──────────────── -->
+    <header class="border-b border-qiro py-2 px-3 bg-qiro-dark shadow-sm">
+        <div class="container-fluid d-flex flex-wrap align-items-center justify-content-between gap-2">
+            
+            <!-- Logo Qiro e Slogan -->
+            <a href="/" class="d-flex align-items-center text-decoration-none text-white gap-2">
+                <svg viewBox="0 0 100 80" class="d-inline-block" style="width: 34px; height: 30px;" fill="#BCB9B5">
+                    <path d="M75 10 C70 5, 55 12, 45 22 C40 27, 30 25, 25 35 C20 45, 22 55, 18 65 C17 68, 14 72, 12 75 L20 75 C24 68, 26 58, 28 50 C35 48, 45 52, 55 45 C65 38, 70 28, 75 22 C78 18, 82 15, 80 12 Z" />
+                    <path d="M55 45 L62 75 L70 75 L62 48 L75 48 L85 75 L93 75 L80 40 C75 35, 68 40, 55 45 Z" />
+                </svg>
+                <div>
+                    <div class="d-flex align-items-baseline gap-1">
+                        <span class="fs-4 fw-black tracking-tight" style="letter-spacing: -1px;">qiro</span>
+                        <span class="badge bg-dark text-qiro-yellow border border-secondary" style="font-size: 0.65rem;">PRO</span>
+                    </div>
+                    <div class="text-secondary" style="font-size: 0.65rem; margin-top: -4px;">Tecnologia e tradição na palma da sua mão</div>
+                </div>
+            </a>
+
+            <!-- Abas do Topo (Mockup Imagens 9, 10, 11, 12, 13) -->
+            <div class="d-flex align-items-center gap-1 flex-wrap">
+                <button type="button" class="btn btn-qiro-tab" data-bs-toggle="modal" data-bs-target="#modalRodizioAtual">
+                    Rodízio Atual
+                </button>
+                <button type="button" class="btn btn-qiro-tab" data-bs-toggle="modal" data-bs-target="#modalProximoRodizio">
+                    Próximo Rodízio
+                </button>
+                <button type="button" class="btn btn-qiro-tab" data-bs-toggle="modal" data-bs-target="#modalParcialSenhas">
+                    Parcial de Senhas
+                </button>
+                <button type="button" class="btn btn-qiro-tab" onclick="alert('Módulo de alteração de senhas na matriz')">
+                    Alterar Senhas
+                </button>
+            </div>
+
+            <!-- Alternador de Telas (Para Navegação Rápida) & Relógio -->
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-1 rounded bg-black border border-qiro d-flex">
+                    <a href="/pista/locutor/" class="role-pill {% if request.path == '/pista/locutor/' %}active text-warning{% endif %}">
+                        🎤 Locutor
+                    </a>
+                    <a href="/pista/juiz/" class="role-pill {% if request.path == '/pista/juiz/' %}active text-success{% endif %}">
+                        ⚖️ Juiz
+                    </a>
+                    <a href="/senhas/mapa/" class="role-pill {% if request.path == '/senhas/mapa/' %}active text-info{% endif %}">
+                        📝 Secretaria
+                    </a>
+                    <a href="/publico/ao-vivo/" class="role-pill {% if request.path == '/publico/ao-vivo/' %}active text-white{% endif %}">
+                        📺 Telão
+                    </a>
+                </div>
+
+                <div class="text-end d-none d-md-block">
+                    <div class="fw-bold small">Quinta-feira</div>
+                    <div class="text-secondary small"><i class="bi bi-clock-fill text-warning me-1"></i>15:21</div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- ──────────────── CONTEÚDO PRINCIPAL ──────────────── -->
+    <main class="container-fluid py-3 px-md-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ──────────────── MODAL RODÍZIO ATUAL (MOCKUP IMAGEM 11) ──────────────── -->
+    <div class="modal fade" id="modalRodizioAtual" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-qiro p-3 text-center">
+                <div class="modal-header border-0 pb-0 justify-content-center">
+                    <div>
+                        <h3 class="fw-black text-warning m-0">Da 3040 a 3050</h3>
+                        <p class="text-secondary small mb-2">Ordem de Chamada do Rodízio Atual</p>
+                    </div>
+                </div>
+                <div class="modal-body p-2 text-start">
+                    <div class="list-group gap-1">
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3040 - Romulo e Junior</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3041 - Junior e Kleber</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3042 - Matheus e Carlos</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3043 - Kleber e Junior</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3044 - Ramon e Leonardo</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3045 - João e Renan</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3046 - Carlos e João</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3047 - Junior e Romulo</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3048 - Matheus e Kleber</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3049 - Kleber e Junior</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>3050 - Renan e Romulo</span> <i class="bi bi-chevron-right text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-warning w-100 fw-bold btn-sm" data-bs-dismiss="modal">Fechar Rodízio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ──────────────── MODAL PRÓXIMO RODÍZIO (MOCKUP IMAGEM 12) ──────────────── -->
+    <div class="modal fade" id="modalProximoRodizio" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-qiro p-3 text-center">
+                <div class="modal-header border-0 pb-0 justify-content-center">
+                    <div>
+                        <h3 class="fw-black text-info m-0">Da 3051 a 3060</h3>
+                        <p class="text-secondary small mb-2">Bloco do Próximo Rodízio</p>
+                    </div>
+                </div>
+                <div class="modal-body p-2 text-start">
+                    <div class="list-group gap-1">
+                        {% for i in "1234567890"|make_list %}
+                        <div class="list-group-item bg-dark text-white border-secondary small d-flex justify-content-between">
+                            <span>Senha 305{{ forloop.counter }} — Dupla a Confirmar</span>
+                            <span class="badge bg-secondary">Aguardando</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-info w-100 fw-bold btn-sm text-white" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ──────────────── MODAL PARCIAL DE SENHAS (MOCKUP IMAGEM 13) ──────────────── -->
+    <div class="modal fade" id="modalParcialSenhas" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content border-qiro p-3">
+                <div class="modal-header border-0 pb-2">
+                    <h5 class="fw-bold text-white m-0"><i class="bi bi-trophy-fill text-warning me-2"></i>Parcial de Senhas por Categoria</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-2">
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="p-2.5 rounded bg-dark border border-secondary">
+                            <div class="d-flex justify-content-between fw-bold mb-1">
+                                <span>Categoria Aberta</span> <span class="text-warning">80 Senhas</span>
+                            </div>
+                            <div class="row g-1 text-center" style="font-size: 0.75rem;">
+                                <div class="col-4"><span class="badge bg-success-subtle text-success w-100 p-1">Batidas: 18</span></div>
+                                <div class="col-4"><span class="badge bg-danger-subtle text-danger w-100 p-1">Zeradas: 14</span></div>
+                                <div class="col-4"><span class="badge bg-info-subtle text-info w-100 p-1">Em Pista: 48</span></div>
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded bg-dark border border-secondary">
+                            <div class="d-flex justify-content-between fw-bold mb-1">
+                                <span>Categoria Amador</span> <span class="text-warning">80 Senhas</span>
+                            </div>
+                            <div class="row g-1 text-center" style="font-size: 0.75rem;">
+                                <div class="col-4"><span class="badge bg-success-subtle text-success w-100 p-1">Batidas: 12</span></div>
+                                <div class="col-4"><span class="badge bg-danger-subtle text-danger w-100 p-1">Zeradas: 22</span></div>
+                                <div class="col-4"><span class="badge bg-info-subtle text-info w-100 p-1">Em Pista: 46</span></div>
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded bg-dark border border-secondary">
+                            <div class="d-flex justify-content-between fw-bold mb-1">
+                                <span>Categoria Aspirante</span> <span class="text-warning">100 Senhas</span>
+                            </div>
+                            <div class="row g-1 text-center" style="font-size: 0.75rem;">
+                                <div class="col-4"><span class="badge bg-success-subtle text-success w-100 p-1">Batidas: 24</span></div>
+                                <div class="col-4"><span class="badge bg-danger-subtle text-danger w-100 p-1">Zeradas: 30</span></div>
+                                <div class="col-4"><span class="badge bg-info-subtle text-info w-100 p-1">Em Pista: 46</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary w-100 btn-sm" data-bs-dismiss="modal">Fechar Relatório</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

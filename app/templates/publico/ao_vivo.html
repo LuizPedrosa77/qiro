@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}QIRO — Telão Oficial Ao Vivo{% endblock %}
+
+{% block body_class %}bg-black{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-3">
+
+    <!-- CABEÇALHO DO TELÃO -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-50">
+        <div>
+            <span class="badge bg-danger text-uppercase px-3 py-2 fs-6 fw-bold animate-pulse">
+                <i class="bi bi-broadcast me-2"></i> AO VIVO NA PISTA
+            </span>
+            <h2 class="fw-black text-white mt-2 mb-0" style="letter-spacing: -1px;">{{ evento.nome }}</h2>
+            <div class="text-secondary fs-6"><i class="bi bi-geo-alt-fill text-warning me-1"></i>{{ evento.parque.nome }} — {{ evento.parque.cidade }}/{{ evento.parque.estado }}</div>
+        </div>
+        <div class="text-end">
+            <div class="badge bg-dark border border-secondary text-secondary px-3 py-2 fs-6">
+                Atualização em Tempo Real <i class="bi bi-arrow-repeat text-info ms-1"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- COLUNA PRINCIPAL: CONJUNTO NA PISTA (DESTAQUE GIGANTE) -->
+        <div class="col-lg-8">
+            {% if conjunto_atual %}
+            <div class="card bg-dark border border-2 border-warning rounded-4 p-4 shadow-lg">
+                
+                <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-secondary">
+                    <div>
+                        <span class="badge bg-warning text-black text-uppercase fw-black fs-5 px-3 py-1.5 rounded-3">
+                            {{ conjunto_atual.categoria.nome_exibicao }}
+                        </span>
+                    </div>
+                    <div class="text-end">
+                        <span class="fs-1 fw-black text-warning">SENHA #{{ conjunto_atual.numero_senha }}</span>
+                    </div>
+                </div>
+
+                <div class="row g-4 my-3">
+                    <div class="col-md-6 border-end border-secondary">
+                        <div class="text-secondary text-uppercase fw-bold" style="font-size: 0.85rem;">Vaqueiro Puxador</div>
+                        <div class="display-6 fw-black text-white mt-1">
+                            {{ conjunto_atual.vaqueiro_puxador.apelido_locucao|default:conjunto_atual.vaqueiro_puxador.get_full_name }}
+                        </div>
+                        <div class="fs-5 text-warning fw-bold mt-2">
+                            <i class="bi bi-award-fill me-1"></i> {{ conjunto_atual.cavalo_puxador.nome }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="text-secondary text-uppercase fw-bold" style="font-size: 0.85rem;">Vaqueiro Esteireiro</div>
+                        <div class="display-6 fw-black text-white mt-1">
+                            {{ conjunto_atual.vaqueiro_esteireiro.apelido_locucao|default:conjunto_atual.vaqueiro_esteireiro.get_full_name }}
+                        </div>
+                        <div class="fs-5 text-info fw-bold mt-2">
+                            <i class="bi bi-shield-fill me-1"></i> {{ conjunto_atual.cavalo_esteireiro.nome }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3 bg-black border border-secondary d-flex justify-content-between align-items-center mb-4">
+                    <span class="text-secondary fs-5">Representação:</span>
+                    <span class="fs-4 fw-black text-white">{{ conjunto_atual.representacao }}</span>
+                </div>
+
+                <!-- PLACAR DAS PASSADAS -->
+                <div class="bg-black p-4 rounded-4 border border-secondary text-center">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-uppercase fw-bold text-secondary m-0">Julgamento da Bateria Oficial</h5>
+                        <span class="badge bg-success fs-5 px-3 py-2 fw-black">{{ conjunto_atual.total_pontos }} PONTOS</span>
+                    </div>
+
+                    <div class="row g-3 justify-content-center">
+                        {% for passada in conjunto_atual.passadas.all %}
+                        <div class="col-3">
+                            <div class="p-3 rounded-3 border text-center 
+                                {% if passada.julgamento_juiz == 'VALEU_BOI' %}bg-success text-white border-success
+                                {% elif passada.julgamento_juiz == 'ZERO' %}bg-danger text-white border-danger
+                                {% elif passada.julgamento_juiz == 'RETORNO' %}bg-warning text-dark border-warning
+                                {% elif passada.julgamento_juiz == 'BOI_DE_TV' %}bg-info text-dark border-info
+                                {% else %}bg-dark text-secondary border-secondary{% endif %}">
+                                
+                                <div class="fs-6 fw-bold text-uppercase opacity-75">Boi {{ passada.numero_boi }}</div>
+                                <div class="display-5 fw-black my-1">
+                                    {% if passada.julgamento_juiz == 'VALEU_BOI' %}✓
+                                    {% elif passada.julgamento_juiz == 'ZERO' %}✗
+                                    {% elif passada.julgamento_juiz == 'RETORNO' %}R
+                                    {% elif passada.julgamento_juiz == 'BOI_DE_TV' %}TV
+                                    {% else %}—{% endif %}
+                                </div>
+                                <div class="fs-6 fw-bold text-uppercase">
+                                    {% if passada.julgamento_juiz == 'VALEU_BOI' %}Valeu Boi
+                                    {% elif passada.julgamento_juiz == 'ZERO' %}Zero
+                                    {% elif passada.julgamento_juiz == 'RETORNO' %}Retorno
+                                    {% elif passada.julgamento_juiz == 'BOI_DE_TV' %}Boi TV
+                                    {% else %}Aguardando{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+            {% else %}
+            <div class="card bg-dark border-secondary p-5 text-center text-secondary rounded-4">
+                <i class="bi bi-clock-history display-1 mb-3"></i>
+                <h3>Nenhum vaqueiro na pista no momento</h3>
+                <p class="fs-5">Aguardando chamada oficial da locução.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- COLUNA LATERAL: PRÓXIMOS A CORRER -->
+        <div class="col-lg-4">
+            <div class="card bg-dark border border-secondary rounded-4 p-3 shadow-lg">
+                <h5 class="fw-bold text-warning text-uppercase pb-2 border-bottom border-secondary mb-3">
+                    <i class="bi bi-arrow-down-square-fill me-2"></i> Próximos na Boiada
+                </h5>
+
+                <div class="d-flex flex-column gap-3">
+                    {% for prox in proximos %}
+                    <div class="p-3 rounded-3 bg-black border border-secondary border-opacity-75">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-secondary text-uppercase" style="font-size: 0.75rem;">{{ prox.categoria.nome_exibicao }}</span>
+                            <span class="fs-4 fw-black text-warning">#{{ prox.numero_senha }}</span>
+                        </div>
+                        <div class="fs-5 fw-bold text-white">{{ prox.vaqueiro_puxador.apelido_locucao|default:prox.vaqueiro_puxador.get_full_name }}</div>
+                        <div class="text-secondary small">{{ prox.cavalo_puxador.nome }} / {{ prox.representacao }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="text-secondary text-center py-4">Fila de espera vazia.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Auto-refresh a cada 4 segundos -->
+<script>
+    setTimeout(function() {
+        window.location.reload();
+    }, 4000);
+</script>
+{% endblock %}
