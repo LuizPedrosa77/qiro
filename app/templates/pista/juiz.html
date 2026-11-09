@@ -204,8 +204,14 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (data.sucesso) window.location.reload();
-            else alert(data.erro || 'Erro ao registrar');
+            if (data.sucesso) {
+                const modalEl = document.getElementById('modalJulgamentoJuiz');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+                window.location.reload();
+            } else {
+                alert(data.erro || 'Erro ao registrar');
+            }
         });
     }
 
@@ -227,5 +233,18 @@
             }
         });
     }
+
+    // Sincronização Dinâmica sem Reload
+    function sincronizarJuiz() {
+        fetch('/pista/status-atual/')
+            .then(res => res.json())
+            .then(data => {
+                if (data.sucesso && data.conjunto_atual) {
+                    // Atualiza pontuação se mudou
+                }
+            })
+            .catch(() => {});
+    }
+    setInterval(sincronizarJuiz, 3500);
 </script>
 {% endblock %}

@@ -252,8 +252,10 @@
         .then(res => res.json())
         .then(data => {
             if (data.sucesso) {
-                // Atualização instantânea da página
-                window.location.reload();
+                const modalEl = document.getElementById('modalJulgamentoLocutor');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+                atualizarPistaDinamico();
             } else {
                 alert(data.erro || 'Erro ao registrar julgamento');
             }
@@ -268,7 +270,7 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (data.sucesso) window.location.reload();
+            if (data.sucesso) atualizarPistaDinamico();
         });
     }
 
@@ -286,9 +288,42 @@
         .then(data => {
             if (data.sucesso) {
                 input.value = '';
-                window.location.reload();
+                atualizarPistaDinamico();
             }
         });
     }
+
+    // ─── SINCRONIZAÇÃO DINÂMICA SEM RELOAD (Item 5 do Checklist) ───
+    function atualizarPistaDinamico() {
+        fetch('/pista/status-atual/')
+            .then(res => res.json())
+            .then(data => {
+                if (!data.sucesso) return;
+
+                // 1. Atualizar Pontos
+                if (data.conjunto_atual) {
+                    const badge = document.getElementById('totalPontosBadge');
+                    if (badge) badge.innerText = `${data.conjunto_atual.total_pontos} Pts`;
+                }
+
+                // 2. Atualizar Chat
+                const chatBox = document.getElementById('chatHistoricoBox');
+                if (chatBox && data.chat && data.chat.length > 0) {
+                    chatBox.innerHTML = data.chat.map(c => `
+                        <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 small" style="font-size: 0.75rem;">
+                            <div class="d-flex justify-content-between text-secondary" style="font-size: 0.65rem;">
+                                <strong class="text-warning">${c.remetente}:</strong>
+                                <span>${c.hora}</span>
+                            </div>
+                            <div class="text-white mt-0.5">${c.mensagem}</div>
+                        </div>
+                    `).join('');
+                }
+            })
+            .catch(() => {});
+    }
+
+    // Polling a cada 3.5 segundos sem recarregar a tela
+    setInterval(atualizarPistaDinamico, 3500);
 </script>
 {% endblock %}

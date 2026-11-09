@@ -194,3 +194,65 @@ def enviar_mensagem_chat(request):
         return JsonResponse({'sucesso': False, 'erro': 'Mensagem vazia'}, status=400)
     except Exception as e:
         return JsonResponse({'sucesso': False, 'erro': str(e)}, status=500)
+
+
+def status_atual(request):
+    """
+    Endpoint JSON de alta performance para sincronização dinâmica sem reload (Polling a cada 3s).
+    Retorna o conjunto atual em pista, suas passadas e as últimas mensagens de chat/alertas.
+    """
+    evento = Evento.objects.filter(status=Evento.Status.EM_ANDAMENTO).first() or Evento.objects.first()
+    if not evento:
+        return JsonResponse({'sucesso': False, 'erro': 'Nenhum evento ativo'})
+
+    conjunto_atual = SenhaInscricao.objects.filter(
+        evento=evento,
+        status=SenhaInscricao.StatusSenha.NA_PISTA
+    ).first()
+
+    dados_conjunto = None
+    if conjunto_atual:
+        passadas = []
+        for p in conjunto_atual.passadas.all().order_by('numero_boi'):
+            passadas.append({
+                'numero_boi': p.numero_boi,
+                'julgamento_juiz': p.julgamento_juiz or '',
+                'julgamento_locutor': p.julgamento_locutor or '',
+                'pontos': p.pontos_obtidos
+            })
+
+        dados_conjunto = {
+            'id': str(conjunto_atual.id),
+            'numero_senha': conjunto_atual.numero_senha,
+            'categoria': conjunto_atual.categoria.nome_exibicao,
+            'total_pontos': conjunto_atual.total_pontos,
+            'status': conjunto_atual.status,
+            'vaqueiro_puxador': conjunto_atual.vaqueiro_puxador.apelido_locucao or conjunto_atual.vaqueiro_puxador.get_full_name(),
+            'cavalo_puxador': conjunto_atual.cavalo_puxador.nome if conjunto_atual.cavalo_puxador else '',
+            'vaqueiro_esteireiro': (conjunto_atual.vaqueiro_esteireiro.apelido_locucao or conjunto_atual.vaqueiro_esteireiro.get_full_name()) if conjunto_atual.vaqueiro_esteireiro else '',
+            'cavalo_esteireiro': conjunto_atual.cavalo_esteireiro.nome if conjunto_atual.cavalo_esteireiro else '',
+            'representacao': conjunto_atual.representacao,
+            'passadas': passadas
+        }
+
+    chat_historico = []
+    for c in ChatPista.objects.filter(evento=evento).exclude(tipo=ChatPista.TipoMensagem.ALERTA_SECRETARIA).order_by('-criado_em')[:8]:
+        chat_historico.append({
+            'remetente': c.remetente.apelido_locucao or c.remetente.username,
+            'mensagem': c.mensagem,
+            'hora': c.criado_em.strftime('%H:%M')
+        })
+
+    alertas = []
+    for a in ChatPista.objects.filter(evento=evento, tipo=ChatPista.TipoMensagem.ALERTA_SECRETARIA).order_by('-criado_em')[:5]:
+        alertas.append({
+            'mensagem': a.mensagem,
+            'hora': a.criado_em.strftime('%H:%M')
+        })
+
+    return JsonResponse({
+        'sucesso': True,
+        'conjunto_atual': dados_conjunto,
+        'chat': chat_historico,
+        'alertas': alertas
+    })
