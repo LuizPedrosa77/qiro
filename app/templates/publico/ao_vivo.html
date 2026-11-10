@@ -54,10 +54,10 @@
                     <div class="col-md-6">
                         <div class="text-secondary text-uppercase fw-bold" style="font-size: 0.85rem;">Vaqueiro Esteireiro</div>
                         <div class="display-6 fw-black text-white mt-1">
-                            {{ conjunto_atual.vaqueiro_esteireiro.apelido_locucao|default:conjunto_atual.vaqueiro_esteireiro.get_full_name }}
+                            {% if conjunto_atual.vaqueiro_esteireiro %}{{ conjunto_atual.vaqueiro_esteireiro.apelido_locucao|default:conjunto_atual.vaqueiro_esteireiro.get_full_name }}{% else %}A definir{% endif %}
                         </div>
                         <div class="fs-5 text-info fw-bold mt-2">
-                            <i class="bi bi-shield-fill me-1"></i> {{ conjunto_atual.cavalo_esteireiro.nome }}
+                            <i class="bi bi-shield-fill me-1"></i> {{ conjunto_atual.cavalo_esteireiro.nome|default:"A definir" }}
                         </div>
                     </div>
                 </div>

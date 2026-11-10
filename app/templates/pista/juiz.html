@@ -35,8 +35,8 @@
                     </div>
                     <div class="pt-2 border-top border-secondary border-opacity-25 mb-2">
                         <div class="text-secondary" style="font-size: 0.75rem;">Vaqueiro Esteireiro:</div>
-                        <div class="fs-6 fw-bold text-white">{{ conjunto_atual.vaqueiro_esteireiro.apelido_locucao|default:conjunto_atual.vaqueiro_esteireiro.get_full_name }}</div>
-                        <div class="text-info small">Cavalo Esteira: {{ conjunto_atual.cavalo_esteireiro.nome }}</div>
+                        <div class="fs-6 fw-bold text-white">{% if conjunto_atual.vaqueiro_esteireiro %}{{ conjunto_atual.vaqueiro_esteireiro.apelido_locucao|default:conjunto_atual.vaqueiro_esteireiro.get_full_name }}{% else %}A definir{% endif %}</div>
+                        <div class="text-info small">Cavalo Esteira: {{ conjunto_atual.cavalo_esteireiro.nome|default:"A definir" }}</div>
                     </div>
                     <div class="pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between">
                         <span class="text-secondary">Representação:</span>
