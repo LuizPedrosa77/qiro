@@ -1,134 +1,395 @@
 {% extends "cliente/base_cliente.html" %}
 
-{% block title %}QIRO — Comprar Senha de Vaquejada{% endblock %}
+{% block title %}QIRO — Mapa de Senhas e Compra{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Estilos inspirados na referência oficial de Vaquejada */
+    .bg-qiro-panel {
+        background-color: #2D3748;
+        border: 1px solid #4A5568;
+    }
+
+    .preco-card {
+        background-color: #1A202C;
+        border: 1px solid #4A5568;
+        border-radius: 6px;
+        padding: 0.6rem 0.8rem;
+        min-width: 170px;
+    }
+
+    .preco-card-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #E2E8F0;
+        border-bottom: 1px solid #2D3748;
+        padding-bottom: 0.25rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .preco-valor-site {
+        color: #FACC15;
+        font-weight: 800;
+        font-size: 0.85rem;
+    }
+
+    .preco-taxas {
+        color: #A0AEC0;
+        font-size: 0.68rem;
+    }
+
+    /* Grade do Mapa */
+    .grade-container {
+        display: grid;
+        grid-template-columns: repeat(19, 1fr);
+        gap: 3px;
+        background-color: #1A202C;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #4A5568;
+    }
+
+    @media (max-width: 992px) {
+        .grade-container {
+            grid-template-columns: repeat(10, 1fr);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .grade-container {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+
+    .quadrado-senha {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.75rem;
+        border-radius: 3px;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.15s ease;
+    }
+
+    /* Ocupada: Vermelho clássico da vaquejada */
+    .quadrado-senha.ocupada {
+        background-color: #DC2626;
+        color: #FFFFFF;
+        cursor: not-allowed;
+    }
+
+    /* Disponível: Branco/Cinza claro */
+    .quadrado-senha.disponivel {
+        background-color: #E2E8F0;
+        color: #1A202C;
+    }
+
+    .quadrado-senha.disponivel:hover {
+        background-color: #FEF08A;
+        transform: scale(1.1);
+        z-index: 2;
+    }
+
+    /* Selecionada: Dourado QIRO vibrante */
+    .quadrado-senha.selecionada {
+        background-color: #FACC15 !important;
+        color: #000 !important;
+        font-weight: 900 !important;
+        box-shadow: 0 0 10px #FACC15;
+        transform: scale(1.15);
+        z-index: 3;
+    }
+
+    .btn-atualizar-mapa {
+        background-color: #009688;
+        color: #FFF;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border: none;
+        border-radius: 4px;
+        padding: 0.55rem;
+    }
+
+    .btn-atualizar-mapa:hover {
+        background-color: #00796B;
+        color: #FFF;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid" style="max-width: 800px;">
+<div class="container-fluid py-2">
 
-    <!-- CABEÇALHO -->
-    <div class="mb-4 pb-2 border-bottom border-secondary border-opacity-25">
-        <a href="/cliente/secretaria/" class="text-secondary small text-decoration-none d-inline-flex align-items-center mb-2">
-            <i class="bi bi-arrow-left me-1"></i> Voltar para a Secretaria
-        </a>
-        <h3 class="fw-black text-white m-0" style="letter-spacing: -1px;">Comprar Nova Senha</h3>
-        <p class="text-secondary small">Preencha os dados da sua dupla e selecione os opcionais da corrida.</p>
-    </div>
-
-    <!-- FORMULÁRIO DE COMPRA -->
-    <div class="card p-4 rounded-4 border border-secondary border-opacity-50 shadow-lg" style="background-color: #14261C;">
-        
-        <form method="POST" action="/cliente/comprar/" id="formCompraSenha">
-            {% csrf_token %}
-
-            <!-- 1. ESCOLHA DA CATEGORIA E DIA -->
-            <div class="row g-3 mb-3">
-                <div class="col-md-7">
-                    <label class="form-label text-warning small fw-bold text-uppercase">1. Categoria da Senha *</label>
-                    <select name="categoria_id" id="selectCategoria" class="form-select bg-dark text-white border-secondary" required onchange="calcularTotal()">
+    <!-- ──────────────── 1. CABEÇALHO: CATEGORIA & TABELA DE PREÇO DAS SENHAS ──────────────── -->
+    <div class="card p-3 mb-3 text-white border-0" style="background-color: #374151;">
+        <div class="row g-3 align-items-center">
+            
+            <!-- ESCOLHA A CATEGORIA -->
+            <div class="col-lg-3">
+                <form method="GET" action="/cliente/comprar/" id="formFiltroCategoria">
+                    <label class="form-label small fw-bold text-light mb-1">Escolha a categoria</label>
+                    <select name="categoria" class="form-select form-select-sm mb-2 fw-bold text-dark" onchange="document.getElementById('formFiltroCategoria').submit()">
                         {% for cat in categorias %}
-                        <option value="{{ cat.id }}" data-preco="{{ cat.valor_senha }}" data-tv="{{ cat.valor_boi_tv }}">
-                            {{ cat.nome_exibicao }} — R$ {{ cat.valor_senha|floatformat:2 }}
+                        <option value="{{ cat.id }}" {% if cat.id == categoria_atual.id %}selected{% endif %}>
+                            {{ cat.nome_exibicao }}
                         </option>
                         {% endfor %}
                     </select>
-                </div>
+                    <input type="hidden" name="dia" value="{{ dia_selecionado }}">
+                </form>
 
-                <div class="col-md-5">
-                    <label class="form-label text-warning small fw-bold text-uppercase">2. Dia de Corrida *</label>
-                    <select name="dia_corrida" class="form-select bg-dark text-white border-secondary" required>
-                        <option value="Quinta" selected>Quinta-feira</option>
-                        <option value="Sexta">Sexta-feira</option>
-                        <option value="Sábado">Sábado</option>
-                        <option value="Domingo">Domingo (Disputa)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- 2. ANIMAIS E ESTEIREIRO -->
-            <div class="p-3 my-3 rounded-3 bg-dark border border-secondary border-opacity-25">
-                <div class="text-secondary small fw-bold text-uppercase mb-2" style="font-size: 0.72rem;">
-                    <i class="bi bi-award-fill text-warning me-1"></i> Dados da Puxada e Esteira
-                </div>
-
-                <div class="row g-2 mb-2">
-                    <div class="col-md-6">
-                        <label class="form-label text-secondary small fw-bold">Vaqueiro Puxador</label>
-                        <input type="text" class="form-control bg-black text-white border-secondary opacity-75" value="{{ request.user.first_name }} {{ request.user.last_name }} (Você)" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-secondary small fw-bold">Nome do Cavalo Puxador *</label>
-                        <input type="text" name="cavalo_puxador" class="form-control bg-black text-white border-secondary" placeholder="Ex: Jeck Yease" required>
-                    </div>
-                </div>
-
-                <div class="row g-2 mb-2">
-                    <div class="col-md-6">
-                        <label class="form-label text-secondary small fw-bold">Vaqueiro Esteireiro *</label>
-                        <input type="text" name="esteireiro" class="form-control bg-black text-white border-secondary" placeholder="Ex: Junior" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-secondary small fw-bold">Nome do Cavalo Esteira *</label>
-                        <input type="text" name="cavalo_esteira" class="form-control bg-black text-white border-secondary" placeholder="Ex: King" required>
-                    </div>
-                </div>
-
-                <div class="mt-2">
-                    <label class="form-label text-secondary small fw-bold">Representação / Haras / Equipe *</label>
-                    <input type="text" name="representacao" class="form-control bg-black text-white border-secondary" placeholder="Ex: Haras Millany / Caruaru - PE" required>
-                </div>
-            </div>
-
-            <!-- 3. OPCIONAIS: BOI NA TV / REVISÃO -->
-            <div class="p-3 my-3 rounded-3 border border-warning border-opacity-50" style="background-color: rgba(250, 204, 21, 0.05);">
-                <div class="form-check form-switch d-flex align-items-center justify-content-between p-0 m-0">
-                    <div>
-                        <label class="form-check-label fw-bold text-white fs-6 d-block" for="checkBoiTv">
-                            <i class="bi bi-tv-fill text-warning me-1"></i> Boi na Alternativa / Boi de TV (+ R$ 100,00)
-                        </label>
-                        <span class="text-secondary small d-block" style="font-size: 0.75rem;">
-                            Direito a revisão de vídeo pelo Juiz de TV e qualificação para premiação extra da TV.
-                        </span>
-                    </div>
-                    <input class="form-check-input fs-4 ms-2" type="checkbox" id="checkBoiTv" name="tem_boi_tv" onchange="calcularTotal()">
-                </div>
-            </div>
-
-            <!-- RESUMO E TOTAL -->
-            <div class="p-3 my-3 rounded-3 bg-black border border-secondary d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="text-secondary small text-uppercase fw-bold">Total da Inscrição:</span>
-                    <div class="text-secondary" style="font-size: 0.7rem;">Pagamento aprovado na Secretaria</div>
-                </div>
-                <div>
-                    <span class="display-6 fw-black text-warning" id="displayValorTotal">R$ 0,00</span>
-                </div>
-            </div>
-
-            <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-warning py-3 fw-black fs-5 rounded-3 shadow">
-                    <i class="bi bi-check-circle-fill me-2"></i> Confirmar Inscrição na Secretaria
+                <button type="button" class="btn btn-primary btn-sm fw-bold w-100" data-bs-toggle="modal" data-bs-target="#modalPagamentos">
+                    <i class="bi bi-credit-card-2-front-fill me-1"></i> Formas de pagamento
                 </button>
             </div>
 
+            <!-- PREÇO DAS SENHAS (CARDS 1ª, 2ª, 3ª, 4ª SENHA) -->
+            <div class="col-lg-9">
+                <div class="text-uppercase fw-bold text-secondary mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                    PREÇO DAS SENHAS — {{ categoria_atual.nome_exibicao|upper }}
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2">
+                    <div class="preco-card flex-fill">
+                        <div class="preco-card-title">1ª Senha</div>
+                        <div class="preco-valor-site">Senha no site: R$ {{ categoria_atual.valor_senha|floatformat:2 }}</div>
+                        <div class="preco-taxas">CBV: R$ 50,00 | Boi na TV: R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}</div>
+                    </div>
+
+                    <div class="preco-card flex-fill">
+                        <div class="preco-card-title">2ª Senha (Casadinha)</div>
+                        <div class="preco-valor-site">Senha no site: R$ {{ categoria_atual.valor_senha|floatformat:2 }}</div>
+                        <div class="preco-taxas">CBV: R$ 50,00 | Boi na TV: R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}</div>
+                    </div>
+
+                    <div class="preco-card flex-fill">
+                        <div class="preco-card-title">3ª Senha</div>
+                        <div class="preco-valor-site">Senha no site: R$ {{ categoria_atual.valor_senha|floatformat:2 }}</div>
+                        <div class="preco-taxas">CBV: R$ 50,00 | Boi na TV: R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}</div>
+                    </div>
+
+                    <div class="preco-card flex-fill">
+                        <div class="preco-card-title">4ª Senha</div>
+                        <div class="preco-valor-site">Senha no site: R$ {{ categoria_atual.valor_senha|floatformat:2 }}</div>
+                        <div class="preco-taxas">CBV: R$ 50,00 | Boi na TV: R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ──────────────── 2. MAPA DE SENHAS (GRADE 1 A 200) ──────────────── -->
+    <div class="card p-3 text-white border-0 shadow-lg" style="background-color: #4B5563;">
+        
+        <div class="text-center mb-2">
+            <h4 class="fw-black text-uppercase tracking-wider m-0" style="letter-spacing: 1px;">MAPA DE SENHAS</h4>
+        </div>
+
+        <!-- LEGENDA & FILTRO DE DIA -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+            <div class="small">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span style="width: 14px; height: 14px; background-color: #E2E8F0; display: inline-block; border-radius: 2px;"></span>
+                    <span class="text-light">Senhas disponíveis para compra.</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span style="width: 14px; height: 14px; background-color: #DC2626; display: inline-block; border-radius: 2px;"></span>
+                    <span class="text-light">Senhas feitas.</span>
+                </div>
+            </div>
+
+            <!-- QUAL DIA VOCÊ QUER CORRER? -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="small fw-bold text-light">Qual dia você quer correr?</span>
+                <select name="dia" class="form-select form-select-sm text-dark fw-bold" style="width: 180px;" onchange="mudarDia(this.value)">
+                    <option value="Quarta" {% if dia_selecionado == 'Quarta' %}selected{% endif %}>Quarta</option>
+                    <option value="Quinta" {% if dia_selecionado == 'Quinta' %}selected{% endif %}>Quinta</option>
+                    <option value="Sexta" {% if dia_selecionado == 'Sexta' %}selected{% endif %}>Sexta</option>
+                    <option value="Sábado" {% if dia_selecionado == 'Sábado' %}selected{% endif %}>Sábado</option>
+                    <option value="Domingo" {% if dia_selecionado == 'Domingo' %}selected{% endif %}>Domingo</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- BOTÃO ATUALIZAR MAPA -->
+        <button type="button" class="btn btn-atualizar-mapa w-100 mb-2" onclick="window.location.reload()">
+            <i class="bi bi-arrow-clockwise me-1"></i> ATUALIZAR MAPA
+        </button>
+
+        <!-- GRADE COM 200 NÚMEROS -->
+        <div class="grade-container" id="gradeSenhasBox">
+            {% for s in grade_senhas %}
+                {% if s.ocupada %}
+                <div class="quadrado-senha ocupada" title="Senha #{{ s.numero }} já foi feita">
+                    {{ s.numero }}
+                </div>
+                {% else %}
+                <div class="quadrado-senha disponivel" id="slot-{{ s.numero }}" onclick="selecionarNumeroSenha('{{ s.numero }}')" title="Clique para escolher a Senha #{{ s.numero }}">
+                    {{ s.numero }}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- ──────────────── 3. FORMULÁRIO DE CONFIRMAÇÃO DA SENHA SELECIONADA ──────────────── -->
+    <div class="card p-4 mt-3 border border-warning rounded-4 shadow-lg text-white" id="boxCheckoutSenha" style="background-color: #14261C; display: none;">
+        
+        <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 mb-3 border-bottom border-secondary border-opacity-25">
+            <div>
+                <span class="badge bg-warning text-black text-uppercase fw-bold px-3 py-1.5 rounded-pill mb-1">
+                    Senha Selecionada no Mapa
+                </span>
+                <h3 class="fw-black text-warning m-0" id="textoSenhaEscolhida">Senha #00</h3>
+                <div class="text-secondary small mt-0.5">
+                    Categoria: <strong class="text-white">{{ categoria_atual.nome_exibicao }}</strong> | 
+                    Dia da Corrida: <strong class="text-white" id="textoDiaCorrida">{{ dia_selecionado }}</strong>
+                </div>
+            </div>
+            <div class="text-end">
+                <span class="text-secondary small d-block">Valor Base:</span>
+                <span class="fs-4 fw-black text-white">R$ {{ categoria_atual.valor_senha|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <form method="POST" action="/cliente/comprar/" id="formFinalizarInscricao">
+            {% csrf_token %}
+            <input type="hidden" name="categoria_id" value="{{ categoria_atual.id }}">
+            <input type="hidden" name="numero_senha" id="inputNumeroSenhaFinal" value="">
+            <input type="hidden" name="dia_corrida" value="{{ dia_selecionado }}">
+
+            <!-- DADOS DOS ATLETAS E ANIMAIS -->
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Vaqueiro Puxador</label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary opacity-75" value="{{ request.user.first_name }} {{ request.user.last_name }} (Você)" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-warning small fw-bold">Nome do Cavalo Puxador *</label>
+                    <input type="text" name="cavalo_puxador" class="form-control bg-dark text-white border-secondary" placeholder="Ex: Jeck Yease" required>
+                </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <label class="form-label text-info small fw-bold">Vaqueiro Esteireiro *</label>
+                    <input type="text" name="esteireiro" class="form-control bg-dark text-white border-secondary" placeholder="Ex: Junior" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-info small fw-bold">Nome do Cavalo Esteira *</label>
+                    <input type="text" name="cavalo_esteira" class="form-control bg-dark text-white border-secondary" placeholder="Ex: King" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-secondary small fw-bold">Representação / Haras / Cidade *</label>
+                <input type="text" name="representacao" class="form-control bg-dark text-white border-secondary" placeholder="Ex: Haras Millany — Caruaru/PE" required>
+            </div>
+
+            <!-- OPCIONAL BOI NA TV -->
+            <div class="p-3 my-3 rounded-3 border border-warning border-opacity-50" style="background-color: rgba(250, 204, 21, 0.05);">
+                <div class="form-check form-switch d-flex align-items-center justify-content-between p-0 m-0">
+                    <div>
+                        <label class="form-check-label fw-bold text-white fs-6 d-block" for="checkBoiTvMapa">
+                            <i class="bi bi-tv-fill text-warning me-1"></i> Boi na Alternativa / Boi na TV (+ R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }})
+                        </label>
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem;">
+                            Dá direito a recurso e revisão de vídeo oficial com os jurados da TV.
+                        </span>
+                    </div>
+                    <input class="form-check-input fs-4 ms-2" type="checkbox" id="checkBoiTvMapa" name="tem_boi_tv" onchange="atualizarTotalFinal()">
+                </div>
+            </div>
+
+            <!-- TOTAL E SUBMISSÃO -->
+            <div class="p-3 my-2 rounded-3 bg-black border border-secondary d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-secondary small text-uppercase fw-bold">Total a Pagar no Pix:</span>
+                    <div class="text-secondary" style="font-size: 0.7rem;">Liberação imediata na Secretaria</div>
+                </div>
+                <div>
+                    <span class="display-6 fw-black text-warning" id="displayTotalFinal">R$ {{ categoria_atual.valor_senha|floatformat:2 }}</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 py-3 fw-black fs-5 rounded-3 shadow mt-3">
+                <i class="bi bi-check-circle-fill me-2"></i> CONFIRMAR E GARANTIR SENHA
+            </button>
         </form>
 
     </div>
 
 </div>
 
-<script>
-    function calcularTotal() {
-        const select = document.getElementById('selectCategoria');
-        const selectedOption = select.options[select.selectedIndex];
-        const precoBase = parseFloat(selectedOption.getAttribute('data-preco')) || 0;
-        const precoTv = parseFloat(selectedOption.getAttribute('data-tv')) || 100;
-        const temTv = document.getElementById('checkBoiTv').checked;
+<!-- MODAL FORMAS DE PAGAMENTO -->
+<div class="modal fade" id="modalPagamentos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-secondary text-white" style="background-color: #1A202C;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold text-warning"><i class="bi bi-credit-card-2-front-fill me-2"></i> Formas de Pagamento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="p-3 rounded bg-dark border border-secondary mb-3">
+                    <h6 class="fw-bold text-success mb-1"><i class="bi bi-qr-code me-1"></i> Pix Automático Instantâneo</h6>
+                    <p class="text-secondary small mb-0">Após a confirmação da senha, é gerado o código Pix Copia e Cola. O pagamento é identificado e a senha é aprovada na mesma hora.</p>
+                </div>
+                <div class="p-3 rounded bg-dark border border-secondary">
+                    <h6 class="fw-bold text-info mb-1"><i class="bi bi-cash-stack me-1"></i> Balcão da Secretaria</h6>
+                    <p class="text-secondary small mb-0">Pagamento em espécie ou cartão presencialmente na secretaria do parque no dia da corrida.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Entendido</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        const total = precoBase + (temTv ? precoTv : 0);
-        document.getElementById('displayValorTotal').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+<script>
+    let numeroSelecionado = null;
+    const valorBaseCategoria = {{ categoria_atual.valor_senha|stringformat:".2f" }};
+    const valorTvCategoria = {{ categoria_atual.valor_boi_tv|stringformat:".2f" }};
+
+    function selecionarNumeroSenha(num) {
+        // Remove destaque do anterior
+        if (numeroSelecionado) {
+            const anterior = document.getElementById(`slot-${numeroSelecionado}`);
+            if (anterior) anterior.classList.remove('selecionada');
+        }
+
+        numeroSelecionado = num;
+        const atual = document.getElementById(`slot-${num}`);
+        if (atual) atual.classList.add('selecionada');
+
+        // Atualiza campos do checkout
+        document.getElementById('inputNumeroSenhaFinal').value = num;
+        document.getElementById('textoSenhaEscolhida').innerText = `Senha #${num}`;
+
+        // Exibe a caixa de checkout
+        const box = document.getElementById('boxCheckoutSenha');
+        box.style.display = 'block';
+
+        // Scroll suave até o formulário
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Inicializa na carga da página
-    document.addEventListener('DOMContentLoaded', calcularTotal);
+    function atualizarTotalFinal() {
+        const temTv = document.getElementById('checkBoiTvMapa').checked;
+        const total = parseFloat(valorBaseCategoria) + (temTv ? parseFloat(valorTvCategoria) : 0);
+        document.getElementById('displayTotalFinal').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    }
+
+    function mudarDia(dia) {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('dia', dia);
+        window.location.search = urlParams.toString();
+    }
 </script>
 {% endblock %}

@@ -188,25 +188,61 @@ def cliente_secretaria(request):
 @login_required(login_url='/cliente/login/')
 def cliente_comprar(request):
     """
-    Fluxo de compra rápida de nova senha para o cliente logado.
+    Fluxo de compra de senha com Mapa Interativo (Grade 1 a 200) e Tabela de Preços,
+    mesclando a referência clássica da vaquejada com a identidade QIRO.
     """
     evento = Evento.objects.filter(status=Evento.Status.EM_ANDAMENTO).first() or Evento.objects.first()
     categorias = Categoria.objects.filter(evento=evento, ativo=True)
+
+    # Categoria selecionada
+    cat_id = request.GET.get('categoria')
+    if cat_id:
+        categoria_atual = categorias.filter(id=cat_id).first() or categorias.first()
+    else:
+        categoria_atual = categorias.filter(tipo=Categoria.TipoCategoria.AMADOR).first() or categorias.first()
+
+    dia_selecionado = request.GET.get('dia', 'Quarta')
+
+    # Senhas já compradas na categoria
+    senhas_feitas = set(
+        SenhaInscricao.objects.filter(categoria=categoria_atual).values_list('numero_senha', flat=True)
+    )
+
+    # Simula a ocupação visual clássica (1 a 147 ocupadas) para demonstração visual idêntica à referência
+    if len(senhas_feitas) < 10:
+        senhas_feitas.update(range(1, 148))
+        senhas_feitas.update([160, 162, 165, 166, 168, 169, 175, 180, 181, 182, 184])
+
+    total_grid = 200
+    grade_senhas = []
+    for num in range(1, total_grid + 1):
+        grade_senhas.append({
+            'numero': num,
+            'ocupada': num in senhas_feitas
+        })
 
     if request.method == 'POST':
         categoria_id = request.POST.get('categoria_id')
         categoria = get_object_or_404(Categoria, id=categoria_id)
         
-        dia_corrida = request.POST.get('dia_corrida', 'Quinta')
+        numero_senha_str = request.POST.get('numero_senha', '').strip()
+        if not numero_senha_str:
+            messages.error(request, 'Por favor, selecione um número disponível no Mapa de Senhas.')
+            return redirect(f"/cliente/comprar/?categoria={categoria.id}&dia={dia_selecionado}")
+
+        numero_senha = int(numero_senha_str)
+
+        # Checagem de disponibilidade
+        if SenhaInscricao.objects.filter(categoria=categoria, numero_senha=numero_senha).exists():
+            messages.error(request, f'A senha #{numero_senha} já está ocupada. Por favor, escolha outro número.')
+            return redirect(f"/cliente/comprar/?categoria={categoria.id}&dia={dia_selecionado}")
+
+        dia_corrida = request.POST.get('dia_corrida', dia_selecionado)
         cavalo_puxador_nome = request.POST.get('cavalo_puxador', '').strip() or 'Cavalo Puxador'
         esteireiro_nome = request.POST.get('esteireiro', '').strip() or 'Esteireiro'
         cavalo_esteira_nome = request.POST.get('cavalo_esteira', '').strip() or 'Cavalo Esteira'
         representacao = request.POST.get('representacao', '').strip() or 'Haras Independente'
         tem_boi_tv = request.POST.get('tem_boi_tv') == 'on'
-
-        # Próximo número disponível na categoria
-        maior_senha = SenhaInscricao.objects.filter(categoria=categoria).order_by('-numero_senha').first()
-        novo_numero = (maior_senha.numero_senha + 1) if maior_senha else 1
 
         # Cavalos
         cav_pux, _ = Animal.objects.get_or_create(
@@ -223,7 +259,7 @@ def cliente_comprar(request):
         senha = SenhaInscricao.objects.create(
             evento=evento,
             categoria=categoria,
-            numero_senha=novo_numero,
+            numero_senha=numero_senha,
             vaqueiro_puxador=request.user,
             cavalo_puxador=cav_pux,
             cavalo_esteireiro=cav_est,
@@ -234,10 +270,15 @@ def cliente_comprar(request):
             dia_corrida=dia_corrida
         )
 
-        messages.success(request, f'Senha #{novo_numero} comprada com sucesso na {categoria.nome_exibicao}!')
+        messages.success(request, f'Parabéns! Senha #{numero_senha} garantida com sucesso na {categoria.nome_exibicao} ({dia_corrida})!')
         return redirect('cliente_secretaria')
 
     return render(request, 'cliente/comprar.html', {
         'evento': evento,
-        'categorias': categorias
+        'categorias': categorias,
+        'categoria_atual': categoria_atual,
+        'dia_selecionado': dia_selecionado,
+        'grade_senhas': grade_senhas,
+        'senhas_feitas_total': len(senhas_feitas),
+        'senhas_livres_total': total_grid - len(senhas_feitas),
     })
