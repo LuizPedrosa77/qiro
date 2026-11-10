@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}QIRO — Área do Cliente{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --qiro-dark: #0F1F17;
+            --qiro-green: #192D21;
+            --qiro-green-light: #244432;
+            --qiro-card-bg: #14261C;
+            --qiro-border: #254231;
+            --qiro-yellow: #FACC15;
+            --qiro-neutral: #BCB9B5;
+            --qiro-white: #FBFBFB;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--qiro-dark);
+            color: var(--qiro-white);
+            min-height: 100vh;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            background-color: var(--qiro-green);
+            border-bottom: 1px solid var(--qiro-border);
+            height: 64px;
+        }
+
+        /* Sidebar Offcanvas & Desktop */
+        .sidebar-qiro {
+            background-color: #122119;
+            border-right: 1px solid var(--qiro-border);
+            width: 270px;
+            min-height: calc(100vh - 64px);
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.85rem 1.25rem;
+            color: #9CA3AF;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 12px;
+            margin: 0.2rem 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link:hover {
+            background-color: #1A3426;
+            color: #FFF;
+        }
+
+        .sidebar-link.active {
+            background-color: var(--qiro-yellow);
+            color: #000;
+            font-weight: 800;
+        }
+
+        .sidebar-link.active i {
+            color: #000 !important;
+        }
+
+        .badge-qiro {
+            background-color: #1F3A2B;
+            color: var(--qiro-yellow);
+            border: 1px solid var(--qiro-border);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- TOP NAVBAR -->
+    <header class="top-navbar px-3 px-md-4 d-flex align-items-center justify-content-between sticky-top shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+            <!-- Botão Menu Mobile (Offcanvas) -->
+            <button class="btn btn-dark d-lg-none border-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+
+            <!-- Logo QIRO -->
+            <a href="/" class="d-flex align-items-center text-decoration-none text-white gap-2">
+                <svg viewBox="0 0 100 80" style="width: 32px; height: 28px;" fill="#BCB9B5">
+                    <path d="M75 10 C70 5, 55 12, 45 22 C40 27, 30 25, 25 35 C20 45, 22 55, 18 65 C17 68, 14 72, 12 75 L20 75 C24 68, 26 58, 28 50 C35 48, 45 52, 55 45 C65 38, 70 28, 75 22 C78 18, 82 15, 80 12 Z" />
+                    <path d="M55 45 L62 75 L70 75 L62 48 L75 48 L85 75 L93 75 L80 40 C75 35, 68 40, 55 45 Z" />
+                </svg>
+                <span class="fs-4 fw-black tracking-tight" style="letter-spacing: -1.5px;">qiro</span>
+            </a>
+
+            <!-- Evento Ativo -->
+            {% if evento %}
+            <div class="d-none d-md-block ms-2 ps-3 border-start border-secondary border-opacity-25">
+                <span class="badge badge-qiro px-2.5 py-1 rounded-pill small">
+                    <i class="bi bi-trophy-fill me-1"></i> {{ evento.nome }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Usuário Logado & Logout -->
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-end d-none d-sm-block">
+                <div class="small fw-bold text-white">{{ request.user.first_name|default:request.user.username }}</div>
+                <div class="text-secondary" style="font-size: 0.7rem;">Vaqueiro / Competidor</div>
+            </div>
+            <a href="/cliente/logout/" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" title="Sair da conta">
+                <i class="bi bi-box-arrow-right me-1"></i> Sair
+            </a>
+        </div>
+    </header>
+
+    <div class="d-flex">
+        
+        <!-- SIDEBAR DESKTOP (FIXA) -->
+        <aside class="sidebar-qiro d-none d-lg-block py-3">
+            <div class="px-3 mb-3">
+                <div class="text-secondary text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                    Navegação do Vaqueiro
+                </div>
+            </div>
+
+            <nav class="nav flex-column">
+                <a href="/cliente/secretaria/" class="sidebar-link {% if request.path == '/cliente/secretaria/' %}active{% endif %}">
+                    <i class="bi bi-building fs-5 text-warning"></i>
+                    <span>Secretaria</span>
+                </a>
+
+                <a href="/cliente/comprar/" class="sidebar-link {% if request.path == '/cliente/comprar/' %}active{% endif %}">
+                    <i class="bi bi-plus-circle-fill fs-5 text-success"></i>
+                    <span>Comprar Senhas</span>
+                </a>
+
+                <a href="/publico/ao-vivo/" class="sidebar-link" target="_blank">
+                    <i class="bi bi-broadcast fs-5 text-info"></i>
+                    <span>Telão da Pista <i class="bi bi-box-arrow-up-right ms-auto small"></i></span>
+                </a>
+            </nav>
+
+            <div class="px-3 mt-5 pt-4 border-top border-secondary border-opacity-10 text-center">
+                <div class="p-3 rounded-4 bg-dark border border-secondary border-opacity-25">
+                    <i class="bi bi-whatsapp text-success fs-3 mb-1 d-block"></i>
+                    <div class="fw-bold small text-white">Suporte ao Vaqueiro</div>
+                    <div class="text-secondary" style="font-size: 0.7rem;">Dúvidas com suas senhas? Fale com a secretaria do evento.</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- SIDEBAR MOBILE (OFFCANVAS) -->
+        <div class="offcanvas offcanvas-start bg-dark text-white border-end border-secondary" tabindex="-1" id="sidebarOffcanvas" style="width: 280px; background-color: #122119 !important;">
+            <div class="offcanvas-header border-bottom border-secondary border-opacity-25">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-4 fw-black text-warning">qiro</span>
+                    <span class="badge bg-secondary small">Vaqueiro</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body p-0 py-3">
+                <nav class="nav flex-column">
+                    <a href="/cliente/secretaria/" class="sidebar-link {% if request.path == '/cliente/secretaria/' %}active{% endif %}">
+                        <i class="bi bi-building fs-5 text-warning"></i>
+                        <span>Secretaria</span>
+                    </a>
+                    <a href="/cliente/comprar/" class="sidebar-link {% if request.path == '/cliente/comprar/' %}active{% endif %}">
+                        <i class="bi bi-plus-circle-fill fs-5 text-success"></i>
+                        <span>Comprar Senhas</span>
+                    </a>
+                    <a href="/publico/ao-vivo/" class="sidebar-link" target="_blank">
+                        <i class="bi bi-broadcast fs-5 text-info"></i>
+                        <span>Telão da Pista</span>
+                    </a>
+                    <div class="border-top border-secondary border-opacity-25 my-3 mx-3"></div>
+                    <a href="/cliente/logout/" class="sidebar-link text-danger">
+                        <i class="bi bi-box-arrow-right fs-5"></i>
+                        <span>Sair da Conta</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="flex-grow-1 p-3 p-md-4" style="background-color: var(--qiro-dark); min-height: calc(100vh - 64px);">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

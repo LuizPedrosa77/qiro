@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QIRO — Acesso da Equipe Operacional</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --qiro-dark: #070e0a;
+            --qiro-green: #192D21;
+            --qiro-yellow: #FACC15;
+            --qiro-white: #FBFBFB;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at 50% 20%, #15291e 0%, #070e0a 80%);
+            color: var(--qiro-white);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-card {
+            background: #0d1a13;
+            border: 1px solid #1f3b2b;
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
+        }
+
+        .form-control {
+            background-color: #050b07;
+            border: 1px solid #1f3b2b;
+            color: #FFF;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+        }
+
+        .form-control:focus {
+            background-color: #050b07;
+            border-color: #22c55e;
+            color: #FFF;
+            box-shadow: 0 0 0 0.25rem rgba(34, 197, 94, 0.2);
+        }
+
+        .btn-green-glow {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: #FFF;
+            font-weight: 800;
+            border: none;
+            border-radius: 12px;
+            padding: 0.85rem;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .btn-green-glow:hover {
+            background: #22c55e;
+            color: #FFF;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        
+        <!-- VOLTAR -->
+        <a href="/" class="text-secondary small text-decoration-none d-inline-flex align-items-center mb-4">
+            <i class="bi bi-arrow-left me-1"></i> Voltar ao Início
+        </a>
+
+        <!-- LOGO & TÍTULO -->
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center gap-2 mb-2">
+                <span class="fs-2 fw-black text-white" style="letter-spacing: -1.5px;">qiro</span>
+                <span class="badge bg-danger text-uppercase px-2 py-1" style="font-size: 0.65rem;">Interno</span>
+            </div>
+            <h4 class="fw-black text-white m-0">Console da Equipe</h4>
+            <p class="text-secondary small">Acesso de locução, julgamento de pista e secretaria geral</p>
+        </div>
+
+        <!-- MENSAGENS -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} small py-2 rounded-3 mb-3" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- FORMULÁRIO -->
+        <form method="POST" action="/equipe/login/">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label text-secondary small fw-bold">Usuário ou E-mail</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-shield-person"></i></span>
+                    <input type="text" name="usuario" class="form-control" placeholder="admin ou usuário da pista" required autofocus>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-secondary small fw-bold">Senha Operacional</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-key-fill"></i></span>
+                    <input type="password" name="senha" class="form-control" placeholder="Digite sua senha" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-green-glow fs-6 mb-3">
+                <i class="bi bi-lock-fill me-2"></i> Acessar Painel Operacional
+            </button>
+        </form>
+
+        <div class="p-2.5 rounded-3 bg-dark border border-secondary border-opacity-25 text-center mt-3">
+            <span class="text-secondary small d-block" style="font-size: 0.72rem;">
+                Acesso exclusivo para profissionais credenciados da vaquejada.
+            </span>
+        </div>
+
+    </div>
+
+</body>
+</html>

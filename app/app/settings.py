@@ -84,6 +84,11 @@ DATABASES = {
 # Modelo de Usuário Customizado (RBAC)
 AUTH_USER_MODEL = 'contas.Usuario'
 
+AUTHENTICATION_BACKENDS = [
+    'contas.backends.EmailOrCPFBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},

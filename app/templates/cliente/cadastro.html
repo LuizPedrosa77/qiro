@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QIRO — Cadastro de Vaqueiro / Cliente</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --qiro-dark: #0F1F17;
+            --qiro-green: #192D21;
+            --qiro-yellow: #FACC15;
+            --qiro-neutral: #BCB9B5;
+            --qiro-white: #FBFBFB;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at 50% 10%, #1c3829 0%, #0F1F17 60%, #070e0a 100%);
+            color: var(--qiro-white);
+            min-height: 100vh;
+            padding: 2.5rem 1rem;
+        }
+
+        .auth-card {
+            background: #14261C;
+            border: 1px solid #254231;
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 650px;
+            margin: 0 auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .form-control, .form-select {
+            background-color: #0F1F17;
+            border: 1px solid #254231;
+            color: #FFF;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #0F1F17;
+            border-color: var(--qiro-yellow);
+            color: #FFF;
+            box-shadow: 0 0 0 0.25rem rgba(250, 204, 21, 0.2);
+        }
+
+        .section-title {
+            color: var(--qiro-yellow);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #254231;
+            padding-bottom: 0.4rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-yellow-glow {
+            background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
+            color: #000;
+            font-weight: 800;
+            border: none;
+            border-radius: 12px;
+            padding: 0.9rem;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .btn-yellow-glow:hover {
+            background: #FDE047;
+            color: #000;
+            transform: scale(1.01);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        
+        <!-- VOLTAR -->
+        <a href="/cliente/login/" class="text-secondary small text-decoration-none d-inline-flex align-items-center mb-3">
+            <i class="bi bi-arrow-left me-1"></i> Já tem conta? Ir para Login
+        </a>
+
+        <!-- LOGO & TÍTULO -->
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center gap-2 mb-2">
+                <svg viewBox="0 0 100 80" style="width: 36px; height: 32px;" fill="#BCB9B5">
+                    <path d="M75 10 C70 5, 55 12, 45 22 C40 27, 30 25, 25 35 C20 45, 22 55, 18 65 C17 68, 14 72, 12 75 L20 75 C24 68, 26 58, 28 50 C35 48, 45 52, 55 45 C65 38, 70 28, 75 22 C78 18, 82 15, 80 12 Z" />
+                    <path d="M55 45 L62 75 L70 75 L62 48 L75 48 L85 75 L93 75 L80 40 C75 35, 68 40, 55 45 Z" />
+                </svg>
+                <span class="fs-2 fw-black" style="letter-spacing: -1.5px;">qiro</span>
+            </div>
+            <h4 class="fw-black text-white m-0">Cadastro do Vaqueiro</h4>
+            <p class="text-secondary small">Preencha seus dados para habilitar a compra de senhas e inscrições</p>
+        </div>
+
+        <!-- MENSAGENS -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} small py-2 rounded-3 mb-3" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- FORMULÁRIO COMPLETO -->
+        <form method="POST" action="/cliente/cadastro/">
+            {% csrf_token %}
+
+            <!-- DADOS PESSOAIS -->
+            <div class="section-title"><i class="bi bi-person-lines-fill me-1"></i> 1. Dados Pessoais</div>
+
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Primeiro Nome *</label>
+                    <input type="text" name="nome" class="form-control" placeholder="Ex: Kleber" required value="{{ dados.nome|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Sobrenome Completo *</label>
+                    <input type="text" name="sobrenome" class="form-control" placeholder="Ex: Leite Silva" required value="{{ dados.sobrenome|default:'' }}">
+                </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">CPF *</label>
+                    <input type="text" id="cpfInput" name="cpf" class="form-control" placeholder="000.000.000-00" required value="{{ dados.cpf|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Data de Nascimento *</label>
+                    <input type="date" name="data_nascimento" class="form-control" required value="{{ dados.data_nascimento|default:'' }}">
+                </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">E-mail *</label>
+                    <input type="email" name="email" class="form-control" placeholder="seu@email.com" required value="{{ dados.email|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Telefone / WhatsApp *</label>
+                    <input type="text" id="telInput" name="telefone" class="form-control" placeholder="(00) 00000-0000" required value="{{ dados.telefone|default:'' }}">
+                </div>
+            </div>
+
+            <!-- ENDEREÇO COMPLETO -->
+            <div class="section-title"><i class="bi bi-geo-alt-fill me-1"></i> 2. Endereço Completo</div>
+
+            <div class="row g-2 mb-2">
+                <div class="col-md-4">
+                    <label class="form-label text-secondary small fw-bold">CEP *</label>
+                    <input type="text" id="cepInput" name="cep" class="form-control" placeholder="00000-000" required value="{{ dados.cep|default:'' }}" onblur="buscarCep(this.value)">
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label text-secondary small fw-bold">Rua / Logradouro *</label>
+                    <input type="text" id="ruaInput" name="endereco" class="form-control" placeholder="Rua das Acácias" required value="{{ dados.endereco|default:'' }}">
+                </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+                <div class="col-md-4">
+                    <label class="form-label text-secondary small fw-bold">Número *</label>
+                    <input type="text" name="numero" class="form-control" placeholder="123 ou S/N" required value="{{ dados.numero|default:'' }}">
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label text-secondary small fw-bold">Bairro *</label>
+                    <input type="text" id="bairroInput" name="bairro" class="form-control" placeholder="Centro" required value="{{ dados.bairro|default:'' }}">
+                </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-8">
+                    <label class="form-label text-secondary small fw-bold">Cidade *</label>
+                    <input type="text" id="cidadeInput" name="cidade" class="form-control" placeholder="Caruaru" required value="{{ dados.cidade|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-secondary small fw-bold">Estado (UF) *</label>
+                    <input type="text" id="ufInput" name="estado" class="form-control text-uppercase" maxlength="2" placeholder="PE" required value="{{ dados.estado|default:'' }}">
+                </div>
+            </div>
+
+            <!-- SEGURANÇA -->
+            <div class="section-title"><i class="bi bi-shield-lock-fill me-1"></i> 3. Senha de Acesso</div>
+
+            <div class="row g-2 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Criar Senha *</label>
+                    <input type="password" name="senha" class="form-control" placeholder="Mínimo 6 dígitos" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small fw-bold">Confirmar Senha *</label>
+                    <input type="password" name="confirmar_senha" class="form-control" placeholder="Repita a senha" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-yellow-glow fs-6">
+                <i class="bi bi-check-circle-fill me-2"></i> Finalizar Cadastro e Entrar
+            </button>
+        </form>
+
+    </div>
+
+    <!-- MÁSCARAS E BUSCA DE CEP -->
+    <script>
+        // Máscara CPF
+        document.getElementById('cpfInput').addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+            else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+            else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+            e.target.value = v;
+        });
+
+        // Máscara Telefone
+        document.getElementById('telInput').addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 10) v = v.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            else if (v.length > 6) v = v.replace(/^(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            else if (v.length > 2) v = v.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            e.target.value = v;
+        });
+
+        // Máscara CEP
+        document.getElementById('cepInput').addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 8);
+            if (v.length > 5) v = v.replace(/^(\d{5})(\d{1,3})/, '$1-$2');
+            e.target.value = v;
+        });
+
+        // Busca automática ViaCEP
+        function buscarCep(valor) {
+            const cep = valor.replace(/\D/g, '');
+            if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(res => res.json())
+                    .then(dados => {
+                        if (!dados.erro) {
+                            document.getElementById('ruaInput').value = dados.logradouro || '';
+                            document.getElementById('bairroInput').value = dados.bairro || '';
+                            document.getElementById('cidadeInput').value = dados.localidade || '';
+                            document.getElementById('ufInput').value = dados.uf || '';
+                        }
+                    })
+                    .catch(() => {});
+            }
+        }
+    </script>
+</body>
+</html>

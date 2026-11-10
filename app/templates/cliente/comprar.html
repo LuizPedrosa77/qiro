@@ -1,0 +1,134 @@
+{% extends "cliente/base_cliente.html" %}
+
+{% block title %}QIRO — Comprar Senha de Vaquejada{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 800px;">
+
+    <!-- CABEÇALHO -->
+    <div class="mb-4 pb-2 border-bottom border-secondary border-opacity-25">
+        <a href="/cliente/secretaria/" class="text-secondary small text-decoration-none d-inline-flex align-items-center mb-2">
+            <i class="bi bi-arrow-left me-1"></i> Voltar para a Secretaria
+        </a>
+        <h3 class="fw-black text-white m-0" style="letter-spacing: -1px;">Comprar Nova Senha</h3>
+        <p class="text-secondary small">Preencha os dados da sua dupla e selecione os opcionais da corrida.</p>
+    </div>
+
+    <!-- FORMULÁRIO DE COMPRA -->
+    <div class="card p-4 rounded-4 border border-secondary border-opacity-50 shadow-lg" style="background-color: #14261C;">
+        
+        <form method="POST" action="/cliente/comprar/" id="formCompraSenha">
+            {% csrf_token %}
+
+            <!-- 1. ESCOLHA DA CATEGORIA E DIA -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-7">
+                    <label class="form-label text-warning small fw-bold text-uppercase">1. Categoria da Senha *</label>
+                    <select name="categoria_id" id="selectCategoria" class="form-select bg-dark text-white border-secondary" required onchange="calcularTotal()">
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id }}" data-preco="{{ cat.valor_senha }}" data-tv="{{ cat.valor_boi_tv }}">
+                            {{ cat.nome_exibicao }} — R$ {{ cat.valor_senha|floatformat:2 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-5">
+                    <label class="form-label text-warning small fw-bold text-uppercase">2. Dia de Corrida *</label>
+                    <select name="dia_corrida" class="form-select bg-dark text-white border-secondary" required>
+                        <option value="Quinta" selected>Quinta-feira</option>
+                        <option value="Sexta">Sexta-feira</option>
+                        <option value="Sábado">Sábado</option>
+                        <option value="Domingo">Domingo (Disputa)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 2. ANIMAIS E ESTEIREIRO -->
+            <div class="p-3 my-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+                <div class="text-secondary small fw-bold text-uppercase mb-2" style="font-size: 0.72rem;">
+                    <i class="bi bi-award-fill text-warning me-1"></i> Dados da Puxada e Esteira
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Vaqueiro Puxador</label>
+                        <input type="text" class="form-control bg-black text-white border-secondary opacity-75" value="{{ request.user.first_name }} {{ request.user.last_name }} (Você)" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Nome do Cavalo Puxador *</label>
+                        <input type="text" name="cavalo_puxador" class="form-control bg-black text-white border-secondary" placeholder="Ex: Jeck Yease" required>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Vaqueiro Esteireiro *</label>
+                        <input type="text" name="esteireiro" class="form-control bg-black text-white border-secondary" placeholder="Ex: Junior" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Nome do Cavalo Esteira *</label>
+                        <input type="text" name="cavalo_esteira" class="form-control bg-black text-white border-secondary" placeholder="Ex: King" required>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <label class="form-label text-secondary small fw-bold">Representação / Haras / Equipe *</label>
+                    <input type="text" name="representacao" class="form-control bg-black text-white border-secondary" placeholder="Ex: Haras Millany / Caruaru - PE" required>
+                </div>
+            </div>
+
+            <!-- 3. OPCIONAIS: BOI NA TV / REVISÃO -->
+            <div class="p-3 my-3 rounded-3 border border-warning border-opacity-50" style="background-color: rgba(250, 204, 21, 0.05);">
+                <div class="form-check form-switch d-flex align-items-center justify-content-between p-0 m-0">
+                    <div>
+                        <label class="form-check-label fw-bold text-white fs-6 d-block" for="checkBoiTv">
+                            <i class="bi bi-tv-fill text-warning me-1"></i> Boi na Alternativa / Boi de TV (+ R$ 100,00)
+                        </label>
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem;">
+                            Direito a revisão de vídeo pelo Juiz de TV e qualificação para premiação extra da TV.
+                        </span>
+                    </div>
+                    <input class="form-check-input fs-4 ms-2" type="checkbox" id="checkBoiTv" name="tem_boi_tv" onchange="calcularTotal()">
+                </div>
+            </div>
+
+            <!-- RESUMO E TOTAL -->
+            <div class="p-3 my-3 rounded-3 bg-black border border-secondary d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-secondary small text-uppercase fw-bold">Total da Inscrição:</span>
+                    <div class="text-secondary" style="font-size: 0.7rem;">Pagamento aprovado na Secretaria</div>
+                </div>
+                <div>
+                    <span class="display-6 fw-black text-warning" id="displayValorTotal">R$ 0,00</span>
+                </div>
+            </div>
+
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-warning py-3 fw-black fs-5 rounded-3 shadow">
+                    <i class="bi bi-check-circle-fill me-2"></i> Confirmar Inscrição na Secretaria
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+    function calcularTotal() {
+        const select = document.getElementById('selectCategoria');
+        const selectedOption = select.options[select.selectedIndex];
+        const precoBase = parseFloat(selectedOption.getAttribute('data-preco')) || 0;
+        const precoTv = parseFloat(selectedOption.getAttribute('data-tv')) || 100;
+        const temTv = document.getElementById('checkBoiTv').checked;
+
+        const total = precoBase + (temTv ? precoTv : 0);
+        document.getElementById('displayValorTotal').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    }
+
+    // Inicializa na carga da página
+    document.addEventListener('DOMContentLoaded', calcularTotal);
+</script>
+{% endblock %}
