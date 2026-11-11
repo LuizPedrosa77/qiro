@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 class Usuario(AbstractUser):
     class Papel(models.TextChoices):
         ADMIN = 'ADMIN', 'Administrador da Plataforma'
+        COORDENADOR = 'COORDENADOR', 'Coordenador do Evento'
         ORGANIZADOR = 'ORGANIZADOR', 'Organizador do Evento'
         SECRETARIA = 'SECRETARIA', 'Operador da Secretaria'
         LOCUTOR = 'LOCUTOR', 'Locutor Oficial'

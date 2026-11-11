@@ -13,39 +13,30 @@ from competidores.models import Animal
 
 def tela_inicial(request):
     """
-    Vitrine Oficial de Vaquejadas do Brasil — QIRO.
-    Exibe todas as vaquejadas disponíveis com filtros por estado e busca,
-    com visual profissional e autêntico de vaquejada nordestina (sem cara de IA).
+    Tela Inicial QIRO (Conforme Imagem 1 do Usuário).
+    - Topbar com Início, Quem Somos, Vaquejada, Comprar Senha e botões destacados Login / Cadastrar.
+    - Seletor de Estado no Centro: AL, BA, CE, PE, RN, SE e TODOS ESTADOS.
+    - Vitrine com exatamente 3 vaquejadas em destaque.
+    - Botão verde 'Mais vaquejadas' levando para o catálogo completo.
+    - Rodapé com botão destacado 'Área restrita ao Parque'.
     """
-    busca = request.GET.get('busca', '').strip()
     estado_filtro = request.GET.get('estado', '').strip().upper()
 
-    eventos = Evento.objects.filter(
+    eventos_qs = Evento.objects.filter(
         status__in=[Evento.Status.INSCRICOES, Evento.Status.EM_ANDAMENTO]
     ).select_related('parque').prefetch_related('categorias').order_by('data_inicio')
 
-    if busca:
-        eventos = eventos.filter(
-            Q(nome__icontains=busca) |
-            Q(parque__nome__icontains=busca) |
-            Q(parque__cidade__icontains=busca) |
-            Q(circuito_chancela__icontains=busca)
-        )
-
     if estado_filtro and estado_filtro != 'TODOS':
-        eventos = eventos.filter(parque__estado=estado_filtro)
+        eventos_qs = eventos_qs.filter(parque__estado=estado_filtro)
 
-    # Estados com vaquejadas ativas
-    estados_disponiveis = Evento.objects.filter(
-        status__in=[Evento.Status.INSCRICOES, Evento.Status.EM_ANDAMENTO]
-    ).values_list('parque__estado', flat=True).distinct().order_by('parque__estado')
+    eventos_destaque = eventos_qs[:3]
+    estados_principais = ['AL', 'BA', 'CE', 'PE', 'RN', 'SE']
 
     return render(request, 'home.html', {
-        'eventos': eventos,
-        'estados_disponiveis': estados_disponiveis,
+        'eventos_destaque': eventos_destaque,
+        'estados_principais': estados_principais,
         'estado_selecionado': estado_filtro,
-        'busca': busca,
-        'total_vaquejadas': eventos.count(),
+        'total_vaquejadas': Evento.objects.filter(status__in=[Evento.Status.INSCRICOES, Evento.Status.EM_ANDAMENTO]).count(),
     })
 
 
@@ -165,26 +156,37 @@ def cliente_logout(request):
 
 def equipe_login(request):
     """
-    Login de acesso restrito da Equipe (Locutores, Juízes, Secretaria Geral, Organizador).
+    Login de acesso restrito da Equipe e Administração:
+    - ADM (Sua Conta): Acesso irrestrito e redirecionamento para o cadastro/gestão de eventos e equipes.
+    - Coordenador do Evento (Proprietário): Acesso ao dashboard financeiro e relatórios do seu evento.
+    - Locutor: Acesso à cabine de locução e fila de chamada.
+    - Juiz: Acesso ao terminal de notas e TV.
+    - Secretaria: Acesso ao mapa de senhas.
     """
     if request.method == 'POST':
         usuario_str = request.POST.get('usuario', '').strip()
         senha = request.POST.get('senha', '')
 
         user = authenticate(request, username=usuario_str, password=senha)
-        if user is not None and user.papel in [
-            Usuario.Papel.LOCUTOR, Usuario.Papel.JUIZ, Usuario.Papel.SECRETARIA,
-            Usuario.Papel.ORGANIZADOR, Usuario.Papel.ADMIN
-        ]:
+        if user is not None and (
+            user.is_superuser or user.papel in [
+                Usuario.Papel.ADMIN, Usuario.Papel.COORDENADOR, Usuario.Papel.ORGANIZADOR,
+                Usuario.Papel.LOCUTOR, Usuario.Papel.JUIZ, Usuario.Papel.SECRETARIA
+            ]
+        ):
             login(request, user)
-            if user.papel == Usuario.Papel.LOCUTOR:
+            if user.is_superuser or user.papel == Usuario.Papel.ADMIN:
+                return redirect('/eventos/cadastrar/')
+            elif user.papel in [Usuario.Papel.COORDENADOR, Usuario.Papel.ORGANIZADOR]:
+                return redirect('/coordenador/')
+            elif user.papel == Usuario.Papel.LOCUTOR:
                 return redirect('/pista/locutor/')
             elif user.papel == Usuario.Papel.JUIZ:
                 return redirect('/pista/juiz/')
             else:
                 return redirect('/senhas/mapa/')
         else:
-            messages.error(request, 'Credenciais inválidas ou você não possui permissão de equipe.')
+            messages.error(request, 'Credenciais inválidas ou você não possui permissão de acesso restrito.')
 
     return render(request, 'equipe/login.html')
 

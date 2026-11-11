@@ -53,6 +53,26 @@ class Evento(models.Model):
         on_delete=models.PROTECT,
         related_name='eventos_organizados'
     )
+    
+    # Equipe Oficial Vinculada ao Evento
+    coordenadores = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='eventos_coordenados',
+        blank=True,
+        help_text="Proprietários / Coordenadores do evento com acesso aos relatórios"
+    )
+    locutores = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='eventos_locucao',
+        blank=True,
+        help_text="Locutores escalados para a transmissão e pista"
+    )
+    juizes = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='eventos_julgamento',
+        blank=True,
+        help_text="Juízes de pista e cabine de TV"
+    )
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:

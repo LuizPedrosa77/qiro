@@ -132,9 +132,14 @@
             </div>
 
             <nav class="nav flex-column">
+                <a href="/vaquejadas/" class="sidebar-link {% if request.path == '/vaquejadas/' %}active{% endif %}">
+                    <i class="bi bi-grid-fill fs-5 text-warning"></i>
+                    <span>Todas as Vaquejadas</span>
+                </a>
+
                 <a href="/cliente/secretaria/" class="sidebar-link {% if request.path == '/cliente/secretaria/' %}active{% endif %}">
                     <i class="bi bi-building fs-5 text-warning"></i>
-                    <span>Secretaria</span>
+                    <span>Minhas Senhas (Secretaria)</span>
                 </a>
 
                 <a href="/cliente/comprar/" class="sidebar-link {% if request.path == '/cliente/comprar/' %}active{% endif %}">

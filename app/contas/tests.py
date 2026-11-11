@@ -37,12 +37,13 @@ class ClienteFluxoTestCase(TestCase):
         )
 
     def test_tela_inicial_carrega_com_dois_botoes(self):
-        """Verifica se a tela inicial carrega a vitrine de vaquejadas e botões de acesso."""
+        """Verifica se a tela inicial carrega a vitrine de vaquejadas e botões oficiais conforme nova UI."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Vaquejadas com Inscrições Abertas')
-        self.assertContains(response, 'Minhas Senhas / Secretaria')
-        self.assertContains(response, 'Área da Pista')
+        self.assertContains(response, 'QUAL O ESTADO DA VAQUEJADA?')
+        self.assertContains(response, 'COMPRAR SENHA')
+        self.assertContains(response, 'Área restrita ao Parque')
+        self.assertContains(response, 'Mais vaquejadas')
         self.assertContains(response, '1ª Grande Vaquejada Parque Millany')
 
     def test_cadastro_completo_vaqueiro(self):
