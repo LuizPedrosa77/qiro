@@ -124,6 +124,25 @@
 {% block content %}
 <div class="container-fluid py-2">
 
+    <!-- EVENTO EM FOCO & VOLTAR -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+        <div>
+            <span class="badge bg-warning text-black text-uppercase fw-bold px-2.5 py-1 rounded-pill small">
+                {{ evento.circuito_chancela|default:"Vaquejada Oficial" }}
+            </span>
+            <h3 class="fw-black text-white m-0 mt-1" style="letter-spacing: -0.5px;">{{ evento.nome }}</h3>
+            <div class="text-secondary small">
+                <i class="bi bi-geo-alt-fill text-danger me-1"></i> <strong class="text-light">{{ evento.parque.nome }}</strong> — {{ evento.parque.cidade }}/{{ evento.parque.estado }}
+                <span class="ms-2 badge bg-black text-warning border border-secondary">Premiação: R$ {{ evento.premiacao_total|floatformat:2 }}</span>
+            </div>
+        </div>
+        <div>
+            <a href="/" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold text-light">
+                <i class="bi bi-arrow-left me-1"></i> Ver Outras Vaquejadas
+            </a>
+        </div>
+    </div>
+
     <!-- ──────────────── 1. CABEÇALHO: CATEGORIA & TABELA DE PREÇO DAS SENHAS ──────────────── -->
     <div class="card p-3 mb-3 text-white border-0" style="background-color: #374151;">
         <div class="row g-3 align-items-center">
@@ -131,6 +150,7 @@
             <!-- ESCOLHA A CATEGORIA -->
             <div class="col-lg-3">
                 <form method="GET" action="/cliente/comprar/" id="formFiltroCategoria">
+                    <input type="hidden" name="evento" value="{{ evento.id }}">
                     <label class="form-label small fw-bold text-light mb-1">Escolha a categoria</label>
                     <select name="categoria" class="form-select form-select-sm mb-2 fw-bold text-dark" onchange="document.getElementById('formFiltroCategoria').submit()">
                         {% for cat in categorias %}
@@ -260,6 +280,7 @@
 
         <form method="POST" action="/cliente/comprar/" id="formFinalizarInscricao">
             {% csrf_token %}
+            <input type="hidden" name="evento_id" value="{{ evento.id }}">
             <input type="hidden" name="categoria_id" value="{{ categoria_atual.id }}">
             <input type="hidden" name="numero_senha" id="inputNumeroSenhaFinal" value="">
             <input type="hidden" name="dia_corrida" value="{{ dia_selecionado }}">
@@ -389,6 +410,7 @@
     function mudarDia(dia) {
         const urlParams = new URLSearchParams(window.location.search);
         urlParams.set('dia', dia);
+        urlParams.set('evento', '{{ evento.id }}');
         window.location.search = urlParams.toString();
     }
 </script>

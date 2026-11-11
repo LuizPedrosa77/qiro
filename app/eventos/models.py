@@ -40,6 +40,12 @@ class Evento(models.Model):
     premiacao_total = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     status = models.CharField(max_length=25, choices=Status.choices, default=Status.INSCRICOES, db_index=True)
     
+    # Cartaz oficial, chancela e programação
+    cartaz = models.ImageField(upload_to='cartazes/', blank=True, null=True, help_text="Arte oficial ou foto do parque")
+    banner_url = models.URLField(max_length=500, blank=True, help_text="Link direto da imagem do cartaz/flyer")
+    circuito_chancela = models.CharField(max_length=100, blank=True, default="Circuito Oficial", help_text="Ex: Campeonato Portal, Circuito PE/PB, ABQM")
+    descricao = models.TextField(blank=True, help_text="Programação de shows e informações gerais")
+
     exige_gta = models.BooleanField(default=True, help_text="Exige conferência de GTA e sanidade animal")
     permite_casadinha = models.BooleanField(default=True, help_text="Permite pacotes promocionais de senhas casadas")
     organizador = models.ForeignKey(

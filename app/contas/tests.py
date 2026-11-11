@@ -37,11 +37,12 @@ class ClienteFluxoTestCase(TestCase):
         )
 
     def test_tela_inicial_carrega_com_dois_botoes(self):
-        """Verifica se a tela inicial carrega com os botões Cliente e Área Interna."""
+        """Verifica se a tela inicial carrega a vitrine de vaquejadas e botões de acesso."""
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Área do Cliente')
-        self.assertContains(response, 'Área Interna')
+        self.assertContains(response, 'Vaquejadas com Inscrições Abertas')
+        self.assertContains(response, 'Minhas Senhas / Secretaria')
+        self.assertContains(response, 'Área da Pista')
         self.assertContains(response, '1ª Grande Vaquejada Parque Millany')
 
     def test_cadastro_completo_vaqueiro(self):
@@ -121,7 +122,9 @@ class ClienteFluxoTestCase(TestCase):
 
         # Compra de Senha
         res_compra = self.client.post('/cliente/comprar/', {
+            'evento_id': str(self.evento.id),
             'categoria_id': str(self.categoria.id),
+            'numero_senha': '155',
             'dia_corrida': 'Sexta',
             'cavalo_puxador': 'Tornado Ouro',
             'esteireiro': 'Junior',

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QIRO — Tecnologia e tradição na palma da sua mão</title>
+    <title>QIRO — O Portal Oficial das Vaquejadas do Brasil</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,201 +11,318 @@
     <!-- Google Fonts Montserrat -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
         :root {
-            --qiro-dark: #0F1F17;
-            --qiro-green: #192D21;
-            --qiro-green-light: #244432;
-            --qiro-yellow: #FACC15;
-            --qiro-neutral: #BCB9B5;
-            --qiro-white: #FBFBFB;
+            --qiro-bg: #0D1612;
+            --qiro-card-bg: #15241C;
+            --qiro-border: #233B2E;
+            --qiro-yellow: #EAB308;
+            --qiro-yellow-hover: #FACC15;
+            --qiro-text-main: #F3F4F6;
+            --qiro-text-muted: #9CA3AF;
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background: radial-gradient(circle at 50% 20%, #1c3829 0%, #0F1F17 70%, #070e0a 100%);
-            color: var(--qiro-white);
+            background-color: var(--qiro-bg);
+            color: var(--qiro-text-main);
             min-height: 100vh;
+        }
+
+        /* Topbar sólida profissional */
+        .topbar-portal {
+            background-color: #111D17;
+            border-bottom: 2px solid var(--qiro-border);
+        }
+
+        /* Banner de Destaque */
+        .banner-destaque {
+            background: linear-gradient(to right, #13241B, #1B3326);
+            border: 1px solid var(--qiro-border);
+            border-radius: 16px;
+        }
+
+        /* Cards das Vaquejadas */
+        .card-vaquejada {
+            background-color: var(--qiro-card-bg);
+            border: 1px solid var(--qiro-border);
+            border-radius: 16px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .hero-card {
-            background: rgba(25, 45, 33, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(188, 185, 181, 0.2);
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .action-card {
-            background: #14261C;
-            border: 1px solid #254231;
-            border-radius: 20px;
-            padding: 2.2rem 1.8rem;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: inherit;
-            display: block;
             height: 100%;
         }
 
-        .action-card:hover {
-            transform: translateY(-6px);
+        .card-vaquejada:hover {
+            transform: translateY(-4px);
             border-color: var(--qiro-yellow);
-            box-shadow: 0 14px 28px rgba(250, 204, 21, 0.15);
-            color: inherit;
         }
 
-        .icon-circle {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 1.2rem;
+        /* Bloco de Data estilo Calendário Esportivo */
+        .bloco-data {
+            background-color: #0E1A14;
+            border: 1px solid var(--qiro-border);
+            border-radius: 10px;
+            padding: 0.5rem 0.75rem;
+            text-align: center;
+            min-width: 65px;
         }
 
-        .btn-yellow-glow {
-            background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
+        .bloco-data .dia {
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: #FFF;
+            line-height: 1;
+        }
+
+        .bloco-data .mes {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--qiro-yellow);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 3px;
+        }
+
+        /* Preços das Categorias */
+        .badge-cat-preco {
+            background-color: #0F1A14;
+            border: 1px solid #1F3629;
+            color: #D1D5DB;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.35rem 0.6rem;
+            border-radius: 6px;
+        }
+
+        .btn-comprar-senha {
+            background-color: var(--qiro-yellow);
             color: #000;
             font-weight: 800;
-            border: none;
-            border-radius: 12px;
-            padding: 0.9rem 1.5rem;
-            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            border-radius: 10px;
+            padding: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: block;
+            text-align: center;
         }
 
-        .btn-yellow-glow:hover {
-            background: #FDE047;
+        .btn-comprar-senha:hover {
+            background-color: var(--qiro-yellow-hover);
             color: #000;
-            transform: scale(1.02);
         }
 
-        .btn-outline-qiro {
-            background: transparent;
-            border: 1px solid rgba(250, 204, 21, 0.5);
-            color: var(--qiro-white);
+        /* Filtros de Estados */
+        .filtro-estado-btn {
+            background-color: #15241C;
+            border: 1px solid var(--qiro-border);
+            color: #D1D5DB;
+            font-size: 0.8rem;
             font-weight: 700;
-            border-radius: 12px;
-            padding: 0.9rem 1.5rem;
-            transition: all 0.2s ease;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.2s;
         }
 
-        .btn-outline-qiro:hover {
-            background: rgba(250, 204, 21, 0.1);
+        .filtro-estado-btn:hover, .filtro-estado-btn.active {
+            background-color: var(--qiro-yellow);
+            color: #000;
             border-color: var(--qiro-yellow);
-            color: var(--qiro-yellow);
         }
     </style>
 </head>
 <body>
 
-    <!-- CABEÇALHO COM LOGO -->
-    <header class="py-4 text-center">
-        <div class="container">
-            <div class="d-inline-flex align-items-center gap-3">
-                <svg viewBox="0 0 100 80" style="width: 46px; height: 40px;" fill="#BCB9B5">
+    <!-- ──────────────── TOPBAR OFICIAL ──────────────── -->
+    <header class="topbar-portal py-3 px-3 px-md-4 shadow-sm">
+        <div class="container-fluid d-flex flex-wrap align-items-center justify-content-between gap-3">
+            
+            <!-- Logo Qiro -->
+            <a href="/" class="d-flex align-items-center text-decoration-none text-white gap-2">
+                <svg viewBox="0 0 100 80" style="width: 38px; height: 32px;" fill="#EAB308">
                     <path d="M75 10 C70 5, 55 12, 45 22 C40 27, 30 25, 25 35 C20 45, 22 55, 18 65 C17 68, 14 72, 12 75 L20 75 C24 68, 26 58, 28 50 C35 48, 45 52, 55 45 C65 38, 70 28, 75 22 C78 18, 82 15, 80 12 Z" />
                     <path d="M55 45 L62 75 L70 75 L62 48 L75 48 L85 75 L93 75 L80 40 C75 35, 68 40, 55 45 Z" />
                 </svg>
-                <div class="text-start">
-                    <div class="d-flex align-items-baseline gap-2">
-                        <span class="fs-1 fw-black tracking-tight" style="letter-spacing: -2px;">qiro</span>
-                        <span class="badge bg-warning text-black fw-bold" style="font-size: 0.7rem;">PRO</span>
-                    </div>
-                    <div class="text-secondary small" style="margin-top: -6px; letter-spacing: 0.5px;">Tecnologia e tradição na palma da sua mão</div>
+                <div>
+                    <span class="fs-3 fw-black tracking-tight" style="letter-spacing: -1.5px; color: #FFF;">qiro</span>
+                    <span class="d-block text-secondary small" style="font-size: 0.65rem; margin-top: -5px;">Portal Nacional de Vaquejadas</span>
                 </div>
+            </a>
+
+            <!-- Ações Rápidas no Topo -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="/cliente/secretaria/" class="btn btn-outline-warning btn-sm fw-bold px-3 py-2 rounded-pill">
+                    <i class="bi bi-ticket-perforated-fill me-1"></i> Minhas Senhas / Secretaria
+                </a>
+                <a href="/eventos/cadastrar/" class="btn btn-outline-light btn-sm fw-bold px-3 py-2 rounded-pill">
+                    <i class="bi bi-plus-circle-fill text-success me-1"></i> Cadastrar Vaquejada
+                </a>
+                <a href="/equipe/login/" class="btn btn-dark btn-sm border-secondary text-secondary px-3 py-2 rounded-pill" title="Área exclusiva de Juízes e Locutores">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Área da Pista
+                </a>
             </div>
+
         </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL (HERO PREMIUM) -->
-    <main class="container my-auto py-4">
-        <div class="row justify-content-center">
-            <div class="col-lg-10 col-xl-9">
+    <div class="container-fluid px-3 px-md-5 py-4">
 
-                <!-- CARD DO EVENTO EM DESTAQUE -->
-                {% if evento %}
-                <div class="hero-card p-4 p-md-5 mb-5 text-center">
-                    <span class="badge bg-warning text-black px-3 py-1.5 rounded-pill text-uppercase fw-bold mb-3" style="font-size: 0.75rem;">
-                        <i class="bi bi-trophy-fill me-1"></i> Evento Oficial em Andamento
-                    </span>
-                    <h1 class="display-5 fw-black text-white mb-2" style="letter-spacing: -1px;">
-                        {{ evento.nome }}
-                    </h1>
-                    <p class="text-secondary fs-5 mb-3">
-                        <i class="bi bi-geo-alt-fill text-warning me-1"></i> {{ evento.parque.nome }} — {{ evento.parque.cidade }}/{{ evento.parque.estado }}
-                    </p>
-                    <div class="d-inline-flex align-items-center gap-2 p-2 px-4 rounded-pill bg-black bg-opacity-50 border border-secondary border-opacity-25">
-                        <span class="text-secondary small text-uppercase fw-bold">Premiação Total:</span>
-                        <span class="fs-4 fw-black text-warning">R$ {{ evento.premiacao_total|floatformat:2 }}</span>
-                    </div>
+        <!-- ──────────────── MENSAGENS DO SISTEMA ──────────────── -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show rounded-3 mb-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                {% endif %}
+            {% endfor %}
+        {% endif %}
 
-                <!-- OS 2 GRANDES BOTÕES DE AÇÃO -->
-                <div class="row g-4 justify-content-center">
-                    
-                    <!-- 1. ÁREA DO CLIENTE / VAQUEIRO -->
-                    <div class="col-md-6">
-                        <a href="/cliente/login/" class="action-card text-center d-flex flex-column justify-content-between">
-                            <div>
-                                <div class="icon-circle mx-auto bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
-                                    <i class="bi bi-person-badge-fill"></i>
-                                </div>
-                                <h3 class="fw-black text-white mb-2">Área do Cliente</h3>
-                                <p class="text-secondary small mb-4">
-                                    Compre suas senhas, gerencie suas inscrições na Secretaria e acompanhe os seus bois na corrida.
-                                </p>
-                            </div>
-                            <div>
-                                <button type="button" class="btn btn-yellow-glow w-100 fs-6">
-                                    <i class="bi bi-ticket-perforated-fill me-2"></i> Acessar Secretaria
-                                </button>
-                            </div>
+        <!-- ──────────────── BARRA DE BUSCA E FILTROS DE ESTADOS ──────────────── -->
+        <div class="card p-3 mb-4 border-0" style="background-color: #122119; border: 1px solid var(--qiro-border) !important; border-radius: 16px;">
+            <div class="row g-3 align-items-center">
+                
+                <!-- Input de Busca -->
+                <div class="col-lg-5">
+                    <form method="GET" action="/" class="d-flex gap-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                            <input type="text" name="busca" class="form-control bg-dark text-white border-secondary" placeholder="Buscar por parque, cidade ou vaquejada..." value="{{ busca }}">
+                        </div>
+                        <button type="submit" class="btn btn-warning fw-bold px-3">Buscar</button>
+                    </form>
+                </div>
+
+                <!-- Filtro por Estado (PE, PB, SE, etc) -->
+                <div class="col-lg-7">
+                    <div class="d-flex align-items-center gap-1.5 flex-wrap justify-content-lg-end">
+                        <span class="text-secondary small fw-bold me-1">Estados:</span>
+                        <a href="/?busca={{ busca }}" class="filtro-estado-btn {% if not estado_selecionado or estado_selecionado == 'TODOS' %}active{% endif %}">
+                            Todos
                         </a>
-                    </div>
-
-                    <!-- 2. ÁREA INTERNA / EQUIPE -->
-                    <div class="col-md-6">
-                        <a href="/equipe/login/" class="action-card text-center d-flex flex-column justify-content-between">
-                            <div>
-                                <div class="icon-circle mx-auto bg-success bg-opacity-10 text-success border border-success border-opacity-25">
-                                    <i class="bi bi-shield-lock-fill"></i>
-                                </div>
-                                <h3 class="fw-black text-white mb-2">Área Interna</h3>
-                                <p class="text-secondary small mb-4">
-                                    Acesso restrito e operacional para locutores oficiais, juízes de pista, secretaria geral e organizadores.
-                                </p>
-                            </div>
-                            <div>
-                                <button type="button" class="btn btn-outline-qiro w-100 fs-6">
-                                    <i class="bi bi-speedometer2 me-2"></i> Console da Equipe
-                                </button>
-                            </div>
+                        {% for uf in estados_disponiveis %}
+                        <a href="/?estado={{ uf }}&busca={{ busca }}" class="filtro-estado-btn {% if estado_selecionado == uf %}active{% endif %}">
+                            {{ uf }}
                         </a>
+                        {% endfor %}
                     </div>
-
                 </div>
 
             </div>
         </div>
-    </main>
 
-    <!-- RODAPÉ -->
-    <footer class="py-4 text-center text-secondary small border-top border-secondary border-opacity-10">
+        <!-- ──────────────── TÍTULO DA VITRINE ──────────────── -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fw-black text-white m-0 text-uppercase" style="letter-spacing: -0.5px;">
+                    <i class="bi bi-calendar-event-fill text-warning me-2"></i> Vaquejadas com Inscrições Abertas
+                </h4>
+                <div class="text-secondary small mt-0.5">
+                    Escolha a festa de gado, consulte os valores e garanta sua senha com antecedência
+                </div>
+            </div>
+            <div>
+                <span class="badge bg-dark border border-secondary text-warning fw-bold px-3 py-2 rounded-pill">
+                    {{ total_vaquejadas }} Vaquejada{{ total_vaquejadas|pluralize }} Disponíve{{ total_vaquejadas|pluralize:"l,is" }}
+                </span>
+            </div>
+        </div>
+
+        <!-- ──────────────── GRID DAS VAQUEJADAS (MULTI-EVENTOS) ──────────────── -->
+        <div class="row g-4">
+            {% for ev in eventos %}
+            <div class="col-md-6 col-xl-4">
+                <div class="card-vaquejada p-3">
+                    
+                    <!-- TOPO DO CARD: DATA E CHANCELA -->
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                        <div class="bloco-data">
+                            <div class="dia">{{ ev.data_inicio|date:"d" }} a {{ ev.data_fim|date:"d" }}</div>
+                            <div class="mes">{{ ev.data_inicio|date:"M" }}</div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-black text-warning border border-secondary text-uppercase fw-bold" style="font-size: 0.65rem;">
+                                {{ ev.circuito_chancela }}
+                            </span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle d-block mt-1 small" style="font-size: 0.65rem;">
+                                Inscrições Abertas
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- NOME DA VAQUEJADA & LOCAL -->
+                    <div class="mb-3 flex-grow-1">
+                        <h5 class="fw-black text-white mb-1" style="font-size: 1.15rem; line-height: 1.3;">
+                            {{ ev.nome }}
+                        </h5>
+                        <div class="text-secondary small d-flex align-items-center gap-1">
+                            <i class="bi bi-geo-alt-fill text-danger"></i>
+                            <strong class="text-light">{{ ev.parque.nome }}</strong> — {{ ev.parque.cidade }}/{{ ev.parque.estado }}
+                        </div>
+                    </div>
+
+                    <!-- PREMIAÇÃO TOTAL -->
+                    <div class="p-2.5 rounded-3 bg-black border border-secondary border-opacity-50 d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.7rem;">Premiação Total:</span>
+                        <span class="fs-5 fw-black text-warning">R$ {{ ev.premiacao_total|floatformat:2 }}</span>
+                    </div>
+
+                    <!-- CATEGORIAS E PREÇOS DISPONÍVEIS NESTA VAQUEJADA -->
+                    <div class="mb-3">
+                        <div class="text-secondary small fw-bold mb-1.5" style="font-size: 0.68rem; text-transform: uppercase;">
+                            Valores das Senhas por Categoria:
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for cat in ev.categorias.all %}
+                            <span class="badge-cat-preco">
+                                {{ cat.nome_exibicao }}: <strong class="text-warning">R$ {{ cat.valor_senha|floatformat:0 }}</strong>
+                            </span>
+                            {% empty %}
+                            <span class="text-secondary small">Categorias em definição.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- BOTÃO COMPRAR SENHA DAQUELA VAQUEJADA -->
+                    <div>
+                        <a href="/cliente/comprar/?evento={{ ev.id }}" class="btn-comprar-senha">
+                            <i class="bi bi-ticket-perforated-fill me-1"></i> Comprar Senha nesta Vaquejada
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="card p-5 text-center rounded-4 border border-secondary" style="background-color: #15241C;">
+                    <i class="bi bi-calendar-x display-3 text-secondary mb-3"></i>
+                    <h4 class="fw-bold text-white">Nenhuma vaquejada encontrada com esses filtros</h4>
+                    <p class="text-secondary small">Tente buscar por outro estado ou termo, ou cadastre uma nova vaquejada.</p>
+                    <div>
+                        <a href="/" class="btn btn-outline-warning btn-sm rounded-pill px-4 me-2">Ver Todas as Vaquejadas</a>
+                        <a href="/eventos/cadastrar/" class="btn btn-warning btn-sm rounded-pill px-4 fw-bold">Cadastrar Vaquejada</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- ──────────────── RODAPÉ DO PORTAL ──────────────── -->
+    <footer class="py-4 text-center text-secondary small border-top border-secondary border-opacity-25 mt-5">
         <div class="container">
-            <div>QIRO &copy; 2026 — Plataforma Especializada em Gestão de Vaquejadas</div>
+            <div class="fw-bold text-white mb-1">QIRO — Tecnologia e tradição na palma da sua mão</div>
+            <div>A plataforma definitiva para compra de senhas e gestão de vaquejadas no Brasil.</div>
         </div>
     </footer>
 
