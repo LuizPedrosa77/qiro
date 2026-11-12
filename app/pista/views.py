@@ -1,20 +1,28 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 import json
 
 from eventos.models import Evento
 from senhas.models import SenhaInscricao
 from pista.models import BoiPassada, ChatPista
 from auditoria.models import AuditoriaLog
+from contas.models import Usuario
 
 
+@login_required(login_url='/equipe/login/')
 def painel_locutor(request):
     """
-    Tela oficial do Locutor de Pista (Mockup Imagens 9, 10, 11).
-    Permite apenas julgamento de Retorno ou Zero.
+    Tela oficial do Locutor de Pista (Área Restrita).
+    Acesso restrito a Locutores Oficiais e ao Administrador Geral.
     """
+    if not (request.user.is_superuser or request.user.papel in [Usuario.Papel.ADMIN, Usuario.Papel.LOCUTOR]):
+        messages.error(request, 'Acesso restrito à cabine de locução oficial.')
+        return redirect('/equipe/hub/')
+
     evento = Evento.objects.filter(status=Evento.Status.EM_ANDAMENTO).first() or Evento.objects.first()
     
     conjunto_atual = SenhaInscricao.objects.filter(
@@ -46,11 +54,16 @@ def painel_locutor(request):
     })
 
 
+@login_required(login_url='/equipe/login/')
 def painel_juiz(request):
     """
-    Tela oficial do Juiz de Pista (Mockup Imagem 14).
-    Possui os 4 julgamentos: Valeu, TV, Retorno e Zero.
+    Tela oficial do Juiz de Pista (Área Restrita).
+    Acesso restrito aos Juízes Oficiais e ao Administrador Geral.
     """
+    if not (request.user.is_superuser or request.user.papel in [Usuario.Papel.ADMIN, Usuario.Papel.JUIZ]):
+        messages.error(request, 'Acesso restrito à mesa de julgamento oficial.')
+        return redirect('/equipe/hub/')
+
     evento = Evento.objects.filter(status=Evento.Status.EM_ANDAMENTO).first() or Evento.objects.first()
     
     conjunto_atual = SenhaInscricao.objects.filter(

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV VAQUEIRO — O Canal Oficial 24H das Vaquejadas do Brasil</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --qiro-bg: #070D0A;
+            --qiro-dark-header: #040806;
+            --qiro-card-bg: #102117;
+            --qiro-border: #1E382A;
+            --qiro-yellow: #EAB308;
+            --qiro-yellow-hover: #FACC15;
+            --qiro-red: #DC2626;
+            --qiro-green: #16A34A;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--qiro-bg);
+            color: #FFF;
+            min-height: 100vh;
+        }
+
+        .topbar-tv {
+            background-color: var(--qiro-dark-header);
+            border-bottom: 2px solid var(--qiro-border);
+            padding: 0.85rem 1.5rem;
+        }
+
+        .live-badge {
+            background-color: var(--qiro-red);
+            color: #FFF;
+            font-weight: 900;
+            padding: 0.35rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #FFF;
+            border-radius: 50%;
+            animation: pulse-dot 1.2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.4; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Player de Vídeo */
+        .tv-player-container {
+            background: radial-gradient(circle at center, #15291E 0%, #060D09 100%);
+            border: 2px solid var(--qiro-border);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 16 / 9;
+            max-height: 520px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-overlay-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Card de Assinatura */
+        .paywall-card {
+            background: linear-gradient(145deg, #13241A 0%, #0B1610 100%);
+            border: 2px solid var(--qiro-yellow);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(234, 179, 8, 0.15);
+        }
+
+        .btn-assinar-pix {
+            background-color: var(--qiro-yellow);
+            color: #000;
+            font-weight: 900;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-radius: 12px;
+            padding: 0.9rem;
+            border: none;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-assinar-pix:hover {
+            background-color: var(--qiro-yellow-hover);
+            transform: scale(1.02);
+            color: #000;
+        }
+
+        .grade-item {
+            background-color: #0A140F;
+            border: 1px solid var(--qiro-border);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .grade-item:hover {
+            border-color: var(--qiro-yellow);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ──────────────── TOPBAR TV VAQUEIRO ──────────────── -->
+    <header class="topbar-tv d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/" class="d-flex align-items-center text-decoration-none text-white gap-2">
+                <svg viewBox="0 0 100 80" style="width: 32px; height: 28px;" fill="#EAB308">
+                    <path d="M75 10 C70 5, 55 12, 45 22 C40 27, 30 25, 25 35 C20 45, 22 55, 18 65 C17 68, 14 72, 12 75 L20 75 C24 68, 26 58, 28 50 C35 48, 45 52, 55 45 C65 38, 70 28, 75 22 C78 18, 82 15, 80 12 Z" />
+                    <path d="M55 45 L62 75 L70 75 L62 48 L75 48 L85 75 L93 75 L80 40 C75 35, 68 40, 55 45 Z" />
+                </svg>
+                <span class="fs-4 fw-black tracking-tight text-white" style="letter-spacing: -1px;">tv vaqueiro</span>
+            </a>
+            <span class="live-badge">
+                <span class="live-dot"></span> AO VIVO 24H
+            </span>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <span class="small text-secondary d-none d-md-inline">
+                <i class="bi bi-people-fill text-warning me-1"></i> 2.418 vaqueiros assistindo agora
+            </span>
+            <a href="/" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-house-door me-1"></i> Voltar ao Portal
+            </a>
+        </div>
+    </header>
+
+    <!-- ──────────────── CONTEÚDO PRINCIPAL ──────────────── -->
+    <main class="container py-4">
+
+        <div class="row g-4 mb-5">
+            
+            <!-- PLAYER DE VÍDEO PRINCIPAL (SIMULAÇÃO BROADCAST) -->
+            <div class="col-lg-8">
+                <div class="tv-player-container">
+                    
+                    <!-- Simulação de Transmissão da Pista -->
+                    <div class="text-center p-4">
+                        <div class="p-3 d-inline-block rounded-circle bg-warning bg-opacity-10 border border-warning text-warning mb-3">
+                            <i class="bi bi-play-fill display-4 ps-1"></i>
+                        </div>
+                        <h4 class="fw-black text-white m-0">SINAL OFICIAL EM ALTA DEFINIÇÃO (FULL HD)</h4>
+                        <p class="text-secondary small mt-1 mb-3">
+                            Transmissão ao vivo direto do Parque: {{ evento.nome|default:"Grande Vaquejada do Circuito" }}
+                        </p>
+                        <button type="button" class="btn btn-sm btn-outline-warning fw-bold px-3 py-1.5 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalAssinatura">
+                            <i class="bi bi-unlock-fill me-1"></i> Degustação Grátis • Assine para Transmissão Completa
+                        </button>
+                    </div>
+
+                    <!-- Overlay de Controles Inferiores -->
+                    <div class="player-overlay-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-danger text-uppercase fw-bold">Pista 1</span>
+                            <span class="text-white small fw-bold">{{ evento.parque.nome|default:"Parque de Vaquejada" }} — {{ evento.parque.cidade|default:"Caruaru" }}/{{ evento.parque.estado|default:"PE" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 text-secondary">
+                            <i class="bi bi-volume-up-fill fs-5 text-white"></i>
+                            <i class="bi bi-gear-fill fs-6"></i>
+                            <i class="bi bi-fullscreen fs-5 text-white" onclick="alert('Tela cheia disponível para assinantes TV Vaqueiro VIP!')"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Detalhes do Programa no Ar -->
+                <div class="p-3 mt-3 rounded-4 bg-black border border-secondary border-opacity-25 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div>
+                        <span class="badge bg-warning text-black fw-bold text-uppercase" style="font-size: 0.7rem;">No Ar Agora</span>
+                        <h5 class="fw-bold text-white mt-1 mb-0">Bateria Classificatória da Categoria Aberta — 1º e 2º Bois</h5>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-warning fw-black" data-bs-toggle="modal" data-bs-target="#modalAssinatura">
+                            <i class="bi bi-star-fill me-1"></i> ASSINAR POR R$ 39,90/MÊS
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD DE ASSINATURA VIP (PAYWALL) -->
+            <div class="col-lg-4">
+                <div class="paywall-card">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-warning text-black fw-black px-2.5 py-1 text-uppercase">Plano VIP</span>
+                        <span class="fs-4 fw-black text-warning">R$ 39,90 <span class="fs-6 text-secondary fw-normal">/ mês</span></span>
+                    </div>
+
+                    <h4 class="fw-black text-white mb-2">TV VAQUEIRO 24H</h4>
+                    <p class="text-secondary small mb-4">
+                        O passe livre para você não perder um boi sequer, com conteúdos exclusivos na palma da sua mão.
+                    </p>
+
+                    <div class="d-flex flex-column gap-2.5 mb-4 small text-secondary">
+                        <div class="d-flex align-items-center gap-2 text-white">
+                            <i class="bi bi-check-circle-fill text-warning"></i>
+                            <span>Transmissões ao vivo sem travas de todas as vaquejadas</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 text-white">
+                            <i class="bi bi-check-circle-fill text-warning"></i>
+                            <span>Programas veterinários com foco em saúde e nutrição equina</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 text-white">
+                            <i class="bi bi-check-circle-fill text-warning"></i>
+                            <span>Câmera exclusiva dos bretes e da cabine dos juízes</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 text-white">
+                            <i class="bi bi-check-circle-fill text-warning"></i>
+                            <span>Reprises de disputas históricas e shows musicais</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-assinar-pix" data-bs-toggle="modal" data-bs-target="#modalAssinatura">
+                        <i class="bi bi-qr-code me-2"></i> ASSINAR AGORA COM PIX
+                    </button>
+                    
+                    <div class="text-center text-secondary small mt-3" style="font-size: 0.72rem;">
+                        <i class="bi bi-shield-check text-success me-1"></i> Liberação imediata após confirmação do Pix. Cancele quando quiser.
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ──────────────── GRADE DE PROGRAMAÇÃO 24 HORAS ──────────────── -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                <div>
+                    <h4 class="fw-black text-white m-0">
+                        <i class="bi bi-calendar3 text-warning me-2"></i> Grade de Programação 24 Horas
+                    </h4>
+                    <p class="text-secondary small mb-0">Confira os horários das transmissões, programas de veterinária e reprises.</p>
+                </div>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                {% for prog in grade_programacao %}
+                <div class="col">
+                    <div class="grade-item h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-dark border border-secondary text-warning fw-bold small">
+                                <i class="bi bi-clock me-1"></i> {{ prog.hora }}
+                            </span>
+                            <span class="badge {% if prog.tipo == 'Ao Vivo' %}bg-danger{% elif prog.tipo == 'Veterinária' %}bg-success{% else %}bg-secondary{% endif %} fw-bold" style="font-size: 0.68rem;">
+                                {{ prog.tipo }}
+                            </span>
+                        </div>
+                        <h6 class="fw-bold text-white mb-1">{{ prog.titulo }}</h6>
+                        <div class="text-secondary small">{{ prog.apresentador }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ──────────────── MODAL CHECKOUT PIX ──────────────── -->
+    <div class="modal fade" id="modalAssinatura" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border-warning text-white p-3 text-center">
+                <div class="modal-header border-0 pb-0 justify-content-end">
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <span class="badge bg-warning text-black fw-black px-3 py-1 text-uppercase mb-2">Assinatura TV Vaqueiro VIP</span>
+                    <h4 class="fw-black text-white">R$ 39,90 / mês</h4>
+                    <p class="text-secondary small mb-3">Escaneie o QR Code abaixo no app do seu banco para ativar sua conta na hora:</p>
+                    
+                    <!-- QR Code Simulado -->
+                    <div class="p-3 bg-white d-inline-block rounded-3 mb-3">
+                        <svg viewBox="0 0 100 100" style="width: 140px; height: 140px;">
+                            <rect width="100" height="100" fill="white" />
+                            <rect x="10" y="10" width="30" height="30" fill="black" />
+                            <rect x="60" y="10" width="30" height="30" fill="black" />
+                            <rect x="10" y="60" width="30" height="30" fill="black" />
+                            <rect x="18" y="18" width="14" height="14" fill="white" />
+                            <rect x="68" y="18" width="14" height="14" fill="white" />
+                            <rect x="18" y="68" width="14" height="14" fill="white" />
+                            <rect x="46" y="20" width="8" height="20" fill="black" />
+                            <rect x="46" y="46" width="20" height="8" fill="black" />
+                            <rect x="70" y="60" width="20" height="20" fill="black" />
+                            <rect x="52" y="72" width="10" height="10" fill="black" />
+                        </svg>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control form-control-sm bg-black text-white border-secondary" value="00020126580014br.gov.bcb.pix0136qiro-tvvaqueiro-3990-assinatura" readonly id="pixCode">
+                        <button class="btn btn-warning btn-sm fw-bold" onclick="navigator.clipboard.writeText(document.getElementById('pixCode').value); alert('Código Pix Copia e Cola copiado com sucesso!');">
+                            Copiar
+                        </button>
+                    </div>
+
+                    <div class="text-success small fw-bold">
+                        <i class="bi bi-arrow-repeat me-1"></i> Aguardando confirmação do pagamento...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

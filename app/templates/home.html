@@ -286,6 +286,22 @@
             color: #FFF;
         }
 
+        /* ──── BANNER / BOTÃO DESTAQUE TV VAQUEIRO ──── */
+        .btn-tv-vaqueiro-banner {
+            background: linear-gradient(135deg, #182C20 0%, #0B1610 100%);
+            border: 2px solid var(--qiro-yellow);
+            box-shadow: 0 8px 24px rgba(234, 179, 8, 0.2);
+            width: 100%;
+            max-width: 820px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-tv-vaqueiro-banner:hover {
+            transform: scale(1.02);
+            border-color: #FACC15;
+            box-shadow: 0 10px 30px rgba(234, 179, 8, 0.35);
+        }
+
         /* ──── RODAPÉ (FOOTER) ──── */
         .footer-qiro {
             margin-top: auto;
@@ -343,6 +359,7 @@
                 <a href="/" class="nav-link-custom text-warning">Início</a>
                 <a href="#" class="nav-link-custom" data-bs-toggle="modal" data-bs-target="#modalQuemSomos">Quem Somos</a>
                 <a href="/vaquejadas/" class="nav-link-custom">Vaquejada</a>
+                <a href="/tv-vaqueiro/" class="nav-link-custom text-danger fw-bold"><i class="bi bi-broadcast text-danger me-1"></i> TV Vaqueiro</a>
                 <a href="/cliente/secretaria/" class="nav-link-custom">Comprar Senha</a>
             </nav>
 
@@ -402,6 +419,29 @@
             {% endfor %}
             <a href="/vaquejadas/" class="btn-state-pill {% if not estado_selecionado or estado_selecionado == 'TODOS' %}active{% endif %}">
                 TODOS ESTADOS
+            </a>
+        </div>
+
+        <!-- ──────────────── BOTÃO / BANNER DESTAQUE TV VAQUEIRO ──────────────── -->
+        <div class="d-flex justify-content-center mb-4">
+            <a href="/tv-vaqueiro/" class="btn-tv-vaqueiro-banner d-flex align-items-center justify-content-between p-3 px-md-4 rounded-4 text-decoration-none">
+                <div class="d-flex align-items-center gap-3 text-start">
+                    <div class="rounded-3 bg-danger text-white p-2.5 fs-3 fw-bold d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="bi bi-tv-fill"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fs-4 fw-black text-white" style="letter-spacing: -0.5px;">TV VAQUEIRO</span>
+                            <span class="badge bg-danger text-uppercase fw-bold" style="font-size: 0.68rem;">🔴 24H AO VIVO</span>
+                        </div>
+                        <div class="text-secondary small">Vaquejadas ao vivo, medicina equina e bastidores. Assine por R$ 39,90/mês.</div>
+                    </div>
+                </div>
+                <div class="d-none d-md-block text-end ps-3">
+                    <span class="btn btn-warning text-black fw-black px-4 py-2 rounded-pill text-uppercase" style="font-size: 0.8rem;">
+                        Assistir Agora <i class="bi bi-play-circle-fill ms-1"></i>
+                    </span>
+                </div>
             </a>
         </div>
 

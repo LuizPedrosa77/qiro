@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QIRO — Hub Operacional da Área Restrita</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --qiro-bg: #0D1612;
+            --qiro-dark-header: #080E0B;
+            --qiro-card-bg: #14241B;
+            --qiro-border: #233C2D;
+            --qiro-yellow: #EAB308;
+            --qiro-yellow-hover: #FACC15;
+            --qiro-blue: #0284C7;
+            --qiro-green: #16A34A;
+            --qiro-text-main: #F3F4F6;
+            --qiro-text-muted: #9CA3AF;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--qiro-bg);
+            color: var(--qiro-text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar-hub {
+            background-color: var(--qiro-dark-header);
+            border-bottom: 2px solid var(--qiro-border);
+            padding: 0.85rem 1.5rem;
+        }
+
+        .hub-card {
+            background-color: var(--qiro-card-bg);
+            border: 1px solid var(--qiro-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+        }
+
+        .hub-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--qiro-yellow);
+            color: inherit;
+        }
+
+        .hub-card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-hub-action {
+            margin-top: auto;
+            font-weight: 800;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: none;
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ──────────────── TOPBAR HUB OPERACIONAL ──────────────── -->
+    <header class="topbar-hub d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/" class="d-flex align-items-center text-decoration-none text-white gap-2">
+                <svg viewBox="0 0 100 80" style="width: 32px; height: 28px;" fill="#BCB9B5">
+                    <path d="M75 10 C70 5, 55 12, 45 22 C40 27, 30 25, 25 35 C20 45, 22 55, 18 65 C17 68, 14 72, 12 75 L20 75 C24 68, 26 58, 28 50 C35 48, 45 52, 55 45 C65 38, 70 28, 75 22 C78 18, 82 15, 80 12 Z" />
+                    <path d="M55 45 L62 75 L70 75 L62 48 L75 48 L85 75 L93 75 L80 40 C75 35, 68 40, 55 45 Z" />
+                </svg>
+                <span class="fs-4 fw-black tracking-tight" style="letter-spacing: -1px;">qiro</span>
+            </a>
+            <span class="badge bg-warning text-black text-uppercase fw-bold px-2.5 py-1.5" style="font-size: 0.72rem;">
+                <i class="bi bi-shield-lock-fill me-1"></i> Console Operacional
+            </span>
+        </div>
+
+        <!-- Usuário Logado & Ações -->
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-end d-none d-sm-block">
+                <div class="fw-bold text-white small">{{ usuario.get_full_name|default:usuario.username }}</div>
+                <div class="text-warning" style="font-size: 0.7rem; font-weight: 700;">
+                    {{ usuario.get_papel_display }}
+                </div>
+            </div>
+            <a href="/" class="btn btn-sm btn-outline-secondary" title="Ir para a Página Inicial">
+                <i class="bi bi-house-door me-1"></i> Início
+            </a>
+            <a href="/cliente/logout/" class="btn btn-sm btn-outline-danger" title="Sair da Área Restrita">
+                <i class="bi bi-box-arrow-right me-1"></i> Sair
+            </a>
+        </div>
+    </header>
+
+    <!-- ──────────────── CONTEÚDO DO HUB ──────────────── -->
+    <main class="container py-4 flex-grow-1">
+
+        <!-- Mensagens -->
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} bg-dark border-secondary text-white py-2" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Boas-vindas -->
+        <div class="p-4 rounded-4 bg-black border border-secondary border-opacity-25 mb-4 shadow-sm">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="fw-black text-white m-0">
+                        Olá, <span class="text-warning">{{ usuario.first_name|default:usuario.username }}</span>!
+                    </h3>
+                    <p class="text-secondary small mt-1 mb-0">
+                        Bem-vindo ao centro de comando do QIRO. Abaixo estão os módulos liberados de acordo com a sua escala oficial.
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <span class="badge bg-dark border border-secondary text-secondary px-3 py-2">
+                        <i class="bi bi-calendar-check text-warning me-1"></i> 
+                        {{ evento_ativo.nome|default:"Temporada 2026" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRADE DE CARDS BASEADA NO PAPEL -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
+            <!-- ═════════ SEÇÃO 1: EXCLUSIVO DO ADM GERAL ═════════ -->
+            {% if usuario.is_superuser or usuario.papel == 'ADMIN' %}
+            
+            <div class="col">
+                <a href="/eventos/cadastrar/" class="hub-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="hub-card-icon bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                            <i class="bi bi-trophy-fill"></i>
+                        </div>
+                        <span class="badge bg-danger text-uppercase fw-bold" style="font-size: 0.65rem;">Exclusivo ADM</span>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Cadastrar Nova Vaquejada</h5>
+                    <p class="text-secondary small mb-3">
+                        Crie novos parques, configure vaquejadas, defina preços e escale coordenadores, locutores e juízes.
+                    </p>
+                    <div class="btn-hub-action bg-warning text-black">Acessar Cadastro & Equipes</div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/coordenador/" class="hub-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="hub-card-icon bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <span class="badge bg-dark border border-secondary text-secondary" style="font-size: 0.65rem;">Financeiro & Pista</span>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Painel do Coordenador</h5>
+                    <p class="text-secondary small mb-3">
+                        Auditoria financeira completa, total arrecadado (R$), senhas pagas vs pendentes e lista de vaqueiros.
+                    </p>
+                    <div class="btn-hub-action bg-success text-white">Auditar Eventos</div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/pista/locutor/" class="hub-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="hub-card-icon bg-info bg-opacity-10 text-info border border-info border-opacity-25">
+                            <i class="bi bi-mic-fill"></i>
+                        </div>
+                        <span class="badge bg-info text-black fw-bold" style="font-size: 0.65rem;">Cabine Oficial</span>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Cabine de Locução</h5>
+                    <p class="text-secondary small mb-3">
+                        Controle da fila da boiada, chamada do próximo conjunto, apelidos de pista e alertas da secretaria.
+                    </p>
+                    <div class="btn-hub-action bg-info text-black">Entrar na Cabine</div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/pista/juiz/" class="hub-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="hub-card-icon bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <span class="badge bg-success text-white fw-bold" style="font-size: 0.65rem;">Mesa Oficial</span>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Mesa de Julgamento & TV</h5>
+                    <p class="text-secondary small mb-3">
+                        Terminal de julgamento oficial com registro de Valeu Boi, Zero, Retorno e revisão de Boi na TV.
+                    </p>
+                    <div class="btn-hub-action bg-success text-white">Abrir Julgamento</div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/senhas/mapa/" class="hub-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="hub-card-icon bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <span class="badge bg-dark border border-secondary text-secondary" style="font-size: 0.65rem;">Secretaria</span>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Secretaria & Mapa de Senhas</h5>
+                    <p class="text-secondary small mb-3">
+                        Gestão da matriz de 200 senhas, status por categoria e emissão presencial na portaria do parque.
+                    </p>
+                    <div class="btn-hub-action bg-secondary text-white">Abrir Mapa</div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/publico/ao-vivo/" target="_blank" class="hub-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="hub-card-icon bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                            <i class="bi bi-display"></i>
+                        </div>
+                        <span class="badge bg-danger text-white fw-bold" style="font-size: 0.65rem;">LED da Pista</span>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Telão Oficial da Pista</h5>
+                    <p class="text-secondary small mb-3">
+                        Tela limpa em tela cheia para transmissão nos painéis de LED, com vaqueiro na pista e julgamento.
+                    </p>
+                    <div class="btn-hub-action bg-danger text-white">Abrir Telão</div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/tv-vaqueiro/" class="hub-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="hub-card-icon bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                            <i class="bi bi-tv"></i>
+                        </div>
+                        <span class="badge bg-warning text-black fw-bold" style="font-size: 0.65rem;">R$ 39,90/mês</span>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">TV Vaqueiro 24H</h5>
+                    <p class="text-secondary small mb-3">
+                        Módulo de transmissão 24h por assinatura com veterinária, vaquejadas ao vivo, leilões e shows.
+                    </p>
+                    <div class="btn-hub-action bg-warning text-black">Acessar TV Vaqueiro</div>
+                </a>
+            </div>
+
+            <!-- ═════════ SEÇÃO 2: COORDENADOR DO EVENTO (PROPRIETÁRIO) ═════════ -->
+            {% elif usuario.papel == 'COORDENADOR' or usuario.papel == 'ORGANIZADOR' %}
+
+            <div class="col">
+                <a href="/coordenador/" class="hub-card">
+                    <div class="hub-card-icon bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Painel do Proprietário</h5>
+                    <p class="text-secondary small mb-3">
+                        Acompanhe o faturamento total em tempo real, senhas pagas e a lista completa de competidores inscritos.
+                    </p>
+                    <div class="btn-hub-action bg-success text-white">Abrir Relatório do Evento</div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/publico/ao-vivo/" target="_blank" class="hub-card">
+                    <div class="hub-card-icon bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                        <i class="bi bi-display"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Telão da Pista Ao Vivo</h5>
+                    <p class="text-secondary small mb-3">
+                        Acompanhe o andamento dos bois e as notas da bateria oficial em tempo real na pista.
+                    </p>
+                    <div class="btn-hub-action bg-danger text-white">Acompanhar Pista</div>
+                </a>
+            </div>
+
+            <!-- ═════════ SEÇÃO 3: LOCUTOR OFICIAL ═════════ -->
+            {% elif usuario.papel == 'LOCUTOR' %}
+
+            <div class="col">
+                <a href="/pista/locutor/" class="hub-card">
+                    <div class="hub-card-icon bg-info bg-opacity-10 text-info border border-info border-opacity-25">
+                        <i class="bi bi-mic-fill"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Cabine de Locução Oficial</h5>
+                    <p class="text-secondary small mb-3">
+                        Ordem de chamada da boiada, apelidos de pista dos vaqueiros, cavalos e avisos da secretaria.
+                    </p>
+                    <div class="btn-hub-action bg-info text-black">Acessar Cabine</div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/publico/ao-vivo/" target="_blank" class="hub-card">
+                    <div class="hub-card-icon bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                        <i class="bi bi-display"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Telão da Pista</h5>
+                    <p class="text-secondary small mb-3">
+                        Visualização de conferência dos resultados e do placar da corrida.
+                    </p>
+                    <div class="btn-hub-action bg-danger text-white">Ver Telão</div>
+                </a>
+            </div>
+
+            <!-- ═════════ SEÇÃO 4: JUIZ DE PISTA ═════════ -->
+            {% elif usuario.papel == 'JUIZ' %}
+
+            <div class="col">
+                <a href="/pista/juiz/" class="hub-card">
+                    <div class="hub-card-icon bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Mesa de Julgamento & TV</h5>
+                    <p class="text-secondary small mb-3">
+                        Terminal oficial de julgamento: Valeu Boi, Zero, Retorno e revisão de Boi na TV.
+                    </p>
+                    <div class="btn-hub-action bg-success text-white">Iniciar Julgamento</div>
+                </a>
+            </div>
+
+            <div class="col">
+                <a href="/publico/ao-vivo/" target="_blank" class="hub-card">
+                    <div class="hub-card-icon bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                        <i class="bi bi-display"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Telão da Pista</h5>
+                    <p class="text-secondary small mb-3">
+                        Conferência da sincronização dos julgamentos transmitidos para a pista.
+                    </p>
+                    <div class="btn-hub-action bg-danger text-white">Ver Telão</div>
+                </a>
+            </div>
+
+            <!-- ═════════ SEÇÃO 5: SECRETARIA ═════════ -->
+            {% elif usuario.papel == 'SECRETARIA' %}
+
+            <div class="col">
+                <a href="/senhas/mapa/" class="hub-card">
+                    <div class="hub-card-icon bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">Secretaria & Mapa de Senhas</h5>
+                    <p class="text-secondary small mb-3">
+                        Gestão da matriz de senhas e atendimento presencial aos vaqueiros.
+                    </p>
+                    <div class="btn-hub-action bg-secondary text-white">Acessar Matriz</div>
+                </a>
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </main>
+
+    <!-- ──────────────── FOOTER ──────────────── -->
+    <footer class="py-3 px-4 border-top border-secondary border-opacity-25 text-center text-secondary small bg-black">
+        QIRO © 2026 — Plataforma Oficial de Gestão e Mídia de Vaquejadas.
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

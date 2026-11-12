@@ -157,11 +157,8 @@ def cliente_logout(request):
 def equipe_login(request):
     """
     Login de acesso restrito da Equipe e Administração:
-    - ADM (Sua Conta): Acesso irrestrito e redirecionamento para o cadastro/gestão de eventos e equipes.
-    - Coordenador do Evento (Proprietário): Acesso ao dashboard financeiro e relatórios do seu evento.
-    - Locutor: Acesso à cabine de locução e fila de chamada.
-    - Juiz: Acesso ao terminal de notas e TV.
-    - Secretaria: Acesso ao mapa de senhas.
+    - Autentica e direciona todos os perfis autorizados (ADM, Coordenador, Locutor, Juiz, Secretaria)
+      para o Hub Operacional Central da Área Restrita (/equipe/hub/).
     """
     if request.method == 'POST':
         usuario_str = request.POST.get('usuario', '').strip()
@@ -175,20 +172,38 @@ def equipe_login(request):
             ]
         ):
             login(request, user)
-            if user.is_superuser or user.papel == Usuario.Papel.ADMIN:
-                return redirect('/eventos/cadastrar/')
-            elif user.papel in [Usuario.Papel.COORDENADOR, Usuario.Papel.ORGANIZADOR]:
-                return redirect('/coordenador/')
-            elif user.papel == Usuario.Papel.LOCUTOR:
-                return redirect('/pista/locutor/')
-            elif user.papel == Usuario.Papel.JUIZ:
-                return redirect('/pista/juiz/')
-            else:
-                return redirect('/senhas/mapa/')
+            return redirect('/equipe/hub/')
         else:
             messages.error(request, 'Credenciais inválidas ou você não possui permissão de acesso restrito.')
 
     return render(request, 'equipe/login.html')
+
+
+@login_required(login_url='/equipe/login/')
+def equipe_hub(request):
+    """
+    Console Central da Área Restrita (Hub Operacional).
+    Exibe os cartões de controle e cabines baseados estritamente no papel do usuário:
+    - ADM Geral: Controle total (Vaquejadas, Auditoria, Locução, Juiz, Secretaria, Telão, TV Vaqueiro).
+    - Coordenador: Painel de relatórios financeiros e auditoria de inscrições do seu evento.
+    - Locutor: Acesso à Cabine Oficial de Locução.
+    - Juiz: Acesso ao Terminal de Julgamento da Bateria Oficial.
+    - Secretaria: Mapa e emissão de senhas na portaria.
+    """
+    user = request.user
+    if not (user.is_superuser or user.papel in [
+        Usuario.Papel.ADMIN, Usuario.Papel.COORDENADOR, Usuario.Papel.ORGANIZADOR,
+        Usuario.Papel.LOCUTOR, Usuario.Papel.JUIZ, Usuario.Papel.SECRETARIA
+    ]):
+        messages.error(request, 'Você não possui permissão de acesso à Área Restrita.')
+        return redirect('tela_inicial')
+
+    evento_ativo = Evento.objects.filter(status=Evento.Status.EM_ANDAMENTO).first() or Evento.objects.first()
+
+    return render(request, 'equipe/hub.html', {
+        'usuario': user,
+        'evento_ativo': evento_ativo,
+    })
 
 
 @login_required(login_url='/cliente/login/')

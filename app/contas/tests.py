@@ -140,3 +140,36 @@ class ClienteFluxoTestCase(TestCase):
         self.assertTrue(senha.tem_boi_tv)
         self.assertEqual(senha.valor_total, 600.00)
         self.assertEqual(senha.cavalo_puxador.nome, 'Tornado Ouro')
+
+    def test_hub_operacional_area_restrita(self):
+        """Verifica se o Hub Operacional abre para ADM e equipe com os devidos cartões."""
+        adm = Usuario.objects.create_superuser(
+            username='adm_hub',
+            email='adm_hub@qiro.com.br',
+            password='senha_adm_hub',
+            papel=Usuario.Papel.ADMIN
+        )
+        self.client.login(username='adm_hub', password='senha_adm_hub')
+        res = self.client.get('/equipe/hub/')
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'Console Operacional')
+        self.assertContains(res, 'Cadastrar Nova Vaquejada')
+        self.assertContains(res, 'Cabine de Locução')
+        self.assertContains(res, 'Mesa de Julgamento')
+
+    def test_tv_vaqueiro_e_telao_limpo(self):
+        """Verifica se a TV Vaqueiro abre com paywall R$ 39,90 e o Telão está limpo de botões de teste."""
+        # 1. TV Vaqueiro
+        res_tv = self.client.get('/tv-vaqueiro/')
+        self.assertEqual(res_tv.status_code, 200)
+        self.assertContains(res_tv, 'tv vaqueiro')
+        self.assertContains(res_tv, 'R$ 39,90')
+        self.assertContains(res_tv, 'Grade de Programação 24 Horas')
+
+        # 2. Telão Limpo
+        res_telao = self.client.get('/publico/ao-vivo/')
+        self.assertEqual(res_telao.status_code, 200)
+        self.assertContains(res_telao, 'AO VIVO NA PISTA')
+        # Garante que os botões de atalho de desenvolvedor NÃO estão no telão público
+        self.assertNotContains(res_telao, '🤠 Vaqueiro')
+        self.assertNotContains(res_telao, 'Rodízio Atual')
