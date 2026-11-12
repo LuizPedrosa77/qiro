@@ -151,11 +151,6 @@
                     <i class="bi bi-tv-fill fs-5 text-danger"></i>
                     <span>TV Vaqueiro (Ao Vivo 24H)</span>
                 </a>
-
-                <a href="/publico/ao-vivo/" class="sidebar-link" target="_blank">
-                    <i class="bi bi-broadcast fs-5 text-info"></i>
-                    <span>Telão da Pista <i class="bi bi-box-arrow-up-right ms-auto small"></i></span>
-                </a>
             </nav>
 
             <div class="px-3 mt-5 pt-4 border-top border-secondary border-opacity-10 text-center">
@@ -186,9 +181,9 @@
                         <i class="bi bi-plus-circle-fill fs-5 text-success"></i>
                         <span>Comprar Senhas</span>
                     </a>
-                    <a href="/publico/ao-vivo/" class="sidebar-link" target="_blank">
-                        <i class="bi bi-broadcast fs-5 text-info"></i>
-                        <span>Telão da Pista</span>
+                    <a href="/tv-vaqueiro/" class="sidebar-link {% if request.path == '/tv-vaqueiro/' %}active{% endif %}">
+                        <i class="bi bi-tv-fill fs-5 text-danger"></i>
+                        <span>TV Vaqueiro (Ao Vivo 24H)</span>
                     </a>
                     <div class="border-top border-secondary border-opacity-25 my-3 mx-3"></div>
                     <a href="/cliente/logout/" class="sidebar-link text-danger">
