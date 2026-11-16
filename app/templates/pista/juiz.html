@@ -4,6 +4,61 @@
 
 {% block body_class %}bg-black{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Cards Oficiais de Julgamento da Vaquejada */
+    .card-julgamento-btn {
+        background: #FFFFFF;
+        border: 3px solid #2B2B2B;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 6px;
+        cursor: pointer;
+        transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+        user-select: none;
+        width: 100%;
+        min-height: 120px;
+        text-align: center;
+    }
+    .card-julgamento-btn:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7), 0 0 15px rgba(234, 179, 8, 0.3);
+        border-color: #EAB308;
+    }
+    .card-julgamento-btn:active {
+        transform: scale(0.96);
+    }
+    .card-julgamento-btn .card-icon-slot {
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .card-julgamento-btn .card-title-text {
+        font-weight: 900;
+        font-size: 0.78rem;
+        color: #111827;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-top: 5px;
+        line-height: 1.1;
+    }
+    .card-julgamento-btn .card-badge-sub {
+        font-weight: 800;
+        font-size: 0.62rem;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row g-3">
 
@@ -132,47 +187,70 @@
 
 </div>
 
-<!-- ──────────────── MODAL DE JULGAMENTO DO JUIZ (4 AÇÕES - MOCKUP IMAGEM 14) ──────────────── -->
+<!-- ──────────────── MODAL DE JULGAMENTO DO JUIZ (CARDS OFICIAIS DA VAQUEJADA) ──────────────── -->
 <div class="modal fade" id="modalJulgamentoJuiz" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-secondary bg-black p-3 text-center">
-            <div class="modal-header border-0 pb-1 justify-content-center">
-                <h6 class="fw-bold text-white m-0">Qual o julgamento do boi? (Mesa de Jurados)</h6>
+            <div class="modal-header border-0 pb-2 justify-content-center">
+                <div>
+                    <h5 class="fw-black text-white m-0">Julgamento Oficial do Boi</h5>
+                    <div class="text-secondary small mt-0.5">Selecione o cartão oficial da Mesa de Jurados:</div>
+                </div>
             </div>
             <div class="modal-body p-2">
                 <div class="row g-2">
-                    <!-- 1. VALEU BOI [V VERDE] -->
+                    <!-- 1. VALEU BOI [CARD BRANCO COM V VERDE] -->
                     <div class="col-3">
-                        <button type="button" class="btn btn-success w-100 py-3 fw-black fs-2 d-flex flex-column align-items-center rounded-3 shadow" onclick="confirmarJulgamentoJuiz('VALEU_BOI')">
-                            <span>✓</span>
-                            <span style="font-size: 0.65rem;" class="fw-bold">Valeu</span>
+                        <button type="button" class="card-julgamento-btn" onclick="confirmarJulgamentoJuiz('VALEU_BOI')">
+                            <div class="card-icon-slot">
+                                <svg viewBox="0 0 100 100" style="width: 46px; height: 46px;">
+                                    <path d="M12 55 L38 82 L88 18" fill="none" stroke="#16A34A" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="card-title-text">VALEU BOI</div>
+                            <span class="badge bg-success card-badge-sub">+10 PONTOS</span>
                         </button>
                     </div>
-                    <!-- 2. BOI DE TV [TV PRETO] -->
+
+                    <!-- 2. BOI DE TV [CARD BRANCO COM TV PRETO] -->
                     <div class="col-3">
-                        <button type="button" class="btn btn-dark border border-secondary text-info w-100 py-3 fw-black fs-2 d-flex flex-column align-items-center rounded-3 shadow" onclick="confirmarJulgamentoJuiz('BOI_DE_TV')">
-                            <span>TV</span>
-                            <span style="font-size: 0.65rem;" class="fw-bold">Revisão</span>
+                        <button type="button" class="card-julgamento-btn" onclick="confirmarJulgamentoJuiz('BOI_DE_TV')">
+                            <div class="card-icon-slot">
+                                <span style="font-size: 3rem; font-weight: 900; line-height: 1; color: #000000; font-family: 'Arial Black', Impact, sans-serif;">TV</span>
+                            </div>
+                            <div class="card-title-text">BOI DE TV</div>
+                            <span class="badge bg-dark card-badge-sub">REVISÃO</span>
                         </button>
                     </div>
-                    <!-- 3. RETORNO [R AMARELO] -->
+
+                    <!-- 3. RETORNO [CARD BRANCO COM R AMARELO] -->
                     <div class="col-3">
-                        <button type="button" class="btn btn-warning w-100 py-3 fw-black fs-2 d-flex flex-column align-items-center rounded-3 shadow" onclick="confirmarJulgamentoJuiz('RETORNO')">
-                            <span>R</span>
-                            <span style="font-size: 0.65rem;" class="fw-bold">Retorno</span>
+                        <button type="button" class="card-julgamento-btn" onclick="confirmarJulgamentoJuiz('RETORNO')">
+                            <div class="card-icon-slot">
+                                <span style="font-size: 3.2rem; font-weight: 900; line-height: 1; color: #EAB308; font-family: 'Arial Black', Impact, sans-serif;">R</span>
+                            </div>
+                            <div class="card-title-text">RETORNO</div>
+                            <span class="badge bg-warning text-dark card-badge-sub">BOI NOVO</span>
                         </button>
                     </div>
-                    <!-- 4. ZERO [X VERMELHO] -->
+
+                    <!-- 4. ZERO [CARD BRANCO COM X VERMELHO PURO - SEM BOLINHA AZUL] -->
                     <div class="col-3">
-                        <button type="button" class="btn btn-danger w-100 py-3 fw-black fs-2 d-flex flex-column align-items-center rounded-3 shadow" onclick="confirmarJulgamentoJuiz('ZERO')">
-                            <span>✗</span>
-                            <span style="font-size: 0.65rem;" class="fw-bold">Zero</span>
+                        <button type="button" class="card-julgamento-btn" onclick="confirmarJulgamentoJuiz('ZERO')">
+                            <div class="card-icon-slot">
+                                <svg viewBox="0 0 100 100" style="width: 46px; height: 46px;">
+                                    <line x1="20" y1="20" x2="80" y2="80" stroke="#DC2626" stroke-width="16" stroke-linecap="round" />
+                                    <line x1="80" y1="20" x2="20" y2="80" stroke="#DC2626" stroke-width="16" stroke-linecap="round" />
+                                </svg>
+                            </div>
+                            <div class="card-title-text">ZERO</div>
+                            <span class="badge bg-danger card-badge-sub">ELIMINADO</span>
                         </button>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer border-0 pt-1">
-                <button type="button" class="btn btn-dark w-100 btn-sm text-secondary" data-bs-dismiss="modal">Fechar</button>
+            <div class="modal-footer border-0 pt-2">
+                <button type="button" class="btn btn-dark w-100 btn-sm text-secondary" data-bs-dismiss="modal">Cancelar Julgamento</button>
             </div>
         </div>
     </div>

@@ -161,6 +161,6 @@ class PistaRegrasTestCase(TestCase):
         self.assertIn('Cabine de Locução Oficial', content)
         self.assertIn('Puxar Novo Cartão', content)
         self.assertIn('Puxar Cartão Anterior', content)
-        self.assertIn('VALEU BOI!', content)
+        self.assertIn('VALEU BOI', content)
         self.assertIn('ZERO', content)
         self.assertIn('RETORNO', content)

@@ -68,60 +68,64 @@
         gap: 6px;
     }
 
-    /* Botões de Julgamento de Alto Impacto */
-    .btn-julgamento {
-        border-radius: 0.85rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 0.85rem 1rem;
+    /* ═══════════════════════════════════════════════════════════════════════
+       CARDS DE JULGAMENTO OFICIAIS (BASEADOS NO MODELO FÍSICO DA VAQUEJADA)
+       Fundo branco, borda escura de alto contraste, ícones originais
+       ═══════════════════════════════════════════════════════════════════════ */
+    .card-julgamento-btn {
+        background: #FFFFFF;
+        border: 3px solid #2B2B2B;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 8px;
+        cursor: pointer;
+        transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease, border-color 0.16s ease;
+        user-select: none;
+        width: 100%;
+        min-height: 135px;
+        text-align: center;
+        position: relative;
+    }
+
+    .card-julgamento-btn:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7), 0 0 15px rgba(234, 179, 8, 0.3);
+        border-color: #EAB308;
+    }
+
+    .card-julgamento-btn:active {
+        transform: scale(0.96);
+    }
+
+    .card-julgamento-btn .card-icon-slot {
+        height: 60px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .btn-julgamento:hover {
-        transform: translateY(-2px);
+    .card-julgamento-btn .card-title-text {
+        font-weight: 900;
+        font-size: 0.85rem;
+        color: #111827;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-top: 6px;
+        line-height: 1.1;
     }
 
-    .btn-julgamento:active {
-        transform: scale(0.97);
-    }
-
-    .btn-valeu-boi {
-        background: linear-gradient(135deg, #15803D 0%, #16A34A 100%);
-        border: 2px solid #22C55E;
-        color: #FFFFFF;
-    }
-    .btn-valeu-boi:hover {
-        background: linear-gradient(135deg, #166534 0%, #15803D 100%);
-        color: #FFFFFF;
-        box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
-    }
-
-    .btn-zero {
-        background: linear-gradient(135deg, #B91C1C 0%, #DC2626 100%);
-        border: 2px solid #EF4444;
-        color: #FFFFFF;
-    }
-    .btn-zero:hover {
-        background: linear-gradient(135deg, #991B1B 0%, #B91C1C 100%);
-        color: #FFFFFF;
-        box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-    }
-
-    .btn-retorno {
-        background: linear-gradient(135deg, #B45309 0%, #D97706 100%);
-        border: 2px solid #F59E0B;
-        color: #FFFFFF;
-    }
-    .btn-retorno:hover {
-        background: linear-gradient(135deg, #92400E 0%, #B45309 100%);
-        color: #FFFFFF;
-        box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+    .card-julgamento-btn .card-badge-sub {
+        font-weight: 800;
+        font-size: 0.65rem;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 6px;
+        margin-top: 5px;
     }
 
     .boi-selector-btn {
@@ -284,45 +288,51 @@
                 </div>
 
                 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-                <!-- AS 3 OPÇÕES DE JULGAMENTO DO LOCUTOR: VALEU BOI, ZERO E RETORNO -->
+                <!-- AS 3 OPÇÕES DE JULGAMENTO DO LOCUTOR (CARDS FÍSICOS DA VAQUEJADA) -->
+                <!-- Baseados na foto oficial: [✔ Verde] [R Amarelo] [X Vermelho puro] -->
                 <!-- ═══════════════════════════════════════════════════════════════════════ -->
                 <div class="mt-4 pt-3 border-top border-warning border-opacity-30">
-                    <div class="text-secondary small fw-bold text-uppercase mb-2 text-center" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                        🎯 Julgamento do Locutor Oficial (<span id="labelBoiJulgamento" class="text-warning">Boi 1</span>)
+                    <div class="text-secondary small fw-bold text-uppercase mb-2.5 text-center d-flex align-items-center justify-content-center gap-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                        <span>🎯</span> Julgamento do Boi pelo Locutor Oficial: <span id="labelBoiJulgamento" class="badge bg-warning text-dark fw-black px-2.5 py-1 rounded-pill">Boi 1</span>
                     </div>
 
-                    <div class="row g-2">
+                    <div class="row g-3">
                         
-                        <!-- 🟢 BOTAO 1: VALEU BOI (+ PONTUAÇÃO ATUALIZADA) -->
-                        <div class="col-md-5">
-                            <button type="button" class="btn btn-julgamento btn-valeu-boi w-100 fs-5" onclick="executarJulgamentoLocutor('VALEU_BOI')">
-                                <span class="fs-4">🟢</span>
-                                <div>
-                                    <div>VALEU BOI!</div>
-                                    <div style="font-size: 0.65rem; opacity: 0.9;" class="fw-normal">+10 PONTOS NA MATRIZ</div>
+                        <!-- CARD 1: 🟢 VALEU BOI (CARD BRANCO COM V VERDE) -->
+                        <div class="col-4">
+                            <button type="button" class="card-julgamento-btn" onclick="executarJulgamentoLocutor('VALEU_BOI')">
+                                <div class="card-icon-slot">
+                                    <svg viewBox="0 0 100 100" style="width: 52px; height: 52px;">
+                                        <path d="M12 55 L38 82 L88 18" fill="none" stroke="#16A34A" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
                                 </div>
+                                <div class="card-title-text">VALEU BOI</div>
+                                <span class="badge bg-success card-badge-sub">+10 PONTOS</span>
                             </button>
                         </div>
 
-                        <!-- 🔴 BOTAO 2: ZERO -->
-                        <div class="col-md-3">
-                            <button type="button" class="btn btn-julgamento btn-zero w-100 fs-5" onclick="executarJulgamentoLocutor('ZERO')">
-                                <span class="fs-4">🔴</span>
-                                <div>
-                                    <div>ZERO</div>
-                                    <div style="font-size: 0.65rem; opacity: 0.9;" class="fw-normal">0 PTS / ELIMINADO</div>
+                        <!-- CARD 2: 🟡 RETORNO (CARD BRANCO COM R AMARELO) -->
+                        <div class="col-4">
+                            <button type="button" class="card-julgamento-btn" onclick="executarJulgamentoLocutor('RETORNO')">
+                                <div class="card-icon-slot">
+                                    <span style="font-size: 3.6rem; font-weight: 900; line-height: 1; color: #EAB308; font-family: 'Arial Black', Impact, sans-serif;">R</span>
                                 </div>
+                                <div class="card-title-text">RETORNO</div>
+                                <span class="badge bg-warning text-dark card-badge-sub">BOI NOVO</span>
                             </button>
                         </div>
 
-                        <!-- 🟡 BOTAO 3: RETORNO -->
-                        <div class="col-md-4">
-                            <button type="button" class="btn btn-julgamento btn-retorno w-100 fs-5" onclick="executarJulgamentoLocutor('RETORNO')">
-                                <span class="fs-4">🟡</span>
-                                <div>
-                                    <div>RETORNO</div>
-                                    <div style="font-size: 0.65rem; opacity: 0.9;" class="fw-normal">BOI NOVO NA PISTA</div>
+                        <!-- CARD 3: 🔴 ZERO (CARD BRANCO COM X VERMELHO PURO - SEM BOLINHA AZUL) -->
+                        <div class="col-4">
+                            <button type="button" class="card-julgamento-btn" onclick="executarJulgamentoLocutor('ZERO')">
+                                <div class="card-icon-slot">
+                                    <svg viewBox="0 0 100 100" style="width: 52px; height: 52px;">
+                                        <line x1="20" y1="20" x2="80" y2="80" stroke="#DC2626" stroke-width="16" stroke-linecap="round" />
+                                        <line x1="80" y1="20" x2="20" y2="80" stroke="#DC2626" stroke-width="16" stroke-linecap="round" />
+                                    </svg>
                                 </div>
+                                <div class="card-title-text">ZERO</div>
+                                <span class="badge bg-danger card-badge-sub">ELIMINADO</span>
                             </button>
                         </div>
 
@@ -516,17 +526,17 @@
 
             if (p) {
                 if (p.julgamento === 'VALEU_BOI') {
-                    badgeClass = 'bg-success-subtle text-success border-success fw-bold';
-                    label = `✓ Valeu`;
-                    pontosLabel = `+${p.pontos} Pts`;
+                    badgeClass = 'bg-white text-dark border-success fw-bold shadow-sm';
+                    label = `<span class="text-success fw-black">✓ Valeu</span>`;
+                    pontosLabel = `<span class="badge bg-success">+${p.pontos} Pts</span>`;
                 } else if (p.julgamento === 'ZERO') {
-                    badgeClass = 'bg-danger-subtle text-danger border-danger fw-bold';
-                    label = `✗ Zero`;
-                    pontosLabel = `0 Pts`;
+                    badgeClass = 'bg-white text-dark border-danger fw-bold shadow-sm';
+                    label = `<span class="text-danger fw-black">✗ Zero</span>`;
+                    pontosLabel = `<span class="badge bg-danger">0 Pts</span>`;
                 } else if (p.julgamento === 'RETORNO') {
-                    badgeClass = 'bg-warning-subtle text-warning border-warning fw-bold';
-                    label = `↺ Retorno`;
-                    pontosLabel = `Boi Novo`;
+                    badgeClass = 'bg-white text-dark border-warning fw-bold shadow-sm';
+                    label = `<span class="text-warning fw-black">R Retorno</span>`;
+                    pontosLabel = `<span class="badge bg-warning text-dark">Boi Novo</span>`;
                 }
             }
 
