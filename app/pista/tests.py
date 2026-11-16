@@ -58,8 +58,8 @@ class PistaRegrasTestCase(TestCase):
             valor_total=800.00
         )
 
-    def test_locutor_nao_pode_dar_valeu_boi(self):
-        """Regra Fundador: Locutor NÃO pode dar Valeu Boi (apenas Retorno ou Zero)."""
+    def test_locutor_pode_dar_valeu_boi_com_pontuacao_atualizada(self):
+        """Regra Atualizada: Locutor pode registrar Valeu Boi (+10 pontos atualizados)."""
         response = self.client.post(
             '/pista/julgamento/',
             data=json.dumps({
@@ -70,9 +70,28 @@ class PistaRegrasTestCase(TestCase):
             }),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
         self.senha.refresh_from_db()
-        self.assertEqual(self.senha.total_pontos, 0)
+        self.assertEqual(self.senha.total_pontos, 10)
+        passada = BoiPassada.objects.get(senha=self.senha, numero_boi=1)
+        self.assertEqual(passada.julgamento_locutor, 'VALEU_BOI')
+        self.assertEqual(passada.pontos_obtidos, 10)
+
+    def test_locutor_pode_dar_zero_e_elimina(self):
+        """Regra Atualizada: Locutor pode registrar Zero (elimina senha)."""
+        response = self.client.post(
+            '/pista/julgamento/',
+            data=json.dumps({
+                'senha_id': str(self.senha.id),
+                'numero_boi': 1,
+                'decisao': 'ZERO',
+                'origem': 'LOCUTOR'
+            }),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.senha.refresh_from_db()
+        self.assertEqual(self.senha.status, SenhaInscricao.StatusSenha.ELIMINADA)
 
     def test_locutor_pode_dar_retorno(self):
         """Regra Fundador: Locutor pode dar Retorno."""
@@ -121,3 +140,27 @@ class PistaRegrasTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.senha.refresh_from_db()
         self.assertEqual(self.senha.total_pontos, 10)
+
+    def test_painel_locutor_deck_e_permissoes(self):
+        """Verifica se a tela do locutor requer login e renderiza o baralho e botões."""
+        # Não logado -> redireciona para login da equipe
+        resp_unauth = self.client.get('/pista/locutor/')
+        self.assertEqual(resp_unauth.status_code, 302)
+        self.assertIn('/equipe/login/', resp_unauth.url)
+
+        # Logado como Locutor
+        locutor_user = Usuario.objects.create_user(
+            username='locutor_oficial',
+            password='testpassword',
+            papel=Usuario.Papel.LOCUTOR
+        )
+        self.client.login(username='locutor_oficial', password='testpassword')
+        resp = self.client.get('/pista/locutor/')
+        self.assertEqual(resp.status_code, 200)
+        content = resp.content.decode('utf-8')
+        self.assertIn('Cabine de Locução Oficial', content)
+        self.assertIn('Puxar Novo Cartão', content)
+        self.assertIn('Puxar Cartão Anterior', content)
+        self.assertIn('VALEU BOI!', content)
+        self.assertIn('ZERO', content)
+        self.assertIn('RETORNO', content)

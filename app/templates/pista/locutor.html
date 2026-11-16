@@ -1,181 +1,402 @@
 {% extends "base.html" %}
 
-{% block title %}QIRO — Cartão do Locutor{% endblock %}
+{% block title %}QIRO — Cabine de Locução Oficial{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos do Baralho de Cartões do Locutor */
+    .deck-container {
+        position: relative;
+        perspective: 1000px;
+        min-height: 520px;
+        user-select: none;
+        touch-action: pan-y;
+    }
+
+    .locutor-card {
+        background: linear-gradient(145deg, #18281F 0%, #0F1A14 100%);
+        border: 2px solid rgba(234, 179, 8, 0.35);
+        border-radius: 1.25rem;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(234, 179, 8, 0.1);
+        transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, opacity 0.25s ease;
+        cursor: grab;
+        position: relative;
+    }
+
+    .locutor-card:active {
+        cursor: grabbing;
+    }
+
+    .locutor-card.swiping-left {
+        transform: translateX(-120%) rotate(-15deg) !important;
+        opacity: 0;
+    }
+
+    .locutor-card.swiping-right {
+        transform: translateX(120%) rotate(15deg) !important;
+        opacity: 0;
+    }
+
+    .locutor-card.card-enter-left {
+        animation: enterFromLeft 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    .locutor-card.card-enter-right {
+        animation: enterFromRight 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    @keyframes enterFromLeft {
+        from { transform: translateX(-100%) rotate(-10deg); opacity: 0; }
+        to { transform: translateX(0) rotate(0deg); opacity: 1; }
+    }
+
+    @keyframes enterFromRight {
+        from { transform: translateX(100%) rotate(10deg); opacity: 0; }
+        to { transform: translateX(0) rotate(0deg); opacity: 1; }
+    }
+
+    /* Indicador visual de arraste */
+    .drag-pill {
+        background: rgba(0,0,0,0.4);
+        border: 1px dashed rgba(234, 179, 8, 0.4);
+        color: #EAB308;
+        font-size: 0.72rem;
+        padding: 4px 14px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Botões de Julgamento de Alto Impacto */
+    .btn-julgamento {
+        border-radius: 0.85rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.85rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-julgamento:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-julgamento:active {
+        transform: scale(0.97);
+    }
+
+    .btn-valeu-boi {
+        background: linear-gradient(135deg, #15803D 0%, #16A34A 100%);
+        border: 2px solid #22C55E;
+        color: #FFFFFF;
+    }
+    .btn-valeu-boi:hover {
+        background: linear-gradient(135deg, #166534 0%, #15803D 100%);
+        color: #FFFFFF;
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-zero {
+        background: linear-gradient(135deg, #B91C1C 0%, #DC2626 100%);
+        border: 2px solid #EF4444;
+        color: #FFFFFF;
+    }
+    .btn-zero:hover {
+        background: linear-gradient(135deg, #991B1B 0%, #B91C1C 100%);
+        color: #FFFFFF;
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-retorno {
+        background: linear-gradient(135deg, #B45309 0%, #D97706 100%);
+        border: 2px solid #F59E0B;
+        color: #FFFFFF;
+    }
+    .btn-retorno:hover {
+        background: linear-gradient(135deg, #92400E 0%, #B45309 100%);
+        color: #FFFFFF;
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .boi-selector-btn {
+        transition: all 0.2s ease;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+    }
+    .boi-selector-btn.active {
+        border-color: #EAB308 !important;
+        box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
+        background: rgba(234, 179, 8, 0.15) !important;
+    }
+
+    .fila-item-card {
+        transition: background 0.2s ease, border-color 0.2s ease;
+        cursor: pointer;
+    }
+    .fila-item-card:hover {
+        border-color: rgba(234, 179, 8, 0.6) !important;
+        background: #18281F !important;
+    }
+    .fila-item-card.active-in-deck {
+        border-color: #EAB308 !important;
+        background: rgba(234, 179, 8, 0.12) !important;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
+<!-- TOPO DA CABINE DE LOCUÇÃO -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom border-qiro gap-2">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h4 class="fw-black text-white m-0 d-flex align-items-center gap-2">
+                <span class="fs-4">🎙️</span> Cabine de Locução Oficial
+            </h4>
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill fw-bold text-uppercase" style="font-size: 0.7rem;">
+                🔴 PISTA AO VIVO
+            </span>
+        </div>
+        <div class="text-secondary small mt-0.5">
+            Evento: <strong class="text-warning">{{ evento.nome }}</strong> &bull; Puxe os cartões arrastando ou use as setas do teclado.
+        </div>
+    </div>
+
+    <!-- Indicador de Navegação do Baralho -->
+    <div class="d-flex align-items-center gap-2">
+        <a href="/equipe/hub/" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left"></i> Hub Operacional
+        </a>
+        <div class="bg-dark border border-secondary border-opacity-50 px-3 py-1.5 rounded-pill text-white small fw-bold">
+            <span class="text-secondary fw-normal">Cartão:</span> <span id="deckCounter" class="text-warning">1 / {{ total_cartoes }}</span>
+        </div>
+    </div>
+</div>
+
 <div class="row g-3">
 
-    <!-- COLUNA ESQUERDA: CONJUNTO ATUAL (CARTÃO LOCUTOR) -->
-    <div class="col-lg-5">
-        <div class="card bg-qiro-card border-qiro shadow-lg p-3 rounded-4">
-            
-            <div class="d-flex justify-content-between align-items-center pb-2 border-bottom border-qiro">
-                <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1.5 rounded-pill text-uppercase fw-bold" style="font-size: 0.7rem;">
-                    Conjunto Atual na Pista
-                </span>
-                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1.5 rounded-pill text-uppercase fw-bold" style="font-size: 0.7rem;">
-                    Cartão Locutor
-                </span>
+    <!-- COLUNA PRINCIPAL: BARALHO INTERATIVO DE CARTÕES DO LOCUTOR (8 COLUNAS) -->
+    <div class="col-lg-8">
+        
+        <!-- BARRA DE CONTROLE SUPERIOR DO BARALHO -->
+        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+            <button type="button" class="btn btn-dark border-secondary btn-sm px-3 rounded-pill text-white fw-bold d-flex align-items-center gap-2 shadow-sm" id="btnAnterior" onclick="puxarCartaoAnterior()">
+                <i class="bi bi-chevron-left text-warning"></i> <span>Puxar Cartão Anterior</span>
+            </button>
+
+            <div class="drag-pill">
+                <span>👈</span> <strong>Arraste para o lado</strong> para puxar novo/anterior <span>👉</span>
             </div>
 
-            {% if conjunto_atual %}
-            <div class="mt-3">
-                <div class="d-flex justify-content-between align-items-baseline">
-                    <span class="text-secondary small">Categoria: <strong class="text-white">{{ conjunto_atual.categoria.nome_exibicao }}</strong></span>
-                    <span class="fs-2 fw-black text-qiro-yellow">Senha {{ conjunto_atual.numero_senha }}</span>
-                </div>
+            <button type="button" class="btn btn-dark border-secondary btn-sm px-3 rounded-pill text-white fw-bold d-flex align-items-center gap-2 shadow-sm" id="btnProximo" onclick="puxarNovoCartao()">
+                <span>Puxar Novo Cartão</span> <i class="bi bi-chevron-right text-warning"></i>
+            </button>
+        </div>
 
-                <div class="p-3 my-2 rounded-3 bg-dark border border-secondary border-opacity-25 small">
-                    <div class="mb-2">
-                        <div class="text-secondary" style="font-size: 0.75rem;">Vaqueiro Puxador:</div>
-                        <div class="fs-6 fw-bold text-white">{{ conjunto_atual.vaqueiro_puxador.apelido_locucao|default:conjunto_atual.vaqueiro_puxador.get_full_name }}</div>
-                        <div class="text-warning small">Cavalo Puxador: {{ conjunto_atual.cavalo_puxador.nome }}</div>
-                    </div>
-                    <div class="pt-2 border-top border-secondary border-opacity-25 mb-2">
-                        <div class="text-secondary" style="font-size: 0.75rem;">Vaqueiro Esteireiro:</div>
-                        <div class="fs-6 fw-bold text-white">{% if conjunto_atual.vaqueiro_esteireiro %}{{ conjunto_atual.vaqueiro_esteireiro.apelido_locucao|default:conjunto_atual.vaqueiro_esteireiro.get_full_name }}{% else %}A definir{% endif %}</div>
-                        <div class="text-info small">Cavalo Esteira: {{ conjunto_atual.cavalo_esteireiro.nome|default:"A definir" }}</div>
-                    </div>
-                    <div class="pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between">
-                        <span class="text-secondary">Representação:</span>
-                        <span class="fw-bold text-warning">{{ conjunto_atual.representacao }}</span>
-                    </div>
-                </div>
-
-                <!-- BOIS DA PASSADA (MOCKUP IMAGENS 9 E 10) -->
-                <div class="mt-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">
-                            Bois da Passada (Clique para Retorno ou Zero)
+        <!-- RECIPIENTE DO BARALHO (ÁREA DE ARRASTE / SWIPE) -->
+        <div class="deck-container" id="deckContainer">
+            
+            <!-- CARTÃO ATIVO DINÂMICO -->
+            <div class="locutor-card p-4 text-white" id="activeLocutorCard">
+                
+                <!-- CABEÇALHO DO CARTÃO: SENHA, CATEGORIA E STATUS -->
+                <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-secondary border-opacity-25">
+                    <div>
+                        <span class="badge bg-warning text-dark fw-black fs-6 px-3 py-1.5 rounded-pill text-uppercase shadow-sm" id="cardCategoriaBadge">
+                            PROFISSIONAL
                         </span>
-                        <span class="badge bg-success small fw-bold" id="totalPontosBadge">{{ conjunto_atual.total_pontos }} Pts</span>
+                        <span class="badge bg-dark border border-secondary text-secondary ms-1 px-2.5 py-1.5 rounded-pill" id="cardStatusBadge">
+                            NA PISTA
+                        </span>
                     </div>
+
+                    <div class="text-end">
+                        <div class="text-secondary small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Número da Ficha</div>
+                        <div class="fs-1 fw-black text-qiro-yellow lh-1" id="cardNumeroSenha">SENHA 01</div>
+                    </div>
+                </div>
+
+                <!-- CORPO DO CARTÃO: DADOS GIGANTES PARA A VOZ DO LOCUTOR -->
+                <div class="row g-3 my-2">
                     
-                    <div class="d-flex gap-2">
-                        {% for passada in conjunto_atual.passadas.all %}
-                        <div class="boi-card p-2 rounded-3 border text-center position-relative cursor-pointer 
-                            {% if passada.julgamento_juiz == 'VALEU_BOI' %}bg-success-subtle border-success text-success
-                            {% elif passada.julgamento_juiz == 'ZERO' %}bg-danger-subtle border-danger text-danger
-                            {% elif passada.julgamento_juiz == 'RETORNO' %}bg-warning-subtle border-warning text-warning
-                            {% else %}bg-dark border-secondary text-secondary{% endif %}"
-                            style="width: 70px; cursor: pointer;"
-                            onclick="abrirJulgamentoModal('{{ conjunto_atual.id }}', '{{ passada.numero_boi }}')">
-                            
-                            <!-- Ícone do Boi -->
-                            <svg viewBox="0 0 64 48" style="width: 38px; height: 30px;" fill="currentColor">
-                                <path d="M12 18 C10 12, 4 10, 2 8 C6 14, 8 18, 10 24 L6 38 L12 38 L16 28 L38 28 L42 38 L48 38 L44 22 C48 18, 52 16, 56 12 C54 14, 48 18, 44 22 L40 18 C30 16, 20 16, 12 18 Z" />
-                            </svg>
-                            
-                            <div class="fw-bold mt-1" style="font-size: 0.7rem;">
-                                {% if passada.julgamento_juiz == 'VALEU_BOI' %}✓ Valeu
-                                {% elif passada.julgamento_juiz == 'ZERO' %}✗ Zero
-                                {% elif passada.julgamento_juiz == 'RETORNO' %}R Retorno
-                                {% else %}Boi {{ passada.numero_boi }}{% endif %}
+                    <!-- VAQUEIRO PUXADOR E CAVALO PUXADOR -->
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-30 h-100">
+                            <div class="d-flex align-items-center gap-1.5 text-warning small fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">
+                                <span>🤠</span> Vaqueiro Puxador
+                            </div>
+                            <div class="fs-3 fw-black text-white text-uppercase" id="cardVaqueiroPuxador">
+                                ALEXANDRE CAMPINHOS
+                            </div>
+                            <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex align-items-center gap-2">
+                                <span class="text-secondary small">Cavalo Puxador:</span>
+                                <strong class="text-qiro-yellow small" id="cardCavaloPuxador">Silver Wild YQI</strong>
                             </div>
                         </div>
-                        {% endfor %}
+                    </div>
+
+                    <!-- VAQUEIRO ESTEIREIRO E CAVALO ESTEIRA -->
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-30 h-100">
+                            <div class="d-flex align-items-center gap-1.5 text-info small fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">
+                                <span>🤝</span> Vaqueiro Esteireiro
+                            </div>
+                            <div class="fs-4 fw-bold text-white text-uppercase" id="cardVaqueiroEsteireiro">
+                                CELSINHO VITÓRIO
+                            </div>
+                            <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex align-items-center gap-2">
+                                <span class="text-secondary small">Cavalo Esteira:</span>
+                                <strong class="text-info small" id="cardCavaloEsteira">Holland Machine</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REPRESENTAÇÃO / HARAS -->
+                    <div class="col-12">
+                        <div class="px-3 py-2 rounded-3 bg-black bg-opacity-30 border border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                            <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem;">Haras / Representação:</span>
+                            <span class="fw-bold text-warning fs-6" id="cardRepresentacao">Haras BonSucesso — Bezerros/PE</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SELETOR DOS BOIS DA PASSADA (BOI 1, 2, 3) -->
+                <div class="mt-3 pt-3 border-top border-secondary border-opacity-25">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-bold text-secondary text-uppercase" style="font-size: 0.72rem;">
+                            Selecione o Boi da Corrida:
+                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-secondary small" style="font-size: 0.72rem;">Pontuação Atual:</span>
+                            <span class="badge bg-success fs-6 fw-black px-3 py-1 rounded-pill shadow-sm" id="cardTotalPontosBadge">0 Pts</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-2" id="cardBoisPassadaContainer">
+                        <!-- Gerado dinamicamente no JS para os 3 bois -->
                     </div>
                 </div>
 
-            </div>
-            {% else %}
-            <div class="text-center py-5 text-secondary">Nenhum conjunto em pista no momento.</div>
-            {% endif %}
-
-            <!-- BATE-PAPO RÁPIDO DO RODAPÉ (MOCKUP IMAGEM 9) -->
-            <div class="mt-4 pt-3 border-top border-qiro">
-                <div class="small fw-bold text-info text-uppercase mb-2" style="font-size: 0.7rem;">
-                    Bate - Papo Rápido com a Pista
-                </div>
-                
-                <div class="row g-2 mb-2">
-                    <div class="col-6">
-                        <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning small p-2" 
-                            style="font-size: 0.72rem; font-weight: 600;" onclick="enviarMensagemRapida('Vaqueiro tomando a frente do boi')">
-                            ⚠️ Vaqueiro tomando a frente do boi
-                        </button>
+                <!-- ═══════════════════════════════════════════════════════════════════════ -->
+                <!-- AS 3 OPÇÕES DE JULGAMENTO DO LOCUTOR: VALEU BOI, ZERO E RETORNO -->
+                <!-- ═══════════════════════════════════════════════════════════════════════ -->
+                <div class="mt-4 pt-3 border-top border-warning border-opacity-30">
+                    <div class="text-secondary small fw-bold text-uppercase mb-2 text-center" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                        🎯 Julgamento do Locutor Oficial (<span id="labelBoiJulgamento" class="text-warning">Boi 1</span>)
                     </div>
-                    <div class="col-6">
-                        <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning small p-2" 
-                            style="font-size: 0.72rem; font-weight: 600;" onclick="enviarMensagemRapida('Se liga nesse Vaqueiro')">
-                            👀 Se liga nesse Vaqueiro
-                        </button>
+
+                    <div class="row g-2">
+                        
+                        <!-- 🟢 BOTAO 1: VALEU BOI (+ PONTUAÇÃO ATUALIZADA) -->
+                        <div class="col-md-5">
+                            <button type="button" class="btn btn-julgamento btn-valeu-boi w-100 fs-5" onclick="executarJulgamentoLocutor('VALEU_BOI')">
+                                <span class="fs-4">🟢</span>
+                                <div>
+                                    <div>VALEU BOI!</div>
+                                    <div style="font-size: 0.65rem; opacity: 0.9;" class="fw-normal">+10 PONTOS NA MATRIZ</div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- 🔴 BOTAO 2: ZERO -->
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-julgamento btn-zero w-100 fs-5" onclick="executarJulgamentoLocutor('ZERO')">
+                                <span class="fs-4">🔴</span>
+                                <div>
+                                    <div>ZERO</div>
+                                    <div style="font-size: 0.65rem; opacity: 0.9;" class="fw-normal">0 PTS / ELIMINADO</div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- 🟡 BOTAO 3: RETORNO -->
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-julgamento btn-retorno w-100 fs-5" onclick="executarJulgamentoLocutor('RETORNO')">
+                                <span class="fs-4">🟡</span>
+                                <div>
+                                    <div>RETORNO</div>
+                                    <div style="font-size: 0.65rem; opacity: 0.9;" class="fw-normal">BOI NOVO NA PISTA</div>
+                                </div>
+                            </button>
+                        </div>
+
                     </div>
                 </div>
 
-                <div class="input-group input-group-sm">
-                    <input type="text" id="inputChatLivre" class="form-control bg-dark text-white border-secondary" placeholder="Digitar mensagem para o juiz...">
-                    <button class="btn btn-warning fw-bold" type="button" onclick="enviarChatLivre()"><i class="bi bi-send-fill"></i></button>
+                <!-- FEEDBACK VISUAL DE ÚLTIMA AÇÃO -->
+                <div id="feedbackAcao" class="mt-3 text-center small text-warning d-none">
+                    <span id="feedbackTexto"></span>
                 </div>
+
             </div>
 
         </div>
+
+        <!-- BATE-PAPO RÁPIDO COM A PISTA E JUIZ -->
+        <div class="card bg-qiro-card border-qiro p-3 rounded-4 shadow-sm mt-3">
+            <div class="small fw-bold text-info text-uppercase mb-2 d-flex align-items-center gap-2" style="font-size: 0.72rem;">
+                <i class="bi bi-lightning-charge-fill text-warning"></i> Alertas Rápidos de Locução para Mesa de Juízes
+            </div>
+
+            <div class="row g-2 mb-2">
+                <div class="col-sm-6">
+                    <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning small p-2" 
+                        style="font-size: 0.75rem; font-weight: 600;" onclick="enviarMensagemRapida('⚠️ Vaqueiro tomando a frente do boi')">
+                        ⚠️ Vaqueiro tomando a frente do boi
+                    </button>
+                </div>
+                <div class="col-sm-6">
+                    <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning small p-2" 
+                        style="font-size: 0.75rem; font-weight: 600;" onclick="enviarMensagemRapida('👀 Atenção à cancela de saída')">
+                        👀 Atenção à cancela de saída
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-group input-group-sm">
+                <input type="text" id="inputChatLivre" class="form-control bg-dark text-white border-secondary" placeholder="Digitar aviso direto para o Juiz ou Secretaria...">
+                <button class="btn btn-warning fw-bold px-3" type="button" onclick="enviarChatLivre()">
+                    <i class="bi bi-send-fill me-1"></i> Enviar
+                </button>
+            </div>
+        </div>
+
     </div>
 
-    <!-- COLUNA CENTRAL: PRÓXIMOS CONJUNTOS (MOCKUP IMAGEM 9) -->
+    <!-- COLUNA LATERAL: FILA OFICIAL DE SENHAS + ALERTAS DA SECRETARIA (4 COLUNAS) -->
     <div class="col-lg-4">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="text-uppercase fw-bold text-secondary m-0" style="font-size: 0.75rem;">Próximos Conjuntos (Na Boiada)</h6>
-            <span class="badge bg-dark border border-secondary text-secondary">Fila Oficial</span>
-        </div>
-
-        <div class="d-flex flex-column gap-2" style="max-height: 600px; overflow-y: auto;">
-            {% for prox in proximos %}
-            <div class="card bg-qiro-card border-qiro p-2.5 rounded-3 shadow-sm">
-                <div class="d-flex justify-content-between align-items-baseline mb-1">
-                    <span class="text-secondary small" style="font-size: 0.75rem;">Categoria: <strong class="text-white">{{ prox.categoria.nome_exibicao }}</strong></span>
-                    <span class="fw-bold text-warning fs-5">Senha {{ prox.numero_senha }}</span>
-                </div>
-                <div class="small fw-bold text-white">
-                    {{ prox.vaqueiro_puxador.apelido_locucao|default:prox.vaqueiro_puxador.get_full_name }}
-                    <span class="d-block text-secondary fw-normal" style="font-size: 0.7rem;">Cavalo Puxador: {{ prox.cavalo_puxador.nome }}</span>
-                </div>
-                <div class="small text-secondary" style="font-size: 0.75rem;">
-                    Esteira: {% if prox.vaqueiro_esteireiro %}{{ prox.vaqueiro_esteireiro.apelido_locucao|default:prox.vaqueiro_esteireiro.get_full_name }}{% else %}A definir{% endif %}
-                </div>
-                <div class="text-warning-subtle small mt-1" style="font-size: 0.7rem;">
-                    {{ prox.representacao }}
-                </div>
-                
-                <div class="d-flex gap-1 mt-2 pt-2 border-top border-secondary border-opacity-25">
-                    {% for p in prox.passadas.all %}
-                    <span class="badge {% if p.julgamento_juiz == 'VALEU_BOI' %}bg-success{% elif p.julgamento_juiz == 'ZERO' %}bg-danger{% else %}bg-secondary{% endif %}" style="font-size: 0.65rem;">
-                        Boi {{ p.numero_boi }}
-                    </span>
-                    {% endfor %}
-                </div>
-            </div>
-            {% empty %}
-            <div class="text-secondary text-center py-4 small">Sem mais senhas na fila desta bateria.</div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- COLUNA DIREITA: MENSAGENS ATENÇÃO & CHAT DA PISTA (MOCKUP IMAGEM 9) -->
-    <div class="col-lg-3">
         
-        <!-- Alertas da Secretaria -->
+        <!-- LISTA DA FILA OFICIAL COM CLIQUE DIRETO -->
         <div class="card bg-qiro-card border-qiro p-3 rounded-4 shadow-sm mb-3">
-            <div class="d-flex align-items-center gap-1.5 pb-2 border-bottom border-qiro text-info fw-bold small text-uppercase">
-                <i class="bi bi-exclamation-triangle-fill"></i> Mensagens Atenção!
+            <div class="d-flex justify-content-between align-items-center pb-2 border-bottom border-qiro mb-2">
+                <h6 class="text-uppercase fw-bold text-white m-0 d-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
+                    <span>📋</span> Fila de Senhas do Baralho
+                </h6>
+                <span class="badge bg-dark border border-secondary text-secondary" id="totalFilaBadge">{{ total_cartoes }} fichas</span>
             </div>
-            <div class="d-flex flex-column gap-2 mt-2">
-                {% for alerta in alertas %}
-                <div class="p-2 rounded bg-dark border-start border-3 border-info text-white small" style="font-size: 0.75rem;">
-                    {{ alerta.mensagem }}
-                </div>
-                {% empty %}
-                <div class="text-secondary small">Nenhum alerta recente da secretaria.</div>
-                {% endfor %}
+
+            <div class="text-secondary small mb-2" style="font-size: 0.7rem;">
+                Clique em qualquer ficha abaixo para pular o baralho diretamente para ela:
+            </div>
+
+            <div class="d-flex flex-column gap-2" id="listaFilaContainer" style="max-height: 400px; overflow-y: auto;">
+                <!-- Preenchido dinamicamente via JS -->
             </div>
         </div>
 
-        <!-- Histórico do Chat Rápido -->
+        <!-- MENSAGENS DA SECRETARIA E HISTÓRICO DE CHAT -->
         <div class="card bg-qiro-card border-qiro p-3 rounded-4 shadow-sm">
-            <div class="d-flex align-items-center gap-1.5 pb-2 border-bottom border-qiro text-warning fw-bold small text-uppercase">
-                <i class="bi bi-chat-left-text-fill"></i> Pista Comunicação
+            <div class="d-flex align-items-center gap-1.5 pb-2 border-bottom border-qiro text-info fw-bold small text-uppercase">
+                <i class="bi bi-broadcast-pin"></i> Comunicação da Pista
             </div>
-            <div class="d-flex flex-column gap-1.5 mt-2" id="chatHistoricoBox" style="max-height: 250px; overflow-y: auto;">
+            
+            <div class="d-flex flex-column gap-2 mt-2" id="chatHistoricoBox" style="max-height: 220px; overflow-y: auto;">
                 {% for chat in chat_historico %}
                 <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 small" style="font-size: 0.75rem;">
                     <div class="d-flex justify-content-between text-secondary" style="font-size: 0.65rem;">
@@ -184,6 +405,8 @@
                     </div>
                     <div class="text-white mt-0.5">{{ chat.mensagem }}</div>
                 </div>
+                {% empty %}
+                <div class="text-secondary small text-center py-2">Sem mensagens recentes da pista.</div>
                 {% endfor %}
             </div>
         </div>
@@ -191,60 +414,256 @@
     </div>
 
 </div>
-
-<!-- ──────────────── MODAL DE JULGAMENTO DO LOCUTOR (MOCKUP IMAGEM 10) ──────────────── -->
-<div class="modal fade" id="modalJulgamentoLocutor" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-qiro p-3 text-center">
-            <div class="modal-header border-0 pb-1 justify-content-center">
-                <h6 class="fw-bold text-white m-0">Qual o julgamento do boi?</h6>
-            </div>
-            <div class="modal-body p-2">
-                <p class="text-secondary small mb-3">Autonomia do Locutor: Retorno ou Zero</p>
-                <div class="row g-2">
-                    <div class="col-6">
-                        <button type="button" class="btn btn-warning w-100 py-3 fw-black fs-3 d-flex flex-column align-items-center rounded-3 shadow" onclick="confirmarJulgamento('RETORNO')">
-                            <span>R</span>
-                            <span style="font-size: 0.65rem;" class="fw-bold">Retorno</span>
-                        </button>
-                    </div>
-                    <div class="col-6">
-                        <button type="button" class="btn btn-danger w-100 py-3 fw-black fs-3 d-flex flex-column align-items-center rounded-3 shadow" onclick="confirmarJulgamento('ZERO')">
-                            <span>✗</span>
-                            <span style="font-size: 0.65rem;" class="fw-bold">Zero</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-1">
-                <button type="button" class="btn btn-dark w-100 btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    let currentSenhaId = null;
-    let currentNumeroBoi = 1;
+    // ═══════════════════════════════════════════════════════════════════════
+    // DADOS INICIAIS DO BARALHO PASSADOS PELO BACKEND DJANGO
+    // ═══════════════════════════════════════════════════════════════════════
+    const cartoes = {{ cartoes_json|safe }};
+    let currentIndex = {{ indice_inicial }};
+    let currentBoiSelecionado = 1;
 
-    function abrirJulgamentoModal(senhaId, numeroBoi) {
-        currentSenhaId = senhaId;
-        currentNumeroBoi = numeroBoi;
-        const modal = new bootstrap.Modal(document.getElementById('modalJulgamentoLocutor'));
-        modal.show();
+    // Elementos do DOM
+    const cardEl = document.getElementById('activeLocutorCard');
+    const deckContainer = document.getElementById('deckContainer');
+    const deckCounterEl = document.getElementById('deckCounter');
+    const btnAnterior = document.getElementById('btnAnterior');
+    const btnProximo = document.getElementById('btnProximo');
+    const feedbackAcao = document.getElementById('feedbackAcao');
+    const feedbackTexto = document.getElementById('feedbackTexto');
+
+    // ───────────────────────────────────────────────────────────────────────
+    // RENDERIZAÇÃO DO CARTÃO ATIVO
+    // ───────────────────────────────────────────────────────────────────────
+    function renderizarCartaoAtual(animacao = null) {
+        if (!cartoes || cartoes.length === 0) {
+            deckContainer.innerHTML = '<div class="text-center py-5 text-secondary">Nenhuma senha cadastrada para este evento.</div>';
+            return;
+        }
+
+        // Limita o índice
+        if (currentIndex < 0) currentIndex = 0;
+        if (currentIndex >= cartoes.length) currentIndex = cartoes.length - 1;
+
+        const c = cartoes[currentIndex];
+
+        // Atualiza controles de navegação
+        deckCounterEl.innerText = `${currentIndex + 1} / ${cartoes.length}`;
+        btnAnterior.disabled = (currentIndex === 0);
+        btnProximo.disabled = (currentIndex === cartoes.length - 1);
+
+        // Preenche campos do cartão
+        document.getElementById('cardCategoriaBadge').innerText = c.categoria || 'GERAL';
+        
+        const statusBadge = document.getElementById('cardStatusBadge');
+        statusBadge.innerText = c.status_display || c.status;
+        if (c.status === 'NA_PISTA') {
+            statusBadge.className = 'badge bg-warning text-dark ms-1 px-2.5 py-1.5 rounded-pill fw-bold';
+        } else if (c.status === 'BATIDA') {
+            statusBadge.className = 'badge bg-success text-white ms-1 px-2.5 py-1.5 rounded-pill fw-bold';
+        } else if (c.status === 'ELIMINADA') {
+            statusBadge.className = 'badge bg-danger text-white ms-1 px-2.5 py-1.5 rounded-pill fw-bold';
+        } else {
+            statusBadge.className = 'badge bg-dark border border-secondary text-secondary ms-1 px-2.5 py-1.5 rounded-pill';
+        }
+
+        document.getElementById('cardNumeroSenha').innerText = `SENHA ${String(c.numero_senha).padStart(2, '0')}`;
+        document.getElementById('cardVaqueiroPuxador').innerText = c.vaqueiro_puxador || 'Vaqueiro Puxador';
+        document.getElementById('cardCavaloPuxador').innerText = c.cavalo_puxador || 'Cavalo Puxador';
+        document.getElementById('cardVaqueiroEsteireiro').innerText = c.vaqueiro_esteireiro || 'A definir';
+        document.getElementById('cardCavaloEsteira').innerText = c.cavalo_esteira || 'A definir';
+        document.getElementById('cardRepresentacao').innerText = c.representacao || 'Independente';
+        document.getElementById('cardTotalPontosBadge').innerText = `${c.total_pontos} Pts`;
+
+        // Determina boi ativo
+        currentBoiSelecionado = c.boi_atual || 1;
+        document.getElementById('labelBoiJulgamento').innerText = `Boi ${currentBoiSelecionado}`;
+
+        // Renderiza seletores dos 3 bois
+        renderizarSeletoresBois(c);
+
+        // Renderiza lista lateral da fila com destaque
+        renderizarListaFila();
+
+        // Animação de entrada
+        if (animacao) {
+            cardEl.classList.remove('card-enter-left', 'card-enter-right', 'swiping-left', 'swiping-right');
+            void cardEl.offsetWidth; // Força reflow
+            cardEl.classList.add(animacao);
+        }
     }
 
-    function confirmarJulgamento(decisao) {
-        if (!currentSenhaId) return;
+    // ───────────────────────────────────────────────────────────────────────
+    // RENDERIZAÇÃO DOS SELETORES DE BOI (BOI 1, 2, 3)
+    // ───────────────────────────────────────────────────────────────────────
+    function renderizarSeletoresBois(c) {
+        const container = document.getElementById('cardBoisPassadaContainer');
+        const passadasMap = {};
+        if (c.passadas) {
+            c.passadas.forEach(p => {
+                passadasMap[p.numero_boi] = p;
+            });
+        }
+
+        let html = '';
+        for (let num = 1; num <= 3; num++) {
+            const p = passadasMap[num];
+            let badgeClass = 'bg-dark text-secondary border-secondary';
+            let label = `Boi ${num}`;
+            let pontosLabel = '';
+
+            if (p) {
+                if (p.julgamento === 'VALEU_BOI') {
+                    badgeClass = 'bg-success-subtle text-success border-success fw-bold';
+                    label = `✓ Valeu`;
+                    pontosLabel = `+${p.pontos} Pts`;
+                } else if (p.julgamento === 'ZERO') {
+                    badgeClass = 'bg-danger-subtle text-danger border-danger fw-bold';
+                    label = `✗ Zero`;
+                    pontosLabel = `0 Pts`;
+                } else if (p.julgamento === 'RETORNO') {
+                    badgeClass = 'bg-warning-subtle text-warning border-warning fw-bold';
+                    label = `↺ Retorno`;
+                    pontosLabel = `Boi Novo`;
+                }
+            }
+
+            const isActive = (num === currentBoiSelecionado) ? 'active' : '';
+
+            html += `
+                <div class="col-4">
+                    <div class="boi-selector-btn ${isActive} ${badgeClass} p-2 rounded-3 text-center border" onclick="selecionarBoi(${num})">
+                        <div class="text-uppercase" style="font-size: 0.65rem;">Boi #${num}</div>
+                        <div class="fs-6 fw-black">${label}</div>
+                        <div style="font-size: 0.68rem;">${pontosLabel || 'A correr'}</div>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    function selecionarBoi(num) {
+        currentBoiSelecionado = num;
+        document.getElementById('labelBoiJulgamento').innerText = `Boi ${currentBoiSelecionado}`;
+        renderizarSeletoresBois(cartoes[currentIndex]);
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // NAVEGAÇÃO DO BARALHO (PUXAR NOVO CARTÃO / CARTÃO ANTERIOR)
+    // ───────────────────────────────────────────────────────────────────────
+    function puxarNovoCartao() {
+        if (currentIndex < cartoes.length - 1) {
+            cardEl.classList.add('swiping-left');
+            setTimeout(() => {
+                cardEl.classList.remove('swiping-left');
+                currentIndex++;
+                renderizarCartaoAtual('card-enter-right');
+            }, 180);
+        }
+    }
+
+    function puxarCartaoAnterior() {
+        if (currentIndex > 0) {
+            cardEl.classList.add('swiping-right');
+            setTimeout(() => {
+                cardEl.classList.remove('swiping-right');
+                currentIndex--;
+                renderizarCartaoAtual('card-enter-left');
+            }, 180);
+        }
+    }
+
+    function pularParaCartao(index) {
+        if (index >= 0 && index < cartoes.length && index !== currentIndex) {
+            const anim = (index > currentIndex) ? 'card-enter-right' : 'card-enter-left';
+            currentIndex = index;
+            renderizarCartaoAtual(anim);
+        }
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // GESTOS DE TOQUE E ARRASTE COM MOUSE / TOUCH (SWIPE MECÂNICA)
+    // ───────────────────────────────────────────────────────────────────────
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+    const swipeThreshold = 75; // pixels para acionar a troca do cartão
+
+    function onDragStart(e) {
+        // Ignora cliques em botões dentro do cartão
+        if (e.target.closest('button') || e.target.closest('.boi-selector-btn')) return;
+        
+        isDragging = true;
+        startX = (e.type === 'touchstart') ? e.touches[0].clientX : e.clientX;
+        currentX = startX;
+        cardEl.style.transition = 'none';
+    }
+
+    function onDragMove(e) {
+        if (!isDragging) return;
+        currentX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX;
+        const diffX = currentX - startX;
+        
+        // Aplica resistência e leve rotação estilo baralho de cartas
+        const rotate = diffX * 0.05;
+        cardEl.style.transform = `translateX(${diffX}px) rotate(${rotate}deg)`;
+    }
+
+    function onDragEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        cardEl.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease';
+        
+        const diffX = currentX - startX;
+        
+        if (diffX < -swipeThreshold && currentIndex < cartoes.length - 1) {
+            // Arrastou para a esquerda -> Puxar Novo Cartão
+            puxarNovoCartao();
+        } else if (diffX > swipeThreshold && currentIndex > 0) {
+            // Arrastou para a direita -> Puxar Cartão Anterior
+            puxarCartaoAnterior();
+        } else {
+            // Não atingiu o limite: retorna ao centro suavemente
+            cardEl.style.transform = 'translateX(0) rotate(0deg)';
+        }
+    }
+
+    // Eventos do Mouse
+    cardEl.addEventListener('mousedown', onDragStart);
+    window.addEventListener('mousemove', onDragMove);
+    window.addEventListener('mouseup', onDragEnd);
+
+    // Eventos de Toque Mobile/Tablet
+    cardEl.addEventListener('touchstart', onDragStart, { passive: true });
+    window.addEventListener('touchmove', onDragMove, { passive: true });
+    window.addEventListener('touchend', onDragEnd);
+
+    // Navegação via teclado (Setas Esquerda e Direita)
+    window.addEventListener('keydown', (e) => {
+        if (document.activeElement.tagName === 'INPUT') return;
+        if (e.key === 'ArrowRight') puxarNovoCartao();
+        if (e.key === 'ArrowLeft') puxarCartaoAnterior();
+    });
+
+    // ───────────────────────────────────────────────────────────────────────
+    // EXECUÇÃO DO JULGAMENTO PELO LOCUTOR (VALEU BOI, ZERO, RETORNO)
+    // ───────────────────────────────────────────────────────────────────────
+    function executarJulgamentoLocutor(decisao) {
+        const c = cartoes[currentIndex];
+        if (!c) return;
+
+        // Feedback imediato no botão
+        mostrarFeedback(`Processando julgamento do Boi #${currentBoiSelecionado}...`, 'text-warning');
 
         fetch('/pista/julgamento/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                senha_id: currentSenhaId,
-                numero_boi: currentNumeroBoi,
+                senha_id: c.id,
+                numero_boi: currentBoiSelecionado,
                 decisao: decisao,
                 origem: 'LOCUTOR'
             })
@@ -252,16 +671,86 @@
         .then(res => res.json())
         .then(data => {
             if (data.sucesso) {
-                const modalEl = document.getElementById('modalJulgamentoLocutor');
-                const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                if (modalInstance) modalInstance.hide();
-                atualizarPistaDinamico();
+                // Atualiza localmente os dados do cartão
+                if (!c.passadas) c.passadas = [];
+                let passadaExistente = c.passadas.find(p => p.numero_boi === currentBoiSelecionado);
+                if (passadaExistente) {
+                    passadaExistente.julgamento = decisao;
+                    passadaExistente.pontos = data.pontos;
+                } else {
+                    c.passadas.push({
+                        numero_boi: currentBoiSelecionado,
+                        julgamento: decisao,
+                        pontos: data.pontos
+                    });
+                }
+
+                c.total_pontos = data.total_pontos;
+                c.status = data.status_senha;
+                if (data.status_senha === 'BATIDA') c.status_display = 'BATIDA';
+                if (data.status_senha === 'ELIMINADA') c.status_display = 'ELIMINADA';
+
+                // Avança automaticamente para o próximo boi se valeu boi ou retorno
+                if (decisao === 'VALEU_BOI' && currentBoiSelecionado < 3) {
+                    c.boi_atual = currentBoiSelecionado + 1;
+                }
+
+                renderizarCartaoAtual();
+
+                let msg = '';
+                if (decisao === 'VALEU_BOI') msg = `✅ VALEU BOI registrado com sucesso! (+10 Pts para Senha #${c.numero_senha})`;
+                else if (decisao === 'ZERO') msg = `❌ ZERO registrado. Senha #${c.numero_senha} eliminada da matriz.`;
+                else if (decisao === 'RETORNO') msg = `🟡 RETORNO registrado. Novo boi autorizado para a Senha #${c.numero_senha}.`;
+                
+                mostrarFeedback(msg, decisao === 'VALEU_BOI' ? 'text-success' : (decisao === 'ZERO' ? 'text-danger' : 'text-warning'));
             } else {
-                alert(data.erro || 'Erro ao registrar julgamento');
+                mostrarFeedback(`Erro: ${data.erro}`, 'text-danger');
             }
+        })
+        .catch(err => {
+            mostrarFeedback('Falha de comunicação com o servidor.', 'text-danger');
         });
     }
 
+    function mostrarFeedback(msg, corClasse) {
+        feedbackTexto.innerText = msg;
+        feedbackAcao.className = `mt-3 text-center small fw-bold ${corClasse}`;
+        feedbackAcao.classList.remove('d-none');
+        setTimeout(() => {
+            feedbackAcao.classList.add('d-none');
+        }, 5000);
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // RENDERIZAÇÃO DA LISTA LATERAL DA FILA
+    // ───────────────────────────────────────────────────────────────────────
+    function renderizarListaFila() {
+        const container = document.getElementById('listaFilaContainer');
+        if (!container) return;
+
+        let html = '';
+        cartoes.forEach((c, idx) => {
+            const isSelected = (idx === currentIndex) ? 'active-in-deck' : '';
+            html += `
+                <div class="fila-item-card ${isSelected} p-2 rounded-3 bg-dark border border-secondary border-opacity-25" onclick="pularParaCartao(${idx})">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.68rem;">Senha ${c.numero_senha}</span>
+                        <span class="text-secondary" style="font-size: 0.68rem;">${c.categoria}</span>
+                    </div>
+                    <div class="fw-bold text-white small text-truncate">${c.vaqueiro_puxador}</div>
+                    <div class="d-flex justify-content-between align-items-center mt-1 text-secondary" style="font-size: 0.68rem;">
+                        <span class="text-truncate" style="max-width: 140px;">${c.cavalo_puxador}</span>
+                        <span class="badge ${c.total_pontos > 0 ? 'bg-success' : 'bg-secondary'}">${c.total_pontos} Pts</span>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // CHAT E ALERTAS RÁPIDOS
+    // ───────────────────────────────────────────────────────────────────────
     function enviarMensagemRapida(texto) {
         fetch('/pista/chat/', {
             method: 'POST',
@@ -293,20 +782,16 @@
         });
     }
 
-    // ─── SINCRONIZAÇÃO DINÂMICA SEM RELOAD (Item 5 do Checklist) ───
+    // ───────────────────────────────────────────────────────────────────────
+    // SINCRONIZAÇÃO EM SEGUNDO PLANO VIA POLLING (SEM RELOAD)
+    // ───────────────────────────────────────────────────────────────────────
     function atualizarPistaDinamico() {
         fetch('/pista/status-atual/')
             .then(res => res.json())
             .then(data => {
                 if (!data.sucesso) return;
 
-                // 1. Atualizar Pontos
-                if (data.conjunto_atual) {
-                    const badge = document.getElementById('totalPontosBadge');
-                    if (badge) badge.innerText = `${data.conjunto_atual.total_pontos} Pts`;
-                }
-
-                // 2. Atualizar Chat
+                // Atualizar Chat
                 const chatBox = document.getElementById('chatHistoricoBox');
                 if (chatBox && data.chat && data.chat.length > 0) {
                     chatBox.innerHTML = data.chat.map(c => `
@@ -323,7 +808,10 @@
             .catch(() => {});
     }
 
-    // Polling a cada 3.5 segundos sem recarregar a tela
-    setInterval(atualizarPistaDinamico, 3500);
+    // Inicialização ao carregar a página
+    document.addEventListener('DOMContentLoaded', () => {
+        renderizarCartaoAtual();
+        setInterval(atualizarPistaDinamico, 3500);
+    });
 </script>
 {% endblock %}

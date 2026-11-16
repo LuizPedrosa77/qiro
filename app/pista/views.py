@@ -18,6 +18,8 @@ def painel_locutor(request):
     """
     Tela oficial do Locutor de Pista (Área Restrita).
     Acesso restrito a Locutores Oficiais e ao Administrador Geral.
+    Inclui baralho interativo de cartões com rolagem/arraste (puxar novo cartão e puxar cartão anterior)
+    e os 3 botões de julgamento: Valeu Boi (+ pontuação), Zero e Retorno.
     """
     if not (request.user.is_superuser or request.user.papel in [Usuario.Papel.ADMIN, Usuario.Papel.LOCUTOR]):
         messages.error(request, 'Acesso restrito à cabine de locução oficial.')
@@ -25,15 +27,50 @@ def painel_locutor(request):
 
     evento = Evento.objects.filter(status=Evento.Status.EM_ANDAMENTO).first() or Evento.objects.first()
     
-    conjunto_atual = SenhaInscricao.objects.filter(
-        evento=evento,
-        status=SenhaInscricao.StatusSenha.NA_PISTA
-    ).first()
+    # Todas as senhas do evento para o baralho de cartões interativo
+    senhas_qs = SenhaInscricao.objects.filter(evento=evento).select_related(
+        'categoria', 'vaqueiro_puxador', 'cavalo_puxador', 'vaqueiro_esteireiro', 'cavalo_esteireiro'
+    ).prefetch_related('passadas').order_by('numero_senha')
 
-    proximos = SenhaInscricao.objects.filter(
-        evento=evento,
+    cartoes_lista = []
+    indice_inicial = 0
+    for idx, s in enumerate(senhas_qs):
+        passadas_dados = []
+        for p in s.passadas.all().order_by('numero_boi'):
+            passadas_dados.append({
+                'numero_boi': p.numero_boi,
+                'julgamento': p.julgamento_juiz or p.julgamento_locutor or '',
+                'pontos': p.pontos_obtidos
+            })
+        
+        # Determina o boi atual a correr (1, 2 ou 3)
+        num_bois_corridos = len(passadas_dados)
+        boi_atual = num_bois_corridos + 1 if num_bois_corridos < 3 else 3
+
+        if s.status == SenhaInscricao.StatusSenha.NA_PISTA:
+            indice_inicial = idx
+
+        cartoes_lista.append({
+            'id': str(s.id),
+            'numero_senha': s.numero_senha,
+            'categoria': s.categoria.nome_exibicao,
+            'vaqueiro_puxador': s.vaqueiro_puxador.apelido_locucao or s.vaqueiro_puxador.get_full_name() or s.vaqueiro_puxador.username,
+            'cavalo_puxador': s.cavalo_puxador.nome if s.cavalo_puxador else "Cavalo Puxador",
+            'vaqueiro_esteireiro': (s.vaqueiro_esteireiro.apelido_locucao or s.vaqueiro_esteireiro.get_full_name()) if s.vaqueiro_esteireiro else "A definir",
+            'cavalo_esteira': s.cavalo_esteireiro.nome if s.cavalo_esteireiro else "A definir",
+            'representacao': s.representacao or "Independente",
+            'total_pontos': s.total_pontos,
+            'status': s.status,
+            'status_display': s.get_status_display(),
+            'boi_atual': boi_atual,
+            'passadas': passadas_dados,
+        })
+
+    conjunto_atual = senhas_qs.filter(status=SenhaInscricao.StatusSenha.NA_PISTA).first() or senhas_qs.first()
+
+    proximos = senhas_qs.filter(
         status__in=[SenhaInscricao.StatusSenha.PAGA, SenhaInscricao.StatusSenha.NA_BOIADA]
-    ).exclude(id=conjunto_atual.id if conjunto_atual else None).order_by('ordem_fila', 'numero_senha')[:8]
+    ).exclude(id=conjunto_atual.id if conjunto_atual else None)[:8]
 
     alertas = ChatPista.objects.filter(
         evento=evento,
@@ -50,6 +87,9 @@ def painel_locutor(request):
         'proximos': proximos,
         'alertas': alertas,
         'chat_historico': chat_historico,
+        'cartoes_json': json.dumps(cartoes_lista),
+        'indice_inicial': indice_inicial,
+        'total_cartoes': len(cartoes_lista),
         'is_juiz': False
     })
 
@@ -114,9 +154,9 @@ def registrar_julgamento(request):
 
         senha = get_object_or_404(SenhaInscricao, id=senha_id)
 
-        # Validação de autonomia do locutor
-        if origem == 'LOCUTOR' and decisao not in ['RETORNO', 'ZERO']:
-            return JsonResponse({'sucesso': False, 'erro': 'Locutor só pode dar Retorno ou Zero.'}, status=403)
+        # Validação de autonomia do locutor (Valeu Boi, Zero ou Retorno)
+        if origem == 'LOCUTOR' and decisao not in ['VALEU_BOI', 'ZERO', 'RETORNO']:
+            return JsonResponse({'sucesso': False, 'erro': 'Locutor só pode registrar Valeu Boi, Zero ou Retorno.'}, status=403)
 
         passada, _ = BoiPassada.objects.get_or_create(
             senha=senha,
@@ -132,12 +172,20 @@ def registrar_julgamento(request):
 
         if origem == 'LOCUTOR':
             passada.julgamento_locutor = decisao
-            if decisao == 'ZERO':
+            if decisao == 'VALEU_BOI':
+                passada.julgamento_juiz = BoiPassada.JulgamentoJuiz.VALEU_BOI
+                passada.pontos_obtidos = 10
+                pontos_totais = sum(p.pontos_obtidos for p in senha.passadas.exclude(id=passada.id)) + 10
+                senha.total_pontos = pontos_totais
+                if pontos_totais >= senha.categoria.pontos_para_bater:
+                    senha.status = SenhaInscricao.StatusSenha.BATIDA
+            elif decisao == 'ZERO':
                 passada.julgamento_juiz = BoiPassada.JulgamentoJuiz.ZERO
                 passada.pontos_obtidos = 0
                 senha.status = SenhaInscricao.StatusSenha.ELIMINADA
             elif decisao == 'RETORNO':
                 passada.julgamento_juiz = BoiPassada.JulgamentoJuiz.RETORNO
+                passada.pontos_obtidos = 0
         else:
             passada.julgamento_juiz = decisao
             if decisao == 'VALEU_BOI':
