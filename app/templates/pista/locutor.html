@@ -208,14 +208,23 @@
             <!-- CARTÃO ATIVO DINÂMICO -->
             <div class="locutor-card p-4 text-white" id="activeLocutorCard">
                 
-                <!-- CABEÇALHO DO CARTÃO: SENHA, CATEGORIA E STATUS -->
-                <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-secondary border-opacity-25">
-                    <div>
+                <!-- CABEÇALHO DO CARTÃO: SENHA, CATEGORIA, RODÍZIO E STATUS -->
+                <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+                    <div class="d-flex align-items-center flex-wrap gap-1.5">
                         <span class="badge bg-warning text-dark fw-black fs-6 px-3 py-1.5 rounded-pill text-uppercase shadow-sm" id="cardCategoriaBadge">
                             PROFISSIONAL
                         </span>
-                        <span class="badge bg-dark border border-secondary text-secondary ms-1 px-2.5 py-1.5 rounded-pill" id="cardStatusBadge">
+                        <span class="badge bg-dark border border-secondary text-secondary px-2.5 py-1.5 rounded-pill" id="cardStatusBadge">
                             NA PISTA
+                        </span>
+                        <span class="badge bg-dark border border-info text-info px-2.5 py-1.5 rounded-pill" id="cardDiaCorridaBadge" style="font-size: 0.72rem;">
+                            Sábado
+                        </span>
+                        <span class="badge bg-dark border border-warning text-warning px-2.5 py-1.5 rounded-pill" id="cardRodizioBadge" style="font-size: 0.72rem;">
+                            Rodízio #1
+                        </span>
+                        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1.5 rounded-pill d-none" id="cardBoiTvBadge" style="font-size: 0.72rem;">
+                            📺 Boi na TV
                         </span>
                     </div>
 
@@ -225,21 +234,30 @@
                     </div>
                 </div>
 
-                <!-- CORPO DO CARTÃO: DADOS GIGANTES PARA A VOZ DO LOCUTOR -->
+                <!-- CORPO DO CARTÃO: DOSSIÊ COMPLETO DOS VAQUEIROS E ANIMAIS -->
                 <div class="row g-3 my-2">
                     
                     <!-- VAQUEIRO PUXADOR E CAVALO PUXADOR -->
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-30 h-100">
-                            <div class="d-flex align-items-center gap-1.5 text-warning small fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">
-                                <span>🤠</span> Vaqueiro Puxador
+                            <div class="d-flex justify-content-between align-items-center text-warning small fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">
+                                <span>🤠 Vaqueiro Puxador</span>
+                                <span class="badge bg-dark border border-secondary text-secondary" id="cardPuxadorOrigem">Origem</span>
                             </div>
-                            <div class="fs-3 fw-black text-white text-uppercase" id="cardVaqueiroPuxador">
+                            <div class="fs-2 fw-black text-white text-uppercase" id="cardVaqueiroPuxador">
                                 ALEXANDRE CAMPINHOS
                             </div>
-                            <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex align-items-center gap-2">
-                                <span class="text-secondary small">Cavalo Puxador:</span>
-                                <strong class="text-qiro-yellow small" id="cardCavaloPuxador">Silver Wild YQI</strong>
+                            <div class="text-secondary small mb-2" id="cardVaqueiroPuxadorNome">
+                                Nome de registro do competidor
+                            </div>
+                            <div class="pt-2 border-top border-secondary border-opacity-25">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="text-secondary small">🐴 Cavalo de Puxada:</span>
+                                    <strong class="text-qiro-yellow fs-6" id="cardCavaloPuxador">Silver Wild YQI</strong>
+                                </div>
+                                <div class="text-secondary small mt-0.5" id="cardCavaloPuxadorDetalhes" style="font-size: 0.72rem;">
+                                    Quarto de Milha &bull; Pelagem
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -247,24 +265,38 @@
                     <!-- VAQUEIRO ESTEIREIRO E CAVALO ESTEIRA -->
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-30 h-100">
-                            <div class="d-flex align-items-center gap-1.5 text-info small fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">
-                                <span>🤝</span> Vaqueiro Esteireiro
+                            <div class="d-flex justify-content-between align-items-center text-info small fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">
+                                <span>🤝 Vaqueiro Esteireiro</span>
+                                <span class="badge bg-dark border border-secondary text-secondary" id="cardEsteiraOrigem">Origem</span>
                             </div>
-                            <div class="fs-4 fw-bold text-white text-uppercase" id="cardVaqueiroEsteireiro">
+                            <div class="fs-3 fw-bold text-white text-uppercase" id="cardVaqueiroEsteireiro">
                                 CELSINHO VITÓRIO
                             </div>
-                            <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 d-flex align-items-center gap-2">
-                                <span class="text-secondary small">Cavalo Esteira:</span>
-                                <strong class="text-info small" id="cardCavaloEsteira">Holland Machine</strong>
+                            <div class="text-secondary small mb-2" id="cardVaqueiroEsteireiroNome">
+                                Nome de registro do esteireiro
+                            </div>
+                            <div class="pt-2 border-top border-secondary border-opacity-25">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="text-secondary small">🐴 Cavalo de Esteira:</span>
+                                    <strong class="text-info fs-6" id="cardCavaloEsteira">Holland Machine</strong>
+                                </div>
+                                <div class="text-secondary small mt-0.5" id="cardCavaloEsteiraDetalhes" style="font-size: 0.72rem;">
+                                    Quarto de Milha &bull; Pelagem
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- REPRESENTAÇÃO / HARAS -->
                     <div class="col-12">
-                        <div class="px-3 py-2 rounded-3 bg-black bg-opacity-30 border border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem;">Haras / Representação:</span>
-                            <span class="fw-bold text-warning fs-6" id="cardRepresentacao">Haras BonSucesso — Bezerros/PE</span>
+                        <div class="px-3 py-2.5 rounded-3 bg-black bg-opacity-30 border border-secondary border-opacity-25 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <span class="text-secondary small fw-bold text-uppercase d-block" style="font-size: 0.72rem;">🏆 Haras / Representação Oficial:</span>
+                                <span class="fw-bold text-warning fs-5" id="cardRepresentacao">Haras BonSucesso — Bezerros/PE</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-dark border border-warning text-warning px-3 py-1.5 rounded-pill small" id="cardRodizioInfo">Bateria Classificatória</span>
+                            </div>
                         </div>
                     </div>
 
@@ -348,31 +380,43 @@
 
         </div>
 
-        <!-- BATE-PAPO RÁPIDO COM A PISTA E JUIZ -->
-        <div class="card bg-qiro-card border-qiro p-3 rounded-4 shadow-sm mt-3">
-            <div class="small fw-bold text-info text-uppercase mb-2 d-flex align-items-center gap-2" style="font-size: 0.72rem;">
-                <i class="bi bi-lightning-charge-fill text-warning"></i> Alertas Rápidos de Locução para Mesa de Juízes
+        <!-- BATE-PAPO RÁPIDO COM A PISTA E JUIZ (CAIXA AMPLIADA EM TAMANHO E DESTAQUE) -->
+        <div class="card bg-qiro-card border-qiro p-4 rounded-4 shadow-lg mt-3" style="border: 2px solid rgba(234, 179, 8, 0.35);">
+            <div class="fw-black text-info text-uppercase mb-3 d-flex align-items-center gap-2" style="font-size: 0.95rem; letter-spacing: 0.5px;">
+                <i class="bi bi-lightning-charge-fill text-warning fs-5"></i> ALERTAS RÁPIDOS DE LOCUÇÃO PARA MESA DE JUÍZES
             </div>
 
-            <div class="row g-2 mb-2">
+            <!-- BOTÕES DE ALERTA RÁPIDO AMPLIADOS -->
+            <div class="row g-3 mb-3">
                 <div class="col-sm-6">
-                    <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning small p-2" 
-                        style="font-size: 0.75rem; font-weight: 600;" onclick="enviarMensagemRapida('⚠️ Vaqueiro tomando a frente do boi')">
-                        ⚠️ Vaqueiro tomando a frente do boi
+                    <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning py-3 px-3.5 rounded-3 shadow-sm d-flex align-items-center gap-2.5" 
+                        style="font-size: 0.95rem; font-weight: 700; transition: all 0.2s ease; border-width: 1.5px;" onclick="enviarMensagemRapida('⚠️ Vaqueiro tomando a frente do boi')">
+                        <span class="fs-4">⚠️</span>
+                        <div>
+                            <div>Vaqueiro tomando a frente do boi</div>
+                            <div class="text-secondary small fw-normal" style="font-size: 0.72rem;">Aviso de infração na saída</div>
+                        </div>
                     </button>
                 </div>
                 <div class="col-sm-6">
-                    <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning small p-2" 
-                        style="font-size: 0.75rem; font-weight: 600;" onclick="enviarMensagemRapida('👀 Atenção à cancela de saída')">
-                        👀 Atenção à cancela de saída
+                    <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning py-3 px-3.5 rounded-3 shadow-sm d-flex align-items-center gap-2.5" 
+                        style="font-size: 0.95rem; font-weight: 700; transition: all 0.2s ease; border-width: 1.5px;" onclick="enviarMensagemRapida('👀 Atenção à cancela de saída')">
+                        <span class="fs-4">👀</span>
+                        <div>
+                            <div>Atenção à cancela de saída</div>
+                            <div class="text-secondary small fw-normal" style="font-size: 0.72rem;">Aviso de porteira e liberação</div>
+                        </div>
                     </button>
                 </div>
             </div>
 
-            <div class="input-group input-group-sm">
-                <input type="text" id="inputChatLivre" class="form-control bg-dark text-white border-secondary" placeholder="Digitar aviso direto para o Juiz ou Secretaria...">
-                <button class="btn btn-warning fw-bold px-3" type="button" onclick="enviarChatLivre()">
-                    <i class="bi bi-send-fill me-1"></i> Enviar
+            <!-- CAMPO DE MENSAGEM AMPLIADO COM BOTÃO ENVIAR DESTACADO -->
+            <div class="input-group input-group-lg">
+                <input type="text" id="inputChatLivre" class="form-control bg-dark text-white border-secondary px-3.5 py-3 fs-6" 
+                    placeholder="Digitar aviso direto ou instrução para a Mesa de Juízes..." style="min-height: 58px; font-size: 1.05rem;">
+                <button class="btn btn-warning fw-black px-4 fs-5 text-dark d-flex align-items-center gap-2 shadow" type="button" onclick="enviarChatLivre()" style="min-height: 58px;">
+                    <i class="bi bi-send-fill fs-5"></i>
+                    <span>Enviar</span>
                 </button>
             </div>
         </div>
@@ -391,11 +435,12 @@
                 <span class="badge bg-dark border border-secondary text-secondary" id="totalFilaBadge">{{ total_cartoes }} fichas</span>
             </div>
 
-            <div class="text-secondary small mb-2" style="font-size: 0.7rem;">
-                Clique em qualquer ficha abaixo para pular o baralho diretamente para ela:
+            <div class="mb-2">
+                <input type="text" id="filtroFilaInput" class="form-control form-control-sm bg-dark text-white border-secondary" 
+                    placeholder="🔍 Buscar vaqueiro, cavalo ou senha..." oninput="filtrarFilaSenhas()">
             </div>
 
-            <div class="d-flex flex-column gap-2" id="listaFilaContainer" style="max-height: 400px; overflow-y: auto;">
+            <div class="d-flex flex-column gap-2" id="listaFilaContainer" style="max-height: 480px; overflow-y: auto;">
                 <!-- Preenchido dinamicamente via JS -->
             </div>
         </div>
@@ -466,25 +511,47 @@
 
         // Preenche campos do cartão
         document.getElementById('cardCategoriaBadge').innerText = c.categoria || 'GERAL';
+        document.getElementById('cardDiaCorridaBadge').innerText = c.dia_corrida || 'Fase Classificatória';
+        document.getElementById('cardRodizioBadge').innerText = `Rodízio #${c.rodizio_bloco || 1}`;
         
+        const boiTvBadge = document.getElementById('cardBoiTvBadge');
+        if (c.tem_boi_tv) {
+            boiTvBadge.classList.remove('d-none');
+        } else {
+            boiTvBadge.classList.add('d-none');
+        }
+
         const statusBadge = document.getElementById('cardStatusBadge');
         statusBadge.innerText = c.status_display || c.status;
         if (c.status === 'NA_PISTA') {
-            statusBadge.className = 'badge bg-warning text-dark ms-1 px-2.5 py-1.5 rounded-pill fw-bold';
+            statusBadge.className = 'badge bg-warning text-dark px-2.5 py-1.5 rounded-pill fw-bold';
         } else if (c.status === 'BATIDA') {
-            statusBadge.className = 'badge bg-success text-white ms-1 px-2.5 py-1.5 rounded-pill fw-bold';
+            statusBadge.className = 'badge bg-success text-white px-2.5 py-1.5 rounded-pill fw-bold';
         } else if (c.status === 'ELIMINADA') {
-            statusBadge.className = 'badge bg-danger text-white ms-1 px-2.5 py-1.5 rounded-pill fw-bold';
+            statusBadge.className = 'badge bg-danger text-white px-2.5 py-1.5 rounded-pill fw-bold';
         } else {
-            statusBadge.className = 'badge bg-dark border border-secondary text-secondary ms-1 px-2.5 py-1.5 rounded-pill';
+            statusBadge.className = 'badge bg-dark border border-secondary text-secondary px-2.5 py-1.5 rounded-pill';
         }
 
         document.getElementById('cardNumeroSenha').innerText = `SENHA ${String(c.numero_senha).padStart(2, '0')}`;
+        
+        // Vaqueiro Puxador
         document.getElementById('cardVaqueiroPuxador').innerText = c.vaqueiro_puxador || 'Vaqueiro Puxador';
+        document.getElementById('cardVaqueiroPuxadorNome').innerText = `${c.vaqueiro_puxador_nome || ''} • ${c.vaqueiro_puxador_origem || ''}`;
+        document.getElementById('cardPuxadorOrigem').innerText = c.vaqueiro_puxador_origem || 'Origem';
         document.getElementById('cardCavaloPuxador').innerText = c.cavalo_puxador || 'Cavalo Puxador';
+        document.getElementById('cardCavaloPuxadorDetalhes').innerText = `${c.cavalo_puxador_raca || 'Quarto de Milha'} ${c.cavalo_puxador_pelagem ? '• ' + c.cavalo_puxador_pelagem : ''}`;
+
+        // Vaqueiro Esteireiro
         document.getElementById('cardVaqueiroEsteireiro').innerText = c.vaqueiro_esteireiro || 'A definir';
+        document.getElementById('cardVaqueiroEsteireiroNome').innerText = `${c.vaqueiro_esteireiro_nome || ''} ${c.vaqueiro_esteireiro_origem ? '• ' + c.vaqueiro_esteireiro_origem : ''}`;
+        document.getElementById('cardEsteiraOrigem').innerText = c.vaqueiro_esteireiro_origem || 'Esteira Oficial';
         document.getElementById('cardCavaloEsteira').innerText = c.cavalo_esteira || 'A definir';
+        document.getElementById('cardCavaloEsteiraDetalhes').innerText = `${c.cavalo_esteira_raca || 'Quarto de Milha'} ${c.cavalo_esteira_pelagem ? '• ' + c.cavalo_esteira_pelagem : ''}`;
+
+        // Representação e Rodízio
         document.getElementById('cardRepresentacao').innerText = c.representacao || 'Independente';
+        document.getElementById('cardRodizioInfo').innerText = `Rodízio Bloco #${c.rodizio_bloco || 1} • ${c.dia_corrida || 'Fase Classificatória'}`;
         document.getElementById('cardTotalPontosBadge').innerText = `${c.total_pontos} Pts`;
 
         // Determina boi ativo
@@ -732,30 +799,78 @@
     }
 
     // ───────────────────────────────────────────────────────────────────────
-    // RENDERIZAÇÃO DA LISTA LATERAL DA FILA
+    // RENDERIZAÇÃO DA LISTA LATERAL DA FILA (COM DOSSIÊ DO VAQUEIRO E PRÓXIMOS)
     // ───────────────────────────────────────────────────────────────────────
-    function renderizarListaFila() {
+    function renderizarListaFila(termoFiltro = '') {
         const container = document.getElementById('listaFilaContainer');
         if (!container) return;
 
         let html = '';
+        let contagemVisivel = 0;
+        const termo = (termoFiltro || '').toLowerCase().trim();
+
         cartoes.forEach((c, idx) => {
+            // Filtro por número da senha, vaqueiro, cavalo ou representação
+            if (termo) {
+                const buscaEm = `${c.numero_senha} ${c.vaqueiro_puxador} ${c.vaqueiro_puxador_nome} ${c.cavalo_puxador} ${c.vaqueiro_esteireiro} ${c.representacao}`.toLowerCase();
+                if (!buscaEm.includes(termo)) return;
+            }
+
+            contagemVisivel++;
             const isSelected = (idx === currentIndex) ? 'active-in-deck' : '';
+            
+            let statusPillClass = 'badge bg-dark border border-secondary text-secondary';
+            if (c.status === 'NA_PISTA') statusPillClass = 'badge bg-warning text-dark fw-bold';
+            else if (c.status === 'BATIDA') statusPillClass = 'badge bg-success text-white fw-bold';
+            else if (c.status === 'ELIMINADA') statusPillClass = 'badge bg-danger text-white fw-bold';
+
             html += `
-                <div class="fila-item-card ${isSelected} p-2 rounded-3 bg-dark border border-secondary border-opacity-25" onclick="pularParaCartao(${idx})">
+                <div class="fila-item-card ${isSelected} p-2.5 rounded-3 bg-dark border border-secondary border-opacity-30" onclick="pularParaCartao(${idx})" style="cursor: pointer;">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.68rem;">Senha ${c.numero_senha}</span>
-                        <span class="text-secondary" style="font-size: 0.68rem;">${c.categoria}</span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-warning text-dark fw-black" style="font-size: 0.72rem;">Senha ${c.numero_senha}</span>
+                            <span class="${statusPillClass}" style="font-size: 0.65rem;">${c.status_display || c.status}</span>
+                            ${c.tem_boi_tv ? '<span class="badge bg-warning text-dark fw-bold" style="font-size: 0.62rem;">📺 TV</span>' : ''}
+                        </div>
+                        <span class="badge bg-black border border-secondary text-secondary" style="font-size: 0.65rem;">${c.categoria}</span>
                     </div>
-                    <div class="fw-bold text-white small text-truncate">${c.vaqueiro_puxador}</div>
-                    <div class="d-flex justify-content-between align-items-center mt-1 text-secondary" style="font-size: 0.68rem;">
-                        <span class="text-truncate" style="max-width: 140px;">${c.cavalo_puxador}</span>
+
+                    <!-- Dados do Vaqueiro Puxador e Cavalo -->
+                    <div class="fw-bold text-white fs-6 text-truncate mb-0.5">
+                        🤠 ${c.vaqueiro_puxador}
+                        <span class="text-secondary fw-normal small" style="font-size: 0.7rem;">(${c.vaqueiro_puxador_origem})</span>
+                    </div>
+                    <div class="text-warning small text-truncate mb-1" style="font-size: 0.72rem;">
+                        🐴 Puxador: <strong class="text-white">${c.cavalo_puxador}</strong>
+                    </div>
+
+                    <!-- Dados do Esteireiro e Representação -->
+                    <div class="pt-1 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center text-secondary small" style="font-size: 0.7rem;">
+                        <span class="text-truncate" style="max-width: 170px;">
+                            🤝 ${c.vaqueiro_esteireiro} • ${c.cavalo_esteira}
+                        </span>
                         <span class="badge ${c.total_pontos > 0 ? 'bg-success' : 'bg-secondary'}">${c.total_pontos} Pts</span>
+                    </div>
+
+                    <div class="text-secondary text-truncate mt-0.5" style="font-size: 0.68rem;">
+                        🏆 ${c.representacao}
                     </div>
                 </div>
             `;
         });
+
+        if (contagemVisivel === 0) {
+            html = '<div class="text-secondary small text-center py-3">Nenhuma ficha encontrada no filtro.</div>';
+        }
+
         container.innerHTML = html;
+        const totalBadge = document.getElementById('totalFilaBadge');
+        if (totalBadge) totalBadge.innerText = `${contagemVisivel} fichas`;
+    }
+
+    function filtrarFilaSenhas() {
+        const input = document.getElementById('filtroFilaInput');
+        renderizarListaFila(input ? input.value : '');
     }
 
     // ───────────────────────────────────────────────────────────────────────

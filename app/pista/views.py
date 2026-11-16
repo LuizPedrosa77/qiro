@@ -50,15 +50,48 @@ def painel_locutor(request):
         if s.status == SenhaInscricao.StatusSenha.NA_PISTA:
             indice_inicial = idx
 
+        # Detalhes completos do Vaqueiro Puxador
+        puxador_cidade_uf = ""
+        if s.vaqueiro_puxador.cidade or s.vaqueiro_puxador.estado:
+            puxador_cidade_uf = f"{s.vaqueiro_puxador.cidade} - {s.vaqueiro_puxador.estado}".strip(" -")
+
+        # Detalhes completos do Vaqueiro Esteireiro
+        esteireiro_cidade_uf = ""
+        if s.vaqueiro_esteireiro and (s.vaqueiro_esteireiro.cidade or s.vaqueiro_esteireiro.estado):
+            esteireiro_cidade_uf = f"{s.vaqueiro_esteireiro.cidade} - {s.vaqueiro_esteireiro.estado}".strip(" -")
+
         cartoes_lista.append({
             'id': str(s.id),
             'numero_senha': s.numero_senha,
             'categoria': s.categoria.nome_exibicao,
+            'dia_corrida': s.dia_corrida or "Fase Classificatória",
+            'rodizio_bloco': s.rodizio_bloco,
+            'tem_boi_tv': s.tem_boi_tv,
+            
+            # Vaqueiro Puxador
             'vaqueiro_puxador': s.vaqueiro_puxador.apelido_locucao or s.vaqueiro_puxador.get_full_name() or s.vaqueiro_puxador.username,
+            'vaqueiro_puxador_nome': s.vaqueiro_puxador.get_full_name() or s.vaqueiro_puxador.username,
+            'vaqueiro_puxador_origem': puxador_cidade_uf or "Cidade não inf.",
+            
+            # Cavalo Puxador
             'cavalo_puxador': s.cavalo_puxador.nome if s.cavalo_puxador else "Cavalo Puxador",
+            'cavalo_puxador_raca': s.cavalo_puxador.raca if s.cavalo_puxador else "Quarto de Milha",
+            'cavalo_puxador_pelagem': s.cavalo_puxador.pelagem if (s.cavalo_puxador and s.cavalo_puxador.pelagem) else "",
+            
+            # Vaqueiro Esteireiro
             'vaqueiro_esteireiro': (s.vaqueiro_esteireiro.apelido_locucao or s.vaqueiro_esteireiro.get_full_name()) if s.vaqueiro_esteireiro else "A definir",
+            'vaqueiro_esteireiro_nome': (s.vaqueiro_esteireiro.get_full_name() or s.vaqueiro_esteireiro.apelido_locucao) if s.vaqueiro_esteireiro else "A definir",
+            'vaqueiro_esteireiro_origem': esteireiro_cidade_uf or "",
+            
+            # Cavalo Esteira
             'cavalo_esteira': s.cavalo_esteireiro.nome if s.cavalo_esteireiro else "A definir",
+            'cavalo_esteira_raca': s.cavalo_esteireiro.raca if s.cavalo_esteireiro else "Quarto de Milha",
+            'cavalo_esteira_pelagem': s.cavalo_esteireiro.pelagem if (s.cavalo_esteireiro and s.cavalo_esteireiro.pelagem) else "",
+            
+            # Haras / Representação
             'representacao': s.representacao or "Independente",
+            
+            # Pontuação e Julgamento
             'total_pontos': s.total_pontos,
             'status': s.status,
             'status_display': s.get_status_display(),
