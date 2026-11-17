@@ -4,471 +4,689 @@
 
 {% block extra_css %}
 <style>
-    /* Estilos do Baralho de Cartões do Locutor */
-    .deck-container {
-        position: relative;
-        perspective: 1000px;
-        min-height: 520px;
-        user-select: none;
-        touch-action: pan-y;
-    }
-
-    .locutor-card {
-        background: linear-gradient(145deg, #18281F 0%, #0F1A14 100%);
-        border: 2px solid rgba(234, 179, 8, 0.35);
-        border-radius: 1.25rem;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(234, 179, 8, 0.1);
-        transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, opacity 0.25s ease;
-        cursor: grab;
-        position: relative;
-    }
-
-    .locutor-card:active {
-        cursor: grabbing;
-    }
-
-    .locutor-card.swiping-left {
-        transform: translateX(-120%) rotate(-15deg) !important;
-        opacity: 0;
-    }
-
-    .locutor-card.swiping-right {
-        transform: translateX(120%) rotate(15deg) !important;
-        opacity: 0;
-    }
-
-    .locutor-card.card-enter-left {
-        animation: enterFromLeft 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-
-    .locutor-card.card-enter-right {
-        animation: enterFromRight 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-
-    @keyframes enterFromLeft {
-        from { transform: translateX(-100%) rotate(-10deg); opacity: 0; }
-        to { transform: translateX(0) rotate(0deg); opacity: 1; }
-    }
-
-    @keyframes enterFromRight {
-        from { transform: translateX(100%) rotate(10deg); opacity: 0; }
-        to { transform: translateX(0) rotate(0deg); opacity: 1; }
-    }
-
-    /* Indicador visual de arraste */
-    .drag-pill {
-        background: rgba(0,0,0,0.4);
-        border: 1px dashed rgba(234, 179, 8, 0.4);
-        color: #EAB308;
-        font-size: 0.72rem;
-        padding: 4px 14px;
+    /* Estilos Inspirados no Mockup Oficial do Locutor (Imagem 2) */
+    .locutor-topo-btn {
+        background: #18281F;
+        border: 1px solid rgba(234, 179, 8, 0.4);
+        color: #FBFBFB;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 8px 18px;
         border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .locutor-topo-btn:hover {
+        background: #EAB308;
+        color: #0D1612;
+        border-color: #EAB308;
+        box-shadow: 0 0 12px rgba(234, 179, 8, 0.4);
+        transform: translateY(-1px);
     }
 
-    /* ═══════════════════════════════════════════════════════════════════════
-       CARDS DE JULGAMENTO OFICIAIS (BASEADOS NO MODELO FÍSICO DA VAQUEJADA)
-       Fundo branco, borda escura de alto contraste, ícones originais
-       ═══════════════════════════════════════════════════════════════════════ */
+    /* Faixas de Cabeçalho das Colunas (Estilo Imagem 2) */
+    .faixa-coluna-header {
+        background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+        color: #FFFFFF;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-size: 0.9rem;
+        padding: 9px 16px;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .faixa-coluna-header.faixa-atencao {
+        background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+    }
+
+    /* Recipiente do Cartão do Conjunto Atual (Coluna 1) */
+    .card-conjunto-atual {
+        background: #132219;
+        border: 2px solid #0284C7;
+        border-top: none;
+        border-radius: 0 0 14px 14px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        padding: 20px;
+        position: relative;
+        touch-action: pan-y;
+        user-select: none;
+    }
+
+    /* Cartões dos Próximos Conjuntos (Coluna 2 - Estilo Imagem 2) */
+    .card-proximo-conjunto {
+        background: #132219;
+        border: 1.5px solid rgba(2, 132, 199, 0.4);
+        border-radius: 12px;
+        padding: 14px 16px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .card-proximo-conjunto:hover {
+        border-color: #EAB308;
+        background: #182B20;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    }
+    .card-proximo-conjunto.active-deck {
+        border-color: #EAB308 !important;
+        background: rgba(234, 179, 8, 0.12) !important;
+    }
+
+    /* Cards de Julgamento Físicos (V Verde, R Amarelo, X Vermelho Limpo) */
     .card-julgamento-btn {
         background: #FFFFFF;
         border: 3px solid #2B2B2B;
-        border-radius: 12px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 14px 8px;
+        padding: 10px 4px;
         cursor: pointer;
-        transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease, border-color 0.16s ease;
+        transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
         user-select: none;
         width: 100%;
-        min-height: 135px;
+        min-height: 110px;
         text-align: center;
-        position: relative;
     }
-
     .card-julgamento-btn:hover {
-        transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7), 0 0 15px rgba(234, 179, 8, 0.3);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7), 0 0 15px rgba(234, 179, 8, 0.3);
         border-color: #EAB308;
     }
-
     .card-julgamento-btn:active {
         transform: scale(0.96);
     }
-
     .card-julgamento-btn .card-icon-slot {
-        height: 60px;
+        height: 52px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-
     .card-julgamento-btn .card-title-text {
         font-weight: 900;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: #111827;
         letter-spacing: 0.5px;
         text-transform: uppercase;
-        margin-top: 6px;
+        margin-top: 4px;
         line-height: 1.1;
     }
-
     .card-julgamento-btn .card-badge-sub {
         font-weight: 800;
-        font-size: 0.65rem;
-        letter-spacing: 0.4px;
+        font-size: 0.62rem;
+        letter-spacing: 0.3px;
         text-transform: uppercase;
-        padding: 3px 8px;
-        border-radius: 6px;
-        margin-top: 5px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-top: 4px;
     }
 
-    .boi-selector-btn {
+    /* Ícones do Boi com Marcação de Julgamento (Estilo Imagem 2) */
+    .boi-passada-slot {
+        background: #0B140F;
+        border: 1.5px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 8px 6px;
+        text-align: center;
+        cursor: pointer;
         transition: all 0.2s ease;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        cursor: pointer;
+        position: relative;
     }
-    .boi-selector-btn.active {
+    .boi-passada-slot.active {
         border-color: #EAB308 !important;
-        box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
         background: rgba(234, 179, 8, 0.15) !important;
+        box-shadow: 0 0 12px rgba(234, 179, 8, 0.4);
+    }
+    .boi-passada-slot.valeu {
+        border-color: #22C55E;
+        background: rgba(34, 197, 94, 0.15);
+    }
+    .boi-passada-slot.zero {
+        border-color: #EF4444;
+        background: rgba(239, 68, 68, 0.15);
+    }
+    .boi-passada-slot.retorno {
+        border-color: #F59E0B;
+        background: rgba(245, 158, 11, 0.15);
     }
 
-    .fila-item-card {
-        transition: background 0.2s ease, border-color 0.2s ease;
-        cursor: pointer;
+    /* Animações de Arraste / Swipe */
+    .swiping-left {
+        transform: translateX(-120%) rotate(-10deg) !important;
+        opacity: 0;
+        transition: transform 0.2s ease, opacity 0.2s ease;
     }
-    .fila-item-card:hover {
-        border-color: rgba(234, 179, 8, 0.6) !important;
-        background: #18281F !important;
+    .swiping-right {
+        transform: translateX(120%) rotate(10deg) !important;
+        opacity: 0;
+        transition: transform 0.2s ease, opacity 0.2s ease;
     }
-    .fila-item-card.active-in-deck {
-        border-color: #EAB308 !important;
-        background: rgba(234, 179, 8, 0.12) !important;
+    .card-enter-left {
+        animation: enterFromLeft 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    .card-enter-right {
+        animation: enterFromRight 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    @keyframes enterFromLeft {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes enterFromRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- TOPO DA CABINE DE LOCUÇÃO -->
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom border-qiro gap-2">
-    <div>
-        <div class="d-flex align-items-center gap-2">
-            <h4 class="fw-black text-white m-0 d-flex align-items-center gap-2">
-                <span class="fs-4">🎙️</span> Cabine de Locução Oficial
-            </h4>
-            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill fw-bold text-uppercase" style="font-size: 0.7rem;">
-                🔴 PISTA AO VIVO
-            </span>
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<!-- BARRA SUPERIOR DE CONTROLE E NAVEGAÇÃO DO LOCUTOR (MOCKUP IMAGEM 2) -->
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25 gap-2">
+    
+    <!-- 4 Botões Principais do Rodízio / Estatísticas (Imagem 2) -->
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <button type="button" class="locutor-topo-btn" data-bs-toggle="modal" data-bs-target="#modalRodizioAtual">
+            <i class="bi bi-arrow-repeat me-1 text-warning"></i> Rodízio Atual
+        </button>
+        <button type="button" class="locutor-topo-btn" data-bs-toggle="modal" data-bs-target="#modalProximoRodizio">
+            <i class="bi bi-skip-forward-fill me-1 text-warning"></i> Próximo Rodízio
+        </button>
+        <button type="button" class="locutor-topo-btn" data-bs-toggle="modal" data-bs-target="#modalParcialSenhas">
+            <i class="bi bi-pie-chart-fill me-1 text-warning"></i> Parcial de Senhas
+        </button>
+        <button type="button" class="locutor-topo-btn" data-bs-toggle="modal" data-bs-target="#modalAlterarSenhas">
+            <i class="bi bi-gear-fill me-1 text-warning"></i> Alterar Senhas
+        </button>
+    </div>
+
+    <!-- Navegação do Baralho + Relógio e Data ao Vivo (Imagem 2) -->
+    <div class="d-flex align-items-center gap-2">
+        <a href="/equipe/hub/" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1 text-uppercase fw-bold" style="font-size: 0.72rem;">
+            <i class="bi bi-arrow-left"></i> Hub
+        </a>
+
+        <!-- Contador do Baralho -->
+        <div class="bg-dark border border-secondary border-opacity-50 px-3 py-1 rounded-pill text-white small fw-bold">
+            <span class="text-secondary fw-normal">Ficha:</span> <span id="deckCounter" class="text-warning">1 / {{ total_cartoes }}</span>
         </div>
-        <div class="text-secondary small mt-0.5">
-            Evento: <strong class="text-warning">{{ evento.nome }}</strong> &bull; Puxe os cartões arrastando ou use as setas do teclado.
+
+        <!-- Relógio ao Vivo (Imagem 2) -->
+        <div class="bg-black border border-secondary border-opacity-40 px-3 py-1 rounded-pill text-white small text-uppercase fw-bold d-flex align-items-center gap-1.5" id="relogioAoVivo">
+            <i class="bi bi-clock-fill text-warning"></i> <span>--:--:--</span>
         </div>
     </div>
 
-    <!-- Indicador de Navegação do Baralho -->
-    <div class="d-flex align-items-center gap-2">
-        <a href="/equipe/hub/" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="bi bi-arrow-left"></i> Hub Operacional
-        </a>
-        <div class="bg-dark border border-secondary border-opacity-50 px-3 py-1.5 rounded-pill text-white small fw-bold">
-            <span class="text-secondary fw-normal">Cartão:</span> <span id="deckCounter" class="text-warning">1 / {{ total_cartoes }}</span>
-        </div>
-    </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<!-- CORPO PRINCIPAL EM 3 COLUNAS (LAYOUT OFICIAL DO WIREFRAME IMAGEM 2) -->
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
 <div class="row g-3">
 
-    <!-- COLUNA PRINCIPAL: BARALHO INTERATIVO DE CARTÕES DO LOCUTOR (8 COLUNAS) -->
-    <div class="col-lg-8">
+    <!-- ────────────────────────────────────────────────────────────────────────── -->
+    <!-- COLUNA 1: CONJUNTO ATUAL NA PISTA (O CARTÃO HERO DO LOCUTOR) (~45% TELA) -->
+    <!-- ────────────────────────────────────────────────────────────────────────── -->
+    <div class="col-xl-5 col-lg-6">
         
-        <!-- BARRA DE CONTROLE SUPERIOR DO BARALHO -->
-        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-            <button type="button" class="btn btn-dark border-secondary btn-sm px-3 rounded-pill text-white fw-bold d-flex align-items-center gap-2 shadow-sm" id="btnAnterior" onclick="puxarCartaoAnterior()">
-                <i class="bi bi-chevron-left text-warning"></i> <span>Puxar Cartão Anterior</span>
-            </button>
-
-            <div class="drag-pill">
-                <span>👈</span> <strong>Arraste para o lado</strong> para puxar novo/anterior <span>👉</span>
+        <!-- Faixa Azul: Conjunto Atual (Imagem 2) -->
+        <div class="faixa-coluna-header">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">🎙️</span> Conjunto Atual na Pista
             </div>
-
-            <button type="button" class="btn btn-dark border-secondary btn-sm px-3 rounded-pill text-white fw-bold d-flex align-items-center gap-2 shadow-sm" id="btnProximo" onclick="puxarNovoCartao()">
-                <span>Puxar Novo Cartão</span> <i class="bi bi-chevron-right text-warning"></i>
-            </button>
-        </div>
-
-        <!-- RECIPIENTE DO BARALHO (ÁREA DE ARRASTE / SWIPE) -->
-        <div class="deck-container" id="deckContainer">
-            
-            <!-- CARTÃO ATIVO DINÂMICO -->
-            <div class="locutor-card p-4 text-white" id="activeLocutorCard">
-                
-                <!-- CABEÇALHO DO CARTÃO: SENHA, CATEGORIA, RODÍZIO E STATUS -->
-                <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
-                    <div class="d-flex align-items-center flex-wrap gap-1.5">
-                        <span class="badge bg-warning text-dark fw-black fs-6 px-3 py-1.5 rounded-pill text-uppercase shadow-sm" id="cardCategoriaBadge">
-                            PROFISSIONAL
-                        </span>
-                        <span class="badge bg-dark border border-secondary text-secondary px-2.5 py-1.5 rounded-pill" id="cardStatusBadge">
-                            NA PISTA
-                        </span>
-                        <span class="badge bg-dark border border-info text-info px-2.5 py-1.5 rounded-pill" id="cardDiaCorridaBadge" style="font-size: 0.72rem;">
-                            Sábado
-                        </span>
-                        <span class="badge bg-dark border border-warning text-warning px-2.5 py-1.5 rounded-pill" id="cardRodizioBadge" style="font-size: 0.72rem;">
-                            Rodízio #1
-                        </span>
-                        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1.5 rounded-pill d-none" id="cardBoiTvBadge" style="font-size: 0.72rem;">
-                            📺 Boi na TV
-                        </span>
-                    </div>
-
-                    <div class="text-end">
-                        <div class="text-secondary small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Número da Ficha</div>
-                        <div class="fs-1 fw-black text-qiro-yellow lh-1" id="cardNumeroSenha">SENHA 01</div>
-                    </div>
-                </div>
-
-                <!-- CORPO DO CARTÃO: DOSSIÊ COMPLETO DOS VAQUEIROS E ANIMAIS -->
-                <div class="row g-3 my-2">
-                    
-                    <!-- VAQUEIRO PUXADOR E CAVALO PUXADOR -->
-                    <div class="col-md-6">
-                        <div class="p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-30 h-100">
-                            <div class="d-flex justify-content-between align-items-center text-warning small fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">
-                                <span>🤠 Vaqueiro Puxador</span>
-                                <span class="badge bg-dark border border-secondary text-secondary" id="cardPuxadorOrigem">Origem</span>
-                            </div>
-                            <div class="fs-2 fw-black text-white text-uppercase" id="cardVaqueiroPuxador">
-                                ALEXANDRE CAMPINHOS
-                            </div>
-                            <div class="text-secondary small mb-2" id="cardVaqueiroPuxadorNome">
-                                Nome de registro do competidor
-                            </div>
-                            <div class="pt-2 border-top border-secondary border-opacity-25">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span class="text-secondary small">🐴 Cavalo de Puxada:</span>
-                                    <strong class="text-qiro-yellow fs-6" id="cardCavaloPuxador">Silver Wild YQI</strong>
-                                </div>
-                                <div class="text-secondary small mt-0.5" id="cardCavaloPuxadorDetalhes" style="font-size: 0.72rem;">
-                                    Quarto de Milha &bull; Pelagem
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- VAQUEIRO ESTEIREIRO E CAVALO ESTEIRA -->
-                    <div class="col-md-6">
-                        <div class="p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-30 h-100">
-                            <div class="d-flex justify-content-between align-items-center text-info small fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">
-                                <span>🤝 Vaqueiro Esteireiro</span>
-                                <span class="badge bg-dark border border-secondary text-secondary" id="cardEsteiraOrigem">Origem</span>
-                            </div>
-                            <div class="fs-3 fw-bold text-white text-uppercase" id="cardVaqueiroEsteireiro">
-                                CELSINHO VITÓRIO
-                            </div>
-                            <div class="text-secondary small mb-2" id="cardVaqueiroEsteireiroNome">
-                                Nome de registro do esteireiro
-                            </div>
-                            <div class="pt-2 border-top border-secondary border-opacity-25">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span class="text-secondary small">🐴 Cavalo de Esteira:</span>
-                                    <strong class="text-info fs-6" id="cardCavaloEsteira">Holland Machine</strong>
-                                </div>
-                                <div class="text-secondary small mt-0.5" id="cardCavaloEsteiraDetalhes" style="font-size: 0.72rem;">
-                                    Quarto de Milha &bull; Pelagem
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- REPRESENTAÇÃO / HARAS -->
-                    <div class="col-12">
-                        <div class="px-3 py-2.5 rounded-3 bg-black bg-opacity-30 border border-secondary border-opacity-25 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <div>
-                                <span class="text-secondary small fw-bold text-uppercase d-block" style="font-size: 0.72rem;">🏆 Haras / Representação Oficial:</span>
-                                <span class="fw-bold text-warning fs-5" id="cardRepresentacao">Haras BonSucesso — Bezerros/PE</span>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-dark border border-warning text-warning px-3 py-1.5 rounded-pill small" id="cardRodizioInfo">Bateria Classificatória</span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- SELETOR DOS BOIS DA PASSADA (BOI 1, 2, 3) -->
-                <div class="mt-3 pt-3 border-top border-secondary border-opacity-25">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small fw-bold text-secondary text-uppercase" style="font-size: 0.72rem;">
-                            Selecione o Boi da Corrida:
-                        </span>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="text-secondary small" style="font-size: 0.72rem;">Pontuação Atual:</span>
-                            <span class="badge bg-success fs-6 fw-black px-3 py-1 rounded-pill shadow-sm" id="cardTotalPontosBadge">0 Pts</span>
-                        </div>
-                    </div>
-
-                    <div class="row g-2" id="cardBoisPassadaContainer">
-                        <!-- Gerado dinamicamente no JS para os 3 bois -->
-                    </div>
-                </div>
-
-                <!-- ═══════════════════════════════════════════════════════════════════════ -->
-                <!-- AS 3 OPÇÕES DE JULGAMENTO DO LOCUTOR (CARDS FÍSICOS DA VAQUEJADA) -->
-                <!-- Baseados na foto oficial: [✔ Verde] [R Amarelo] [X Vermelho puro] -->
-                <!-- ═══════════════════════════════════════════════════════════════════════ -->
-                <div class="mt-4 pt-3 border-top border-warning border-opacity-30">
-                    <div class="text-secondary small fw-bold text-uppercase mb-2.5 text-center d-flex align-items-center justify-content-center gap-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                        <span>🎯</span> Julgamento do Boi pelo Locutor Oficial: <span id="labelBoiJulgamento" class="badge bg-warning text-dark fw-black px-2.5 py-1 rounded-pill">Boi 1</span>
-                    </div>
-
-                    <div class="row g-3">
-                        
-                        <!-- CARD 1: 🟢 VALEU BOI (CARD BRANCO COM V VERDE) -->
-                        <div class="col-4">
-                            <button type="button" class="card-julgamento-btn" onclick="executarJulgamentoLocutor('VALEU_BOI')">
-                                <div class="card-icon-slot">
-                                    <svg viewBox="0 0 100 100" style="width: 52px; height: 52px;">
-                                        <path d="M12 55 L38 82 L88 18" fill="none" stroke="#16A34A" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </div>
-                                <div class="card-title-text">VALEU BOI</div>
-                                <span class="badge bg-success card-badge-sub">+10 PONTOS</span>
-                            </button>
-                        </div>
-
-                        <!-- CARD 2: 🟡 RETORNO (CARD BRANCO COM R AMARELO) -->
-                        <div class="col-4">
-                            <button type="button" class="card-julgamento-btn" onclick="executarJulgamentoLocutor('RETORNO')">
-                                <div class="card-icon-slot">
-                                    <span style="font-size: 3.6rem; font-weight: 900; line-height: 1; color: #EAB308; font-family: 'Arial Black', Impact, sans-serif;">R</span>
-                                </div>
-                                <div class="card-title-text">RETORNO</div>
-                                <span class="badge bg-warning text-dark card-badge-sub">BOI NOVO</span>
-                            </button>
-                        </div>
-
-                        <!-- CARD 3: 🔴 ZERO (CARD BRANCO COM X VERMELHO PURO - SEM BOLINHA AZUL) -->
-                        <div class="col-4">
-                            <button type="button" class="card-julgamento-btn" onclick="executarJulgamentoLocutor('ZERO')">
-                                <div class="card-icon-slot">
-                                    <svg viewBox="0 0 100 100" style="width: 52px; height: 52px;">
-                                        <line x1="20" y1="20" x2="80" y2="80" stroke="#DC2626" stroke-width="16" stroke-linecap="round" />
-                                        <line x1="80" y1="20" x2="20" y2="80" stroke="#DC2626" stroke-width="16" stroke-linecap="round" />
-                                    </svg>
-                                </div>
-                                <div class="card-title-text">ZERO</div>
-                                <span class="badge bg-danger card-badge-sub">ELIMINADO</span>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- FEEDBACK VISUAL DE ÚLTIMA AÇÃO -->
-                <div id="feedbackAcao" class="mt-3 text-center small text-warning d-none">
-                    <span id="feedbackTexto"></span>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- BATE-PAPO RÁPIDO COM A PISTA E JUIZ (CAIXA AMPLIADA EM TAMANHO E DESTAQUE) -->
-        <div class="card bg-qiro-card border-qiro p-4 rounded-4 shadow-lg mt-3" style="border: 2px solid rgba(234, 179, 8, 0.35);">
-            <div class="fw-black text-info text-uppercase mb-3 d-flex align-items-center gap-2" style="font-size: 0.95rem; letter-spacing: 0.5px;">
-                <i class="bi bi-lightning-charge-fill text-warning fs-5"></i> ALERTAS RÁPIDOS DE LOCUÇÃO PARA MESA DE JUÍZES
-            </div>
-
-            <!-- BOTÕES DE ALERTA RÁPIDO AMPLIADOS -->
-            <div class="row g-3 mb-3">
-                <div class="col-sm-6">
-                    <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning py-3 px-3.5 rounded-3 shadow-sm d-flex align-items-center gap-2.5" 
-                        style="font-size: 0.95rem; font-weight: 700; transition: all 0.2s ease; border-width: 1.5px;" onclick="enviarMensagemRapida('⚠️ Vaqueiro tomando a frente do boi')">
-                        <span class="fs-4">⚠️</span>
-                        <div>
-                            <div>Vaqueiro tomando a frente do boi</div>
-                            <div class="text-secondary small fw-normal" style="font-size: 0.72rem;">Aviso de infração na saída</div>
-                        </div>
-                    </button>
-                </div>
-                <div class="col-sm-6">
-                    <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning py-3 px-3.5 rounded-3 shadow-sm d-flex align-items-center gap-2.5" 
-                        style="font-size: 0.95rem; font-weight: 700; transition: all 0.2s ease; border-width: 1.5px;" onclick="enviarMensagemRapida('👀 Atenção à cancela de saída')">
-                        <span class="fs-4">👀</span>
-                        <div>
-                            <div>Atenção à cancela de saída</div>
-                            <div class="text-secondary small fw-normal" style="font-size: 0.72rem;">Aviso de porteira e liberação</div>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- CAMPO DE MENSAGEM AMPLIADO COM BOTÃO ENVIAR DESTACADO -->
-            <div class="input-group input-group-lg">
-                <input type="text" id="inputChatLivre" class="form-control bg-dark text-white border-secondary px-3.5 py-3 fs-6" 
-                    placeholder="Digitar aviso direto ou instrução para a Mesa de Juízes..." style="min-height: 58px; font-size: 1.05rem;">
-                <button class="btn btn-warning fw-black px-4 fs-5 text-dark d-flex align-items-center gap-2 shadow" type="button" onclick="enviarChatLivre()" style="min-height: 58px;">
-                    <i class="bi bi-send-fill fs-5"></i>
-                    <span>Enviar</span>
+            <!-- Controles de Arraste / Próximo -->
+            <div class="d-flex align-items-center gap-1">
+                <button type="button" class="btn btn-dark btn-sm py-0.5 px-2 rounded-pill text-white" id="btnAnterior" onclick="puxarCartaoAnterior()" title="Puxar Cartão Anterior (Seta Esquerda)">
+                    <i class="bi bi-chevron-left text-warning"></i>
+                </button>
+                <span class="badge bg-black text-warning fw-bold" style="font-size: 0.65rem;">Arraste o Cartão</span>
+                <button type="button" class="btn btn-dark btn-sm py-0.5 px-2 rounded-pill text-white" id="btnProximo" onclick="puxarNovoCartao()" title="Puxar Novo Cartão (Seta Direita)">
+                    <i class="bi bi-chevron-right text-warning"></i>
                 </button>
             </div>
         </div>
 
+        <!-- O Cartão Principal (Dossiê Completo + Bois + Julgamento) -->
+        <div class="card-conjunto-atual text-white" id="activeLocutorCard">
+            
+            <!-- Linha 1: Categoria e Senha Gigante Amarela (Imagem 2) -->
+            <div class="d-flex justify-content-between align-items-center pb-2 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+                <div>
+                    <span class="fs-5 fw-bold text-white">Categoria: <span class="text-info fw-black" id="cardCategoria">Aberta</span></span>
+                    <div class="d-flex align-items-center gap-1.5 mt-0.5">
+                        <span class="badge bg-warning text-dark fw-bold" id="cardStatusBadge">NA PISTA</span>
+                        <span class="badge bg-dark border border-secondary text-secondary" id="cardDiaCorrida">Quinta-feira</span>
+                        <span class="badge bg-dark border border-warning text-warning" id="cardRodizioBadge">Rodízio #1</span>
+                        <span class="badge bg-warning text-dark fw-bold d-none" id="cardBoiTvBadge">📺 TV</span>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <span class="fs-1 fw-black text-qiro-yellow lh-1" id="cardNumeroSenha">Senha 3026</span>
+                </div>
+            </div>
+
+            <!-- Linha 2: Vaqueiro Puxador e Cavalo Puxador (Tipografia Garrafal Imagem 2) -->
+            <div class="my-2.5 p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-30">
+                <div class="d-flex justify-content-between align-items-baseline mb-0.5">
+                    <span class="text-warning small fw-bold text-uppercase" style="font-size: 0.72rem;">Vaqueiro Puxador:</span>
+                    <span class="text-secondary small" id="cardPuxadorOrigem" style="font-size: 0.7rem;">Caruaru - PE</span>
+                </div>
+                <div class="fs-2 fw-black text-white text-uppercase lh-sm" id="cardVaqueiroPuxador">
+                    KLEBER LEITE
+                </div>
+
+                <div class="mt-2 pt-2 border-top border-secondary border-opacity-20 d-flex align-items-center justify-content-between">
+                    <span class="text-secondary small fw-bold">Cavalo Puxador:</span>
+                    <strong class="text-qiro-yellow fs-5" id="cardCavaloPuxador">Jeck Yease</strong>
+                </div>
+                <div class="text-secondary small" id="cardCavaloPuxadorDetalhes" style="font-size: 0.72rem;">
+                    Quarto de Milha &bull; Alazão
+                </div>
+            </div>
+
+            <!-- Linha 3: Vaqueiro Esteireiro e Cavalo Esteira (Imagem 2) -->
+            <div class="my-2.5 p-3 rounded-3 bg-black bg-opacity-40 border border-secondary border-opacity-30">
+                <div class="d-flex justify-content-between align-items-baseline mb-0.5">
+                    <span class="text-info small fw-bold text-uppercase" style="font-size: 0.72rem;">Esteireiro:</span>
+                    <span class="text-secondary small" id="cardEsteiraOrigem" style="font-size: 0.7rem;">Arapiraca - AL</span>
+                </div>
+                <div class="fs-4 fw-bold text-white text-uppercase" id="cardVaqueiroEsteireiro">
+                    MATHEUS LEONARDO
+                </div>
+
+                <div class="mt-2 pt-2 border-top border-secondary border-opacity-20 d-flex align-items-center justify-content-between">
+                    <span class="text-secondary small fw-bold">Cavalo Esteireiro:</span>
+                    <strong class="text-info fs-6" id="cardCavaloEsteira">King</strong>
+                </div>
+                <div class="text-secondary small" id="cardCavaloEsteiraDetalhes" style="font-size: 0.72rem;">
+                    Quarto de Milha &bull; Castanho
+                </div>
+            </div>
+
+            <!-- Linha 4: Representação / Haras (Imagem 2) -->
+            <div class="px-3 py-2 rounded-3 bg-black bg-opacity-30 border border-secondary border-opacity-25 d-flex justify-content-between align-items-center mb-3">
+                <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem;">Representação:</span>
+                <span class="fw-bold text-warning fs-6" id="cardRepresentacao">Super Copa de Vaquejada — Geral</span>
+            </div>
+
+            <!-- Linha 5: Bois da Passada (Ícones do Boi com Checkmark - Imagem 2) -->
+            <div class="pt-2 border-top border-secondary border-opacity-25">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-secondary text-uppercase" style="font-size: 0.72rem;">
+                        Bois da Passada (Clique no boi para julgar):
+                    </span>
+                    <span class="badge bg-success fs-6 fw-black px-3 py-1 rounded-pill" id="cardTotalPontosBadge">0 Pts</span>
+                </div>
+
+                <div class="row g-2" id="cardBoisPassadaContainer">
+                    <!-- Gerado dinamicamente no JS com os bois da imagem 2 -->
+                </div>
+            </div>
+
+            <!-- Linha 6: Os 3 Cards Oficiais de Julgamento do Locutor (✔, R, ❌) -->
+            <div class="mt-3 pt-3 border-top border-warning border-opacity-30">
+                <div class="text-secondary small fw-bold text-uppercase mb-2 text-center" style="font-size: 0.72rem;">
+                    🎯 Julgamento do Locutor: <span id="labelBoiJulgamento" class="badge bg-warning text-dark fw-black px-2.5 py-0.5 rounded-pill">Boi 1</span>
+                </div>
+
+                <div class="row g-2">
+                    <!-- CARD 1: VALEU BOI [V VERDE] -->
+                    <div class="col-4">
+                        <button type="button" class="card-julgamento-btn" onclick="executarJulgamentoLocutor('VALEU_BOI')">
+                            <div class="card-icon-slot">
+                                <svg viewBox="0 0 100 100" style="width: 44px; height: 44px;">
+                                    <path d="M12 55 L38 82 L88 18" fill="none" stroke="#16A34A" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="card-title-text">VALEU BOI</div>
+                            <span class="badge bg-success card-badge-sub">+10 PONTOS</span>
+                        </button>
+                    </div>
+
+                    <!-- CARD 2: RETORNO [R AMARELO] -->
+                    <div class="col-4">
+                        <button type="button" class="card-julgamento-btn" onclick="executarJulgamentoLocutor('RETORNO')">
+                            <div class="card-icon-slot">
+                                <span style="font-size: 3.2rem; font-weight: 900; line-height: 1; color: #EAB308; font-family: 'Arial Black', Impact, sans-serif;">R</span>
+                            </div>
+                            <div class="card-title-text">RETORNO</div>
+                            <span class="badge bg-warning text-dark card-badge-sub">BOI NOVO</span>
+                        </button>
+                    </div>
+
+                    <!-- CARD 3: ZERO [X VERMELHO PURO] -->
+                    <div class="col-4">
+                        <button type="button" class="card-julgamento-btn" onclick="executarJulgamentoLocutor('ZERO')">
+                            <div class="card-icon-slot">
+                                <svg viewBox="0 0 100 100" style="width: 44px; height: 44px;">
+                                    <line x1="20" y1="20" x2="80" y2="80" stroke="#DC2626" stroke-width="16" stroke-linecap="round" />
+                                    <line x1="80" y1="20" x2="20" y2="80" stroke="#DC2626" stroke-width="16" stroke-linecap="round" />
+                                </svg>
+                            </div>
+                            <div class="card-title-text">ZERO</div>
+                            <span class="badge bg-danger card-badge-sub">ELIMINADO</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feedback Visual -->
+                <div id="feedbackAcao" class="mt-2 text-center small text-warning d-none">
+                    <span id="feedbackTexto"></span>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
-    <!-- COLUNA LATERAL: FILA OFICIAL DE SENHAS + ALERTAS DA SECRETARIA (4 COLUNAS) -->
-    <div class="col-lg-4">
+    <!-- ────────────────────────────────────────────────────────────────────────── -->
+    <!-- COLUNA 2: PRÓXIMOS CONJUNTOS (CARTÕES REAIS LADO A LADO - IMAGEM 2) (~33%) -->
+    <!-- ────────────────────────────────────────────────────────────────────────── -->
+    <div class="col-xl-4 col-lg-6">
         
-        <!-- LISTA DA FILA OFICIAL COM CLIQUE DIRETO -->
-        <div class="card bg-qiro-card border-qiro p-3 rounded-4 shadow-sm mb-3">
-            <div class="d-flex justify-content-between align-items-center pb-2 border-bottom border-qiro mb-2">
-                <h6 class="text-uppercase fw-bold text-white m-0 d-flex align-items-center gap-1.5" style="font-size: 0.78rem;">
-                    <span>📋</span> Fila de Senhas do Baralho
-                </h6>
-                <span class="badge bg-dark border border-secondary text-secondary" id="totalFilaBadge">{{ total_cartoes }} fichas</span>
+        <!-- Faixa Azul: Próximos Conjuntos (Imagem 2) -->
+        <div class="faixa-coluna-header">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">📋</span> Próximos Conjuntos (Na Boiada)
             </div>
+            <span class="badge bg-black text-warning fw-bold" id="totalFilaBadge">{{ total_cartoes }} fichas</span>
+        </div>
 
-            <div class="mb-2">
+        <div class="card bg-qiro-card border-qiro p-3 rounded-0 rounded-bottom-4 shadow-sm" style="border-top: none;">
+            
+            <!-- Campo de Busca Rápida de Competidor / Senha -->
+            <div class="mb-2.5">
                 <input type="text" id="filtroFilaInput" class="form-control form-control-sm bg-dark text-white border-secondary" 
-                    placeholder="🔍 Buscar vaqueiro, cavalo ou senha..." oninput="filtrarFilaSenhas()">
+                    placeholder="🔍 Filtrar vaqueiro, cavalo ou senha..." oninput="filtrarFilaSenhas()">
             </div>
 
-            <div class="d-flex flex-column gap-2" id="listaFilaContainer" style="max-height: 480px; overflow-y: auto;">
-                <!-- Preenchido dinamicamente via JS -->
+            <!-- Lista de Cartões Visuais dos Próximos (Idênticos aos do Wireframe da Imagem 2) -->
+            <div class="d-flex flex-column gap-2.5" id="proximosCardsContainer" style="max-height: 720px; overflow-y: auto;">
+                <!-- Preenchido dinamicamente via JS renderizarProximosCartoes() -->
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ────────────────────────────────────────────────────────────────────────── -->
+    <!-- COLUNA 3: MENSAGENS ATENÇÃO & COMUNICAÇÃO DA PISTA (IMAGEM 2) (~22%)       -->
+    <!-- ────────────────────────────────────────────────────────────────────────── -->
+    <div class="col-xl-3 col-lg-12">
+        
+        <!-- 1. MENSAGENS ATENÇÃO ! (Avisos Críticos da Secretaria - Imagem 2) -->
+        <div class="mb-3">
+            <div class="faixa-coluna-header faixa-atencao">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Mensagens Atenção !
+                </div>
+                <span class="badge bg-black text-warning">Secretaria</span>
+            </div>
+
+            <div class="card bg-qiro-card border-qiro p-3 rounded-0 rounded-bottom-4 shadow-sm" style="border-top: none;">
+                <div class="d-flex flex-column gap-2" id="alertasSecretariaBox">
+                    {% for alerta in alertas %}
+                    <div class="p-2.5 rounded bg-black border-start border-3 border-warning text-white small" style="font-size: 0.78rem;">
+                        <div class="text-warning-subtle fw-bold" style="font-size: 0.68rem;">{{ alerta.criado_em|date:"H:i" }} &bull; Secretaria</div>
+                        <div class="mt-0.5">• {{ alerta.mensagem }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="p-2 rounded bg-black border-start border-3 border-warning text-white small" style="font-size: 0.75rem;">
+                        • Incluir senha 1023 no próximo rodízio
+                    </div>
+                    <div class="p-2 rounded bg-black border-start border-3 border-danger text-white small" style="font-size: 0.75rem;">
+                        • A senha 1524 foi desclassificada
+                    </div>
+                    <div class="p-2 rounded bg-black border-start border-3 border-info text-white small" style="font-size: 0.75rem;">
+                        • A senha 2536 está com boi na alternativa
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
 
-        <!-- MENSAGENS DA SECRETARIA E HISTÓRICO DE CHAT -->
-        <div class="card bg-qiro-card border-qiro p-3 rounded-4 shadow-sm">
-            <div class="d-flex align-items-center gap-1.5 pb-2 border-bottom border-qiro text-info fw-bold small text-uppercase">
-                <i class="bi bi-broadcast-pin"></i> Comunicação da Pista
-            </div>
-            
-            <div class="d-flex flex-column gap-2 mt-2" id="chatHistoricoBox" style="max-height: 220px; overflow-y: auto;">
-                {% for chat in chat_historico %}
-                <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 small" style="font-size: 0.75rem;">
-                    <div class="d-flex justify-content-between text-secondary" style="font-size: 0.65rem;">
-                        <strong class="text-warning">{{ chat.remetente.apelido_locucao|default:chat.remetente.username }}:</strong>
-                        <span>{{ chat.criado_em|date:"H:i" }}</span>
-                    </div>
-                    <div class="text-white mt-0.5">{{ chat.mensagem }}</div>
+        <!-- 2. COMUNICAÇÃO DA PISTA (Chat ao vivo com Mesa de Juízes) -->
+        <div>
+            <div class="faixa-coluna-header" style="background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-left-dots-fill text-warning"></i> Comunicação da Pista
                 </div>
-                {% empty %}
-                <div class="text-secondary small text-center py-2">Sem mensagens recentes da pista.</div>
-                {% endfor %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2 rounded-pill" style="font-size: 0.65rem;">AO VIVO</span>
+            </div>
+
+            <div class="card bg-qiro-card border-qiro p-3 rounded-0 rounded-bottom-4 shadow-sm" style="border-top: none;">
+                <div class="d-flex flex-column gap-1.5" id="chatHistoricoBox" style="max-height: 280px; overflow-y: auto;">
+                    {% for chat in chat_historico %}
+                    <div class="p-2 rounded bg-black border border-secondary border-opacity-25 small" style="font-size: 0.75rem;">
+                        <div class="d-flex justify-content-between text-secondary" style="font-size: 0.65rem;">
+                            <strong class="text-warning">{{ chat.remetente.apelido_locucao|default:chat.remetente.username }}:</strong>
+                            <span>{{ chat.criado_em|date:"H:i" }}</span>
+                        </div>
+                        <div class="text-white mt-0.5">{{ chat.mensagem }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="text-secondary small text-center py-2">Sem mensagens recentes da pista.</div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
 
     </div>
 
 </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<!-- BATE-PAPO RÁPIDO COM O JUIZ NA LARGURA TOTAL INFERIOR (MOCKUP IMAGEM 2) -->
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<div class="mt-3">
+    <div class="faixa-coluna-header">
+        <div class="d-flex align-items-center gap-2">
+            <span class="fs-5">⚡</span> Bate - Papo Rápido com a Mesa de Juízes
+        </div>
+        <span class="badge bg-black text-warning">Comunicação Instantânea</span>
+    </div>
+
+    <div class="card bg-qiro-card border-qiro p-3 rounded-0 rounded-bottom-4 shadow-lg" style="border-top: none;">
+        <div class="row g-3 align-items-center">
+            
+            <!-- Botões Pré-definidos Ampliados (Imagem 2) -->
+            <div class="col-lg-5 col-md-12">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning py-2.5 px-3 rounded-3 shadow-sm d-flex align-items-center gap-2" 
+                            style="font-size: 0.85rem; font-weight: 700;" onclick="enviarMensagemRapida('⚠️ Vaqueiro tomando a frente do boi')">
+                            <span class="fs-5">⚠️</span>
+                            <span class="text-truncate">Vaqueiro na frente</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-dark border-secondary w-100 text-start text-warning py-2.5 px-3 rounded-3 shadow-sm d-flex align-items-center gap-2" 
+                            style="font-size: 0.85rem; font-weight: 700;" onclick="enviarMensagemRapida('👀 Atenção à cancela de saída')">
+                            <span class="fs-5">👀</span>
+                            <span class="text-truncate">Cancela de saída</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campo de Texto Livre e Botão Enviar Ampliado -->
+            <div class="col-lg-7 col-md-12">
+                <div class="input-group input-group-lg">
+                    <input type="text" id="inputChatLivre" class="form-control bg-dark text-white border-secondary px-3.5 py-2.5 fs-6" 
+                        placeholder="Digitar aviso direto ou instrução para o Juiz de Pista..." style="height: 52px;">
+                    <button class="btn btn-warning fw-black px-4 fs-6 text-dark d-flex align-items-center gap-2 shadow" type="button" onclick="enviarChatLivre()" style="height: 52px;">
+                        <i class="bi bi-send-fill"></i>
+                        <span>Enviar</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAIS DO TOPO: RODÍZIO ATUAL, PRÓXIMO RODÍZIO, PARCIAL DE SENHAS, ALTERAR    -->
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+
+<!-- MODAL 1: RODÍZIO ATUAL -->
+<div class="modal fade" id="modalRodizioAtual" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-black text-warning">
+                    <i class="bi bi-arrow-repeat me-1"></i> Rodízio Atual da Bateria
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <p class="text-secondary small mb-3">Senhas ativas no bloco atual da matriz de pista:</p>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped table-hover small">
+                        <thead>
+                            <tr class="text-warning">
+                                <th>Ficha</th>
+                                <th>Categoria</th>
+                                <th>Vaqueiro Puxador</th>
+                                <th>Cavalo</th>
+                                <th>Status</th>
+                                <th>Pontos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaRodizioAtualBody">
+                            <!-- Preenchido via JS com base no bloco atual -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 2: PRÓXIMO RODÍZIO -->
+<div class="modal fade" id="modalProximoRodizio" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-black text-info">
+                    <i class="bi bi-skip-forward-fill me-1"></i> Próximo Rodízio de Senhas
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <p class="text-secondary small mb-3">Competidores que entrarão na sequência do rodízio oficial:</p>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped table-hover small">
+                        <thead>
+                            <tr class="text-info">
+                                <th>Ficha</th>
+                                <th>Categoria</th>
+                                <th>Vaqueiro Puxador</th>
+                                <th>Cavalo</th>
+                                <th>Representação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaProximoRodizioBody">
+                            <!-- Preenchido via JS com os próximos blocos -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 3: PARCIAL DE SENHAS (MOCKUP IMAGEM 13 E 2) -->
+<div class="modal fade" id="modalParcialSenhas" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-black text-success">
+                    <i class="bi bi-pie-chart-fill me-1"></i> Parcial de Senhas por Categoria
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <p class="text-secondary small mb-3">Resumo em tempo real de senhas batidas e eliminadas por categoria:</p>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped table-hover small text-center align-middle">
+                        <thead>
+                            <tr class="text-warning">
+                                <th class="text-start">Categoria</th>
+                                <th>Total Inscritas</th>
+                                <th>Batidas (Classif.)</th>
+                                <th>Eliminadas (Zero)</th>
+                                <th>Em Pista</th>
+                                <th>Na Boiada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in parcial_categorias %}
+                            <tr>
+                                <td class="text-start fw-bold text-white">{{ cat.nome_exibicao }}</td>
+                                <td><span class="badge bg-secondary">{{ cat.total_senhas }}</span></td>
+                                <td><span class="badge bg-success">{{ cat.total_batidas }}</span></td>
+                                <td><span class="badge bg-danger">{{ cat.total_eliminadas }}</span></td>
+                                <td><span class="badge bg-warning text-dark">{{ cat.total_em_pista }}</span></td>
+                                <td><span class="badge bg-info text-dark">{{ cat.total_na_boiada }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-secondary py-3">Nenhuma categoria registrada no evento.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 4: ALTERAR SENHAS (RODÍZIO) -->
+<div class="modal fade" id="modalAlterarSenhas" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-black text-warning">
+                    <i class="bi bi-gear-fill me-1"></i> Localizar ou Alterar Ficha
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <label class="form-label text-secondary small">Digite o número da senha para pular diretamente:</label>
+                <div class="input-group mb-3">
+                    <input type="number" id="inputPularSenha" class="form-control bg-black text-white border-secondary" placeholder="Ex: 3026">
+                    <button class="btn btn-warning fw-bold" type="button" onclick="irParaNumeroSenha()">Pular</button>
+                </div>
+                <div class="text-secondary small">
+                    <i class="bi bi-info-circle me-1"></i> O locutor pode chamar qualquer ficha diretamente para a mesa de locução.
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -482,7 +700,6 @@
 
     // Elementos do DOM
     const cardEl = document.getElementById('activeLocutorCard');
-    const deckContainer = document.getElementById('deckContainer');
     const deckCounterEl = document.getElementById('deckCounter');
     const btnAnterior = document.getElementById('btnAnterior');
     const btnProximo = document.getElementById('btnProximo');
@@ -490,15 +707,31 @@
     const feedbackTexto = document.getElementById('feedbackTexto');
 
     // ───────────────────────────────────────────────────────────────────────
-    // RENDERIZAÇÃO DO CARTÃO ATIVO
+    // RELÓGIO AO VIVO NO TOPO (MOCKUP IMAGEM 2)
+    // ───────────────────────────────────────────────────────────────────────
+    function atualizarRelogioAoVivo() {
+        const el = document.getElementById('relogioAoVivo');
+        if (!el) return;
+        const agora = new Date();
+        const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        const diaSemana = dias[agora.getDay()];
+        const dia = String(agora.getDate()).padStart(2, '0');
+        const mes = String(agora.getMonth() + 1).padStart(2, '0');
+        const ano = agora.getFullYear();
+        const hora = String(agora.getHours()).padStart(2, '0');
+        const min = String(agora.getMinutes()).padStart(2, '0');
+        const seg = String(agora.getSeconds()).padStart(2, '0');
+        el.innerHTML = `<i class="bi bi-clock-fill text-warning"></i> <span>${diaSemana} &bull; ${dia}/${mes}/${ano} &bull; ${hora}:${min}:${seg}</span>`;
+    }
+    setInterval(atualizarRelogioAoVivo, 1000);
+    atualizarRelogioAoVivo();
+
+    // ───────────────────────────────────────────────────────────────────────
+    // RENDERIZAÇÃO DO CARTÃO ATIVO (CONJUNTO ATUAL NA PISTA)
     // ───────────────────────────────────────────────────────────────────────
     function renderizarCartaoAtual(animacao = null) {
-        if (!cartoes || cartoes.length === 0) {
-            deckContainer.innerHTML = '<div class="text-center py-5 text-secondary">Nenhuma senha cadastrada para este evento.</div>';
-            return;
-        }
+        if (!cartoes || cartoes.length === 0) return;
 
-        // Limita o índice
         if (currentIndex < 0) currentIndex = 0;
         if (currentIndex >= cartoes.length) currentIndex = cartoes.length - 1;
 
@@ -509,49 +742,38 @@
         btnAnterior.disabled = (currentIndex === 0);
         btnProximo.disabled = (currentIndex === cartoes.length - 1);
 
-        // Preenche campos do cartão
-        document.getElementById('cardCategoriaBadge').innerText = c.categoria || 'GERAL';
-        document.getElementById('cardDiaCorridaBadge').innerText = c.dia_corrida || 'Fase Classificatória';
+        // Preenche campos do cartão ativo
+        document.getElementById('cardCategoria').innerText = c.categoria || 'Geral';
+        document.getElementById('cardDiaCorrida').innerText = c.dia_corrida || 'Classificatória';
         document.getElementById('cardRodizioBadge').innerText = `Rodízio #${c.rodizio_bloco || 1}`;
         
         const boiTvBadge = document.getElementById('cardBoiTvBadge');
-        if (c.tem_boi_tv) {
-            boiTvBadge.classList.remove('d-none');
-        } else {
-            boiTvBadge.classList.add('d-none');
-        }
+        if (c.tem_boi_tv) boiTvBadge.classList.remove('d-none');
+        else boiTvBadge.classList.add('d-none');
 
         const statusBadge = document.getElementById('cardStatusBadge');
         statusBadge.innerText = c.status_display || c.status;
-        if (c.status === 'NA_PISTA') {
-            statusBadge.className = 'badge bg-warning text-dark px-2.5 py-1.5 rounded-pill fw-bold';
-        } else if (c.status === 'BATIDA') {
-            statusBadge.className = 'badge bg-success text-white px-2.5 py-1.5 rounded-pill fw-bold';
-        } else if (c.status === 'ELIMINADA') {
-            statusBadge.className = 'badge bg-danger text-white px-2.5 py-1.5 rounded-pill fw-bold';
-        } else {
-            statusBadge.className = 'badge bg-dark border border-secondary text-secondary px-2.5 py-1.5 rounded-pill';
-        }
+        if (c.status === 'NA_PISTA') statusBadge.className = 'badge bg-warning text-dark fw-bold';
+        else if (c.status === 'BATIDA') statusBadge.className = 'badge bg-success text-white fw-bold';
+        else if (c.status === 'ELIMINADA') statusBadge.className = 'badge bg-danger text-white fw-bold';
+        else statusBadge.className = 'badge bg-dark border border-secondary text-secondary';
 
-        document.getElementById('cardNumeroSenha').innerText = `SENHA ${String(c.numero_senha).padStart(2, '0')}`;
+        document.getElementById('cardNumeroSenha').innerText = `Senha ${c.numero_senha}`;
         
-        // Vaqueiro Puxador
+        // Puxador
         document.getElementById('cardVaqueiroPuxador').innerText = c.vaqueiro_puxador || 'Vaqueiro Puxador';
-        document.getElementById('cardVaqueiroPuxadorNome').innerText = `${c.vaqueiro_puxador_nome || ''} • ${c.vaqueiro_puxador_origem || ''}`;
-        document.getElementById('cardPuxadorOrigem').innerText = c.vaqueiro_puxador_origem || 'Origem';
+        document.getElementById('cardPuxadorOrigem').innerText = c.vaqueiro_puxador_origem || '';
         document.getElementById('cardCavaloPuxador').innerText = c.cavalo_puxador || 'Cavalo Puxador';
         document.getElementById('cardCavaloPuxadorDetalhes').innerText = `${c.cavalo_puxador_raca || 'Quarto de Milha'} ${c.cavalo_puxador_pelagem ? '• ' + c.cavalo_puxador_pelagem : ''}`;
 
-        // Vaqueiro Esteireiro
+        // Esteireiro
         document.getElementById('cardVaqueiroEsteireiro').innerText = c.vaqueiro_esteireiro || 'A definir';
-        document.getElementById('cardVaqueiroEsteireiroNome').innerText = `${c.vaqueiro_esteireiro_nome || ''} ${c.vaqueiro_esteireiro_origem ? '• ' + c.vaqueiro_esteireiro_origem : ''}`;
-        document.getElementById('cardEsteiraOrigem').innerText = c.vaqueiro_esteireiro_origem || 'Esteira Oficial';
+        document.getElementById('cardEsteiraOrigem').innerText = c.vaqueiro_esteireiro_origem || '';
         document.getElementById('cardCavaloEsteira').innerText = c.cavalo_esteira || 'A definir';
         document.getElementById('cardCavaloEsteiraDetalhes').innerText = `${c.cavalo_esteira_raca || 'Quarto de Milha'} ${c.cavalo_esteira_pelagem ? '• ' + c.cavalo_esteira_pelagem : ''}`;
 
-        // Representação e Rodízio
+        // Representação
         document.getElementById('cardRepresentacao').innerText = c.representacao || 'Independente';
-        document.getElementById('cardRodizioInfo').innerText = `Rodízio Bloco #${c.rodizio_bloco || 1} • ${c.dia_corrida || 'Fase Classificatória'}`;
         document.getElementById('cardTotalPontosBadge').innerText = `${c.total_pontos} Pts`;
 
         // Determina boi ativo
@@ -561,19 +783,19 @@
         // Renderiza seletores dos 3 bois
         renderizarSeletoresBois(c);
 
-        // Renderiza lista lateral da fila com destaque
-        renderizarListaFila();
+        // Renderiza coluna central dos Próximos Conjuntos (Cartões Reais)
+        renderizarProximosCartoes();
 
         // Animação de entrada
         if (animacao) {
             cardEl.classList.remove('card-enter-left', 'card-enter-right', 'swiping-left', 'swiping-right');
-            void cardEl.offsetWidth; // Força reflow
+            void cardEl.offsetWidth;
             cardEl.classList.add(animacao);
         }
     }
 
     // ───────────────────────────────────────────────────────────────────────
-    // RENDERIZAÇÃO DOS SELETORES DE BOI (BOI 1, 2, 3)
+    // RENDERIZAÇÃO DOS BOIS DA PASSADA (COM ÍCONE DO BOI E MARCAÇÃO DE VALEU)
     // ───────────────────────────────────────────────────────────────────────
     function renderizarSeletoresBois(c) {
         const container = document.getElementById('cardBoisPassadaContainer');
@@ -587,23 +809,23 @@
         let html = '';
         for (let num = 1; num <= 3; num++) {
             const p = passadasMap[num];
-            let badgeClass = 'bg-dark text-secondary border-secondary';
-            let label = `Boi ${num}`;
-            let pontosLabel = '';
+            let slotClass = '';
+            let statusLabel = 'A correr';
+            let overlayIcon = '';
 
             if (p) {
                 if (p.julgamento === 'VALEU_BOI') {
-                    badgeClass = 'bg-white text-dark border-success fw-bold shadow-sm';
-                    label = `<span class="text-success fw-black">✓ Valeu</span>`;
-                    pontosLabel = `<span class="badge bg-success">+${p.pontos} Pts</span>`;
+                    slotClass = 'valeu';
+                    statusLabel = `✓ Valeu (+${p.pontos}p)`;
+                    overlayIcon = `<span class="badge bg-success position-absolute top-0 end-0 m-1" style="font-size: 0.6rem;">✓ 10</span>`;
                 } else if (p.julgamento === 'ZERO') {
-                    badgeClass = 'bg-white text-dark border-danger fw-bold shadow-sm';
-                    label = `<span class="text-danger fw-black">✗ Zero</span>`;
-                    pontosLabel = `<span class="badge bg-danger">0 Pts</span>`;
+                    slotClass = 'zero';
+                    statusLabel = `✗ Zero (0p)`;
+                    overlayIcon = `<span class="badge bg-danger position-absolute top-0 end-0 m-1" style="font-size: 0.6rem;">✗ 0</span>`;
                 } else if (p.julgamento === 'RETORNO') {
-                    badgeClass = 'bg-white text-dark border-warning fw-bold shadow-sm';
-                    label = `<span class="text-warning fw-black">R Retorno</span>`;
-                    pontosLabel = `<span class="badge bg-warning text-dark">Boi Novo</span>`;
+                    slotClass = 'retorno';
+                    statusLabel = `↺ Retorno`;
+                    overlayIcon = `<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-1" style="font-size: 0.6rem;">↺ R</span>`;
                 }
             }
 
@@ -611,10 +833,14 @@
 
             html += `
                 <div class="col-4">
-                    <div class="boi-selector-btn ${isActive} ${badgeClass} p-2 rounded-3 text-center border" onclick="selecionarBoi(${num})">
-                        <div class="text-uppercase" style="font-size: 0.65rem;">Boi #${num}</div>
-                        <div class="fs-6 fw-black">${label}</div>
-                        <div style="font-size: 0.68rem;">${pontosLabel || 'A correr'}</div>
+                    <div class="boi-passada-slot ${isActive} ${slotClass}" onclick="selecionarBoi(${num})">
+                        ${overlayIcon}
+                        <!-- Ícone Clássico do Boi de Vaquejada -->
+                        <svg viewBox="0 0 64 48" style="width: 38px; height: 26px;" fill="currentColor" class="text-white opacity-75">
+                            <path d="M12 18 C10 12, 4 10, 2 8 C6 14, 8 18, 10 24 L6 38 L12 38 L16 28 L38 28 L42 38 L48 38 L44 22 C48 18, 52 16, 56 12 C54 14, 48 18, 44 22 L40 18 C30 16, 20 16, 12 18 Z" />
+                        </svg>
+                        <div class="fw-black text-warning mt-1" style="font-size: 0.72rem;">Boi #${num}</div>
+                        <div class="text-white small" style="font-size: 0.68rem;">${statusLabel}</div>
                     </div>
                 </div>
             `;
@@ -629,7 +855,91 @@
     }
 
     // ───────────────────────────────────────────────────────────────────────
-    // NAVEGAÇÃO DO BARALHO (PUXAR NOVO CARTÃO / CARTÃO ANTERIOR)
+    // RENDERIZAÇÃO DA COLUNA CENTRAL: PRÓXIMOS CONJUNTOS (MOCKUP IMAGEM 2)
+    // ───────────────────────────────────────────────────────────────────────
+    function renderizarProximosCartoes(termoFiltro = '') {
+        const container = document.getElementById('proximosCardsContainer');
+        if (!container) return;
+
+        let html = '';
+        let contagemVisivel = 0;
+        const termo = (termoFiltro || '').toLowerCase().trim();
+
+        // Lista a partir do índice seguinte até o final, ou filtrado
+        cartoes.forEach((c, idx) => {
+            if (termo) {
+                const buscaEm = `${c.numero_senha} ${c.vaqueiro_puxador} ${c.cavalo_puxador} ${c.vaqueiro_esteireiro} ${c.representacao}`.toLowerCase();
+                if (!buscaEm.includes(termo)) return;
+            }
+
+            contagemVisivel++;
+            const isSelected = (idx === currentIndex) ? 'active-deck' : '';
+
+            // Mini bois das passadas
+            let boisHtml = '';
+            for (let b = 1; b <= 3; b++) {
+                let passada = (c.passadas || []).find(p => p.numero_boi === b);
+                let checkBadge = 'bg-dark text-secondary border border-secondary';
+                let checkText = `Boi ${b}`;
+                if (passada) {
+                    if (passada.julgamento === 'VALEU_BOI') {
+                        checkBadge = 'bg-success text-white';
+                        checkText = '✓ Valeu';
+                    } else if (passada.julgamento === 'ZERO') {
+                        checkBadge = 'bg-danger text-white';
+                        checkText = '✗ Zero';
+                    } else if (passada.julgamento === 'RETORNO') {
+                        checkBadge = 'bg-warning text-dark';
+                        checkText = '↺ Retorno';
+                    }
+                }
+                boisHtml += `<span class="badge ${checkBadge} px-1.5 py-0.5" style="font-size: 0.62rem;">${checkText}</span> `;
+            }
+
+            html += `
+                <div class="card-proximo-conjunto ${isSelected}" onclick="pularParaCartao(${idx})">
+                    <div class="d-flex justify-content-between align-items-baseline mb-1">
+                        <span class="text-secondary small fw-bold" style="font-size: 0.72rem;">Categoria: <strong class="text-info">${c.categoria}</strong></span>
+                        <span class="fs-5 fw-black text-warning">Senha ${c.numero_senha}</span>
+                    </div>
+
+                    <div class="fw-bold text-white fs-6 lh-sm mb-1">
+                        🤠 Vaqueiro: <span class="text-warning">${c.vaqueiro_puxador}</span>
+                        <div class="text-secondary small fw-normal" style="font-size: 0.7rem;">Cavalo Puxador: <strong class="text-white">${c.cavalo_puxador}</strong></div>
+                    </div>
+
+                    <div class="small text-secondary mb-1" style="font-size: 0.72rem;">
+                        🤝 Esteireiro: <strong class="text-white">${c.vaqueiro_esteireiro}</strong> &bull; Cavalo: ${c.cavalo_esteira}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-1.5 border-top border-secondary border-opacity-25 mt-1 text-secondary small" style="font-size: 0.68rem;">
+                        <span class="text-truncate text-warning-subtle" style="max-width: 180px;">🏆 ${c.representacao}</span>
+                        <span class="badge bg-black border border-secondary text-warning">${c.total_pontos} Pts</span>
+                    </div>
+
+                    <div class="d-flex gap-1 mt-1.5 pt-1 border-top border-secondary border-opacity-20">
+                        ${boisHtml}
+                    </div>
+                </div>
+            `;
+        });
+
+        if (contagemVisivel === 0) {
+            html = '<div class="text-secondary text-center py-4 small">Nenhum conjunto encontrado no filtro.</div>';
+        }
+
+        container.innerHTML = html;
+        const totalBadge = document.getElementById('totalFilaBadge');
+        if (totalBadge) totalBadge.innerText = `${contagemVisivel} fichas`;
+    }
+
+    function filtrarFilaSenhas() {
+        const input = document.getElementById('filtroFilaInput');
+        renderizarProximosCartoes(input ? input.value : '');
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // NAVEGAÇÃO DO BARALHO (PUXAR NOVO / ANTERIOR)
     // ───────────────────────────────────────────────────────────────────────
     function puxarNovoCartao() {
         if (currentIndex < cartoes.length - 1) {
@@ -638,7 +948,7 @@
                 cardEl.classList.remove('swiping-left');
                 currentIndex++;
                 renderizarCartaoAtual('card-enter-right');
-            }, 180);
+            }, 160);
         }
     }
 
@@ -649,7 +959,7 @@
                 cardEl.classList.remove('swiping-right');
                 currentIndex--;
                 renderizarCartaoAtual('card-enter-left');
-            }, 180);
+            }, 160);
         }
     }
 
@@ -661,64 +971,77 @@
         }
     }
 
+    function irParaNumeroSenha() {
+        const input = document.getElementById('inputPularSenha');
+        const num = parseInt(input.value);
+        if (!num) return;
+        const idx = cartoes.findIndex(c => c.numero_senha === num);
+        if (idx !== -1) {
+            const modalEl = document.getElementById('modalAlterarSenhas');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+            pularParaCartao(idx);
+        } else {
+            alert(`Senha #${num} não encontrada no evento.`);
+        }
+    }
+
     // ───────────────────────────────────────────────────────────────────────
-    // GESTOS DE TOQUE E ARRASTE COM MOUSE / TOUCH (SWIPE MECÂNICA)
+    // GESTOS DE SWIPE / ARRASTE COM MOUSE OU TOQUE
     // ───────────────────────────────────────────────────────────────────────
     let startX = 0;
     let currentX = 0;
     let isDragging = false;
-    const swipeThreshold = 75; // pixels para acionar a troca do cartão
+    const swipeThreshold = 70;
 
-    function onDragStart(e) {
-        // Ignora cliques em botões dentro do cartão
-        if (e.target.closest('button') || e.target.closest('.boi-selector-btn')) return;
-        
+    cardEl.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button') || e.target.closest('.boi-passada-slot')) return;
         isDragging = true;
-        startX = (e.type === 'touchstart') ? e.touches[0].clientX : e.clientX;
+        startX = e.clientX;
         currentX = startX;
-        cardEl.style.transition = 'none';
-    }
+    });
 
-    function onDragMove(e) {
+    window.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-        currentX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX;
+        currentX = e.clientX;
         const diffX = currentX - startX;
-        
-        // Aplica resistência e leve rotação estilo baralho de cartas
-        const rotate = diffX * 0.05;
-        cardEl.style.transform = `translateX(${diffX}px) rotate(${rotate}deg)`;
-    }
+        cardEl.style.transform = `translateX(${diffX}px) rotate(${diffX * 0.04}deg)`;
+    });
 
-    function onDragEnd() {
+    window.addEventListener('mouseup', () => {
         if (!isDragging) return;
         isDragging = false;
-        cardEl.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease';
-        
         const diffX = currentX - startX;
-        
-        if (diffX < -swipeThreshold && currentIndex < cartoes.length - 1) {
-            // Arrastou para a esquerda -> Puxar Novo Cartão
-            puxarNovoCartao();
-        } else if (diffX > swipeThreshold && currentIndex > 0) {
-            // Arrastou para a direita -> Puxar Cartão Anterior
-            puxarCartaoAnterior();
-        } else {
-            // Não atingiu o limite: retorna ao centro suavemente
-            cardEl.style.transform = 'translateX(0) rotate(0deg)';
-        }
-    }
+        cardEl.style.transform = 'none';
+        if (diffX < -swipeThreshold && currentIndex < cartoes.length - 1) puxarNovoCartao();
+        else if (diffX > swipeThreshold && currentIndex > 0) puxarCartaoAnterior();
+    });
 
-    // Eventos do Mouse
-    cardEl.addEventListener('mousedown', onDragStart);
-    window.addEventListener('mousemove', onDragMove);
-    window.addEventListener('mouseup', onDragEnd);
+    // Touch
+    cardEl.addEventListener('touchstart', (e) => {
+        if (e.target.closest('button') || e.target.closest('.boi-passada-slot')) return;
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        currentX = startX;
+    }, { passive: true });
 
-    // Eventos de Toque Mobile/Tablet
-    cardEl.addEventListener('touchstart', onDragStart, { passive: true });
-    window.addEventListener('touchmove', onDragMove, { passive: true });
-    window.addEventListener('touchend', onDragEnd);
+    window.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        currentX = e.touches[0].clientX;
+        const diffX = currentX - startX;
+        cardEl.style.transform = `translateX(${diffX}px) rotate(${diffX * 0.04}deg)`;
+    }, { passive: true });
 
-    // Navegação via teclado (Setas Esquerda e Direita)
+    window.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        const diffX = currentX - startX;
+        cardEl.style.transform = 'none';
+        if (diffX < -swipeThreshold && currentIndex < cartoes.length - 1) puxarNovoCartao();
+        else if (diffX > swipeThreshold && currentIndex > 0) puxarCartaoAnterior();
+    });
+
+    // Teclado
     window.addEventListener('keydown', (e) => {
         if (document.activeElement.tagName === 'INPUT') return;
         if (e.key === 'ArrowRight') puxarNovoCartao();
@@ -726,14 +1049,13 @@
     });
 
     // ───────────────────────────────────────────────────────────────────────
-    // EXECUÇÃO DO JULGAMENTO PELO LOCUTOR (VALEU BOI, ZERO, RETORNO)
+    // JULGAMENTO DO LOCUTOR: VALEU BOI, ZERO, RETORNO
     // ───────────────────────────────────────────────────────────────────────
     function executarJulgamentoLocutor(decisao) {
         const c = cartoes[currentIndex];
         if (!c) return;
 
-        // Feedback imediato no botão
-        mostrarFeedback(`Processando julgamento do Boi #${currentBoiSelecionado}...`, 'text-warning');
+        mostrarFeedback(`Registrando julgamento do Boi #${currentBoiSelecionado}...`, 'text-warning');
 
         fetch('/pista/julgamento/', {
             method: 'POST',
@@ -748,7 +1070,6 @@
         .then(res => res.json())
         .then(data => {
             if (data.sucesso) {
-                // Atualiza localmente os dados do cartão
                 if (!c.passadas) c.passadas = [];
                 let passadaExistente = c.passadas.find(p => p.numero_boi === currentBoiSelecionado);
                 if (passadaExistente) {
@@ -767,7 +1088,6 @@
                 if (data.status_senha === 'BATIDA') c.status_display = 'BATIDA';
                 if (data.status_senha === 'ELIMINADA') c.status_display = 'ELIMINADA';
 
-                // Avança automaticamente para o próximo boi se valeu boi ou retorno
                 if (decisao === 'VALEU_BOI' && currentBoiSelecionado < 3) {
                     c.boi_atual = currentBoiSelecionado + 1;
                 }
@@ -775,102 +1095,25 @@
                 renderizarCartaoAtual();
 
                 let msg = '';
-                if (decisao === 'VALEU_BOI') msg = `✅ VALEU BOI registrado com sucesso! (+10 Pts para Senha #${c.numero_senha})`;
-                else if (decisao === 'ZERO') msg = `❌ ZERO registrado. Senha #${c.numero_senha} eliminada da matriz.`;
-                else if (decisao === 'RETORNO') msg = `🟡 RETORNO registrado. Novo boi autorizado para a Senha #${c.numero_senha}.`;
+                if (decisao === 'VALEU_BOI') msg = `✅ VALEU BOI! (+10 Pts na Senha #${c.numero_senha})`;
+                else if (decisao === 'ZERO') msg = `❌ ZERO registrado. Senha #${c.numero_senha} eliminada.`;
+                else if (decisao === 'RETORNO') msg = `🟡 RETORNO registrado. Boi novo liberado.`;
                 
                 mostrarFeedback(msg, decisao === 'VALEU_BOI' ? 'text-success' : (decisao === 'ZERO' ? 'text-danger' : 'text-warning'));
             } else {
                 mostrarFeedback(`Erro: ${data.erro}`, 'text-danger');
             }
         })
-        .catch(err => {
-            mostrarFeedback('Falha de comunicação com o servidor.', 'text-danger');
+        .catch(() => {
+            mostrarFeedback('Falha de conexão com a pista.', 'text-danger');
         });
     }
 
     function mostrarFeedback(msg, corClasse) {
         feedbackTexto.innerText = msg;
-        feedbackAcao.className = `mt-3 text-center small fw-bold ${corClasse}`;
+        feedbackAcao.className = `mt-2 text-center small fw-bold ${corClasse}`;
         feedbackAcao.classList.remove('d-none');
-        setTimeout(() => {
-            feedbackAcao.classList.add('d-none');
-        }, 5000);
-    }
-
-    // ───────────────────────────────────────────────────────────────────────
-    // RENDERIZAÇÃO DA LISTA LATERAL DA FILA (COM DOSSIÊ DO VAQUEIRO E PRÓXIMOS)
-    // ───────────────────────────────────────────────────────────────────────
-    function renderizarListaFila(termoFiltro = '') {
-        const container = document.getElementById('listaFilaContainer');
-        if (!container) return;
-
-        let html = '';
-        let contagemVisivel = 0;
-        const termo = (termoFiltro || '').toLowerCase().trim();
-
-        cartoes.forEach((c, idx) => {
-            // Filtro por número da senha, vaqueiro, cavalo ou representação
-            if (termo) {
-                const buscaEm = `${c.numero_senha} ${c.vaqueiro_puxador} ${c.vaqueiro_puxador_nome} ${c.cavalo_puxador} ${c.vaqueiro_esteireiro} ${c.representacao}`.toLowerCase();
-                if (!buscaEm.includes(termo)) return;
-            }
-
-            contagemVisivel++;
-            const isSelected = (idx === currentIndex) ? 'active-in-deck' : '';
-            
-            let statusPillClass = 'badge bg-dark border border-secondary text-secondary';
-            if (c.status === 'NA_PISTA') statusPillClass = 'badge bg-warning text-dark fw-bold';
-            else if (c.status === 'BATIDA') statusPillClass = 'badge bg-success text-white fw-bold';
-            else if (c.status === 'ELIMINADA') statusPillClass = 'badge bg-danger text-white fw-bold';
-
-            html += `
-                <div class="fila-item-card ${isSelected} p-2.5 rounded-3 bg-dark border border-secondary border-opacity-30" onclick="pularParaCartao(${idx})" style="cursor: pointer;">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="badge bg-warning text-dark fw-black" style="font-size: 0.72rem;">Senha ${c.numero_senha}</span>
-                            <span class="${statusPillClass}" style="font-size: 0.65rem;">${c.status_display || c.status}</span>
-                            ${c.tem_boi_tv ? '<span class="badge bg-warning text-dark fw-bold" style="font-size: 0.62rem;">📺 TV</span>' : ''}
-                        </div>
-                        <span class="badge bg-black border border-secondary text-secondary" style="font-size: 0.65rem;">${c.categoria}</span>
-                    </div>
-
-                    <!-- Dados do Vaqueiro Puxador e Cavalo -->
-                    <div class="fw-bold text-white fs-6 text-truncate mb-0.5">
-                        🤠 ${c.vaqueiro_puxador}
-                        <span class="text-secondary fw-normal small" style="font-size: 0.7rem;">(${c.vaqueiro_puxador_origem})</span>
-                    </div>
-                    <div class="text-warning small text-truncate mb-1" style="font-size: 0.72rem;">
-                        🐴 Puxador: <strong class="text-white">${c.cavalo_puxador}</strong>
-                    </div>
-
-                    <!-- Dados do Esteireiro e Representação -->
-                    <div class="pt-1 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center text-secondary small" style="font-size: 0.7rem;">
-                        <span class="text-truncate" style="max-width: 170px;">
-                            🤝 ${c.vaqueiro_esteireiro} • ${c.cavalo_esteira}
-                        </span>
-                        <span class="badge ${c.total_pontos > 0 ? 'bg-success' : 'bg-secondary'}">${c.total_pontos} Pts</span>
-                    </div>
-
-                    <div class="text-secondary text-truncate mt-0.5" style="font-size: 0.68rem;">
-                        🏆 ${c.representacao}
-                    </div>
-                </div>
-            `;
-        });
-
-        if (contagemVisivel === 0) {
-            html = '<div class="text-secondary small text-center py-3">Nenhuma ficha encontrada no filtro.</div>';
-        }
-
-        container.innerHTML = html;
-        const totalBadge = document.getElementById('totalFilaBadge');
-        if (totalBadge) totalBadge.innerText = `${contagemVisivel} fichas`;
-    }
-
-    function filtrarFilaSenhas() {
-        const input = document.getElementById('filtroFilaInput');
-        renderizarListaFila(input ? input.value : '');
+        setTimeout(() => feedbackAcao.classList.add('d-none'), 4000);
     }
 
     // ───────────────────────────────────────────────────────────────────────
@@ -908,7 +1151,7 @@
     }
 
     // ───────────────────────────────────────────────────────────────────────
-    // SINCRONIZAÇÃO EM SEGUNDO PLANO VIA POLLING (SEM RELOAD)
+    // SINCRONIZAÇÃO EM SEGUNDO PLANO (POLLING 3.5S)
     // ───────────────────────────────────────────────────────────────────────
     function atualizarPistaDinamico() {
         fetch('/pista/status-atual/')
@@ -916,11 +1159,10 @@
             .then(data => {
                 if (!data.sucesso) return;
 
-                // Atualizar Chat
                 const chatBox = document.getElementById('chatHistoricoBox');
                 if (chatBox && data.chat && data.chat.length > 0) {
                     chatBox.innerHTML = data.chat.map(c => `
-                        <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 small" style="font-size: 0.75rem;">
+                        <div class="p-2 rounded bg-black border border-secondary border-opacity-25 small" style="font-size: 0.75rem;">
                             <div class="d-flex justify-content-between text-secondary" style="font-size: 0.65rem;">
                                 <strong class="text-warning">${c.remetente}:</strong>
                                 <span>${c.hora}</span>
@@ -933,9 +1175,45 @@
             .catch(() => {});
     }
 
-    // Inicialização ao carregar a página
+    // Preenchimento das tabelas dos Modais de Rodízio
+    function preencherTabelasRodizio() {
+        const tbodyAtual = document.getElementById('tabelaRodizioAtualBody');
+        const tbodyProx = document.getElementById('tabelaProximoRodizioBody');
+        if (!tbodyAtual || !tbodyProx) return;
+
+        let htmlAtual = '';
+        let htmlProx = '';
+        cartoes.forEach((c, idx) => {
+            if (idx < 10) {
+                htmlAtual += `
+                    <tr>
+                        <td class="fw-bold text-warning">#${c.numero_senha}</td>
+                        <td>${c.categoria}</td>
+                        <td>${c.vaqueiro_puxador}</td>
+                        <td>${c.cavalo_puxador}</td>
+                        <td><span class="badge ${c.status === 'BATIDA' ? 'bg-success' : 'bg-secondary'}">${c.status_display || c.status}</span></td>
+                        <td>${c.total_pontos} Pts</td>
+                    </tr>
+                `;
+            } else if (idx < 20) {
+                htmlProx += `
+                    <tr>
+                        <td class="fw-bold text-info">#${c.numero_senha}</td>
+                        <td>${c.categoria}</td>
+                        <td>${c.vaqueiro_puxador}</td>
+                        <td>${c.cavalo_puxador}</td>
+                        <td>${c.representacao}</td>
+                    </tr>
+                `;
+            }
+        });
+        tbodyAtual.innerHTML = htmlAtual || '<tr><td colspan="6" class="text-secondary">Sem senhas no rodízio atual.</td></tr>';
+        tbodyProx.innerHTML = htmlProx || '<tr><td colspan="5" class="text-secondary">Sem senhas no próximo rodízio.</td></tr>';
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         renderizarCartaoAtual();
+        preencherTabelasRodizio();
         setInterval(atualizarPistaDinamico, 3500);
     });
 </script>

@@ -4,10 +4,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Count, Q
 import json
 
 from eventos.models import Evento
-from senhas.models import SenhaInscricao
+from senhas.models import SenhaInscricao, Categoria
 from pista.models import BoiPassada, ChatPista
 from auditoria.models import AuditoriaLog
 from contas.models import Usuario
@@ -108,11 +109,20 @@ def painel_locutor(request):
     alertas = ChatPista.objects.filter(
         evento=evento,
         tipo=ChatPista.TipoMensagem.ALERTA_SECRETARIA
-    ).order_by('-criado_em')[:5]
+    ).order_by('-criado_em')[:6]
 
     chat_historico = ChatPista.objects.filter(
         evento=evento
-    ).exclude(tipo=ChatPista.TipoMensagem.ALERTA_SECRETARIA).order_by('-criado_em')[:6]
+    ).exclude(tipo=ChatPista.TipoMensagem.ALERTA_SECRETARIA).order_by('-criado_em')[:8]
+
+    # Parcial de Senhas por Categoria para o botão/modal do locutor (Mockup Imagem 2)
+    parcial_categorias = Categoria.objects.filter(evento=evento).annotate(
+        total_senhas=Count('senhas'),
+        total_batidas=Count('senhas', filter=Q(senhas__status=SenhaInscricao.StatusSenha.BATIDA)),
+        total_eliminadas=Count('senhas', filter=Q(senhas__status=SenhaInscricao.StatusSenha.ELIMINADA)),
+        total_em_pista=Count('senhas', filter=Q(senhas__status=SenhaInscricao.StatusSenha.NA_PISTA)),
+        total_na_boiada=Count('senhas', filter=Q(senhas__status=SenhaInscricao.StatusSenha.NA_BOIADA)),
+    )
 
     return render(request, 'pista/locutor.html', {
         'evento': evento,
@@ -120,6 +130,7 @@ def painel_locutor(request):
         'proximos': proximos,
         'alertas': alertas,
         'chat_historico': chat_historico,
+        'parcial_categorias': parcial_categorias,
         'cartoes_json': json.dumps(cartoes_lista),
         'indice_inicial': indice_inicial,
         'total_cartoes': len(cartoes_lista),
