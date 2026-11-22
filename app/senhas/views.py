@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.utils import timezone
 from eventos.models import Evento
 from senhas.models import Categoria, SenhaInscricao
 from competidores.models import Animal
@@ -9,10 +10,11 @@ from contas.models import Usuario
 def mapa_senhas(request):
     """
     Tela oficial da Secretaria para escolha de senhas e compra (Mockup Imagens 7 e 8).
-    Exibe as abas das categorias e a grade de 75 a 100 senhas com cores branco e vermelho.
+    Exibe as abas das categorias e a grade de senhas com os 4 estados visuais:
+    Disponível, Reservada (Aguardando Pix), Paga e Selecionada.
     """
     evento = Evento.objects.filter(status=Evento.Status.EM_ANDAMENTO).first() or Evento.objects.first()
-    categorias = Categoria.objects.filter(evento=evento, ativo=True)
+    categorias = Categoria.objects.filter(evento=evento, ativo=True) if evento else Categoria.objects.none()
     
     categoria_id = request.GET.get('categoria')
     if categoria_id:
@@ -22,18 +24,44 @@ def mapa_senhas(request):
 
     dia_selecionado = request.GET.get('dia', 'Quinta')
 
-    # Senhas ocupadas
-    senhas_feitas = set(
-        SenhaInscricao.objects.filter(categoria=categoria_atual).values_list('numero_senha', flat=True)
-    )
+    # Senhas ocupadas e reservadas
+    agora = timezone.now()
+    senhas_pagas = set()
+    senhas_reservadas = set()
 
-    # Grade de 1 a limite_senhas (ou padrão 75 como no mockup)
-    total_grid = categoria_atual.limite_senhas if categoria_atual else 75
+    if categoria_atual:
+        senhas_qs = SenhaInscricao.objects.filter(categoria=categoria_atual)
+        for s in senhas_qs:
+            if s.status == SenhaInscricao.StatusSenha.PAGA:
+                senhas_pagas.add(s.numero_senha)
+            elif s.status == SenhaInscricao.StatusSenha.RESERVADA:
+                if s.reservada_ate and s.reservada_ate < agora:
+                    pass
+                else:
+                    senhas_reservadas.add(s.numero_senha)
+
+    # Grade de 1 a limite_senhas (ou padrão 75 como no teste/mockup)
+    total_grid = categoria_atual.limite_senhas if (categoria_atual and categoria_atual.limite_senhas) else 75
     grade_senhas = []
+    total_disponiveis = 0
+    total_reservadas_count = 0
+    total_pagas_count = 0
+
     for num in range(1, total_grid + 1):
+        if num in senhas_pagas:
+            estado = 'paga'
+            total_pagas_count += 1
+        elif num in senhas_reservadas:
+            estado = 'reservada'
+            total_reservadas_count += 1
+        else:
+            estado = 'disponivel'
+            total_disponiveis += 1
+
         grade_senhas.append({
             'numero': num,
-            'ocupada': num in senhas_feitas
+            'estado': estado,
+            'ocupada': estado in ['paga', 'reservada'],
         })
 
     # Senha selecionada para compra
@@ -46,6 +74,9 @@ def mapa_senhas(request):
         'dia_selecionado': dia_selecionado,
         'grade_senhas': grade_senhas,
         'senha_selecionada': senha_selecionada,
+        'total_disponiveis': total_disponiveis,
+        'total_reservadas': total_reservadas_count,
+        'total_pagas': total_pagas_count,
     })
 
 

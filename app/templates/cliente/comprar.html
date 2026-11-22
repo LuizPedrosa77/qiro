@@ -1,280 +1,671 @@
 {% extends "cliente/base_cliente.html" %}
 
-{% block title %}QIRO — Mapa de Senhas e Compra{% endblock %}
+{% block title %}QIRO — Mapa de Senhas e Compra Oficial{% endblock %}
 
 {% block extra_head %}
 <style>
-    /* Estilos inspirados na referência oficial de Vaquejada */
-    .bg-qiro-panel {
-        background-color: #2D3748;
-        border: 1px solid #4A5568;
+    /* ── TOKENS E PALETA DE CORES (QIRO / SENHA DIGITAL / VALEU BOI) ── */
+    :root {
+        --gold:         #D4A017;
+        --gold-light:   #F5C842;
+        --gold-glow:    rgba(212, 160, 23, 0.4);
+        --dark-bg:      #0D0D0D;
+        --dark-card:    #161616;
+        --dark-card-2:  #1E1E1E;
+        --dark-border:  #2D3748;
+        --neon-green:   #00FC00;
+        --neon-orange:  #FF8C00;
+        --neon-red:     #DC3545;
+        --text-light:   #E8E0D0;
+        --text-muted:   #8E887E;
     }
 
+    /* ── BANNER DE URGÊNCIA E CONTAGEM REGRESSIVA ── */
+    .banner-urgencia {
+        background: linear-gradient(135deg, rgba(22, 22, 22, 0.95) 0%, rgba(20, 38, 28, 0.95) 100%);
+        border: 1px solid rgba(212, 160, 23, 0.35);
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .banner-urgencia::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, #D4A017, #00FC00, #F5C842, #D4A017);
+        background-size: 300% 100%;
+        animation: borderGradient 4s linear infinite;
+    }
+
+    @keyframes borderGradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .countdown-box {
+        background: rgba(13, 13, 13, 0.9);
+        border: 1px solid rgba(212, 160, 23, 0.4);
+        border-radius: 12px;
+        padding: 8px 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .countdown-unit {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 44px;
+    }
+
+    .countdown-num {
+        font-family: 'Barlow Condensed', 'Montserrat', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--gold-light);
+        line-height: 1;
+        text-shadow: 0 0 8px rgba(245, 200, 66, 0.5);
+    }
+
+    .countdown-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .countdown-sep {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--gold);
+        animation: blinkSep 1s infinite alternate;
+    }
+
+    @keyframes blinkSep {
+        0% { opacity: 1; }
+        100% { opacity: 0.3; }
+    }
+
+    /* ── CARDS DE PREÇO DOS LOTES ── */
     .preco-card {
-        background-color: #1A202C;
-        border: 1px solid #4A5568;
-        border-radius: 6px;
-        padding: 0.6rem 0.8rem;
-        min-width: 170px;
+        background: var(--dark-card-2);
+        border: 1px solid rgba(212, 160, 23, 0.2);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .preco-card:hover {
+        border-color: var(--gold);
+        transform: translateY(-2px);
     }
 
     .preco-card-title {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 700;
-        color: #E2E8F0;
-        border-bottom: 1px solid #2D3748;
-        padding-bottom: 0.25rem;
-        margin-bottom: 0.35rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        letter-spacing: 0.5px;
     }
 
     .preco-valor-site {
-        color: #FACC15;
-        font-weight: 800;
-        font-size: 0.85rem;
+        color: var(--gold-light);
+        font-size: 1.1rem;
+        font-weight: 900;
     }
 
-    .preco-taxas {
-        color: #A0AEC0;
-        font-size: 0.68rem;
+    /* ── LEGENDA DOS 4 ESTADOS VISUAIS ── */
+    .legenda-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-light);
     }
 
-    /* Grade do Mapa */
+    .legenda-bolinha {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    /* ── GRADE DE SENHAS INTERATIVA (OS 4 ESTADOS) ── */
     .grade-container {
         display: grid;
-        grid-template-columns: repeat(19, 1fr);
-        gap: 3px;
-        background-color: #1A202C;
-        padding: 8px;
-        border-radius: 8px;
-        border: 1px solid #4A5568;
+        grid-template-columns: repeat(20, 1fr);
+        gap: 6px;
+        background: #111111;
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        max-height: 480px;
+        overflow-y: auto;
     }
 
-    @media (max-width: 992px) {
-        .grade-container {
-            grid-template-columns: repeat(10, 1fr);
-        }
-    }
+    @media (max-width: 1400px) { .grade-container { grid-template-columns: repeat(16, 1fr); } }
+    @media (max-width: 1200px) { .grade-container { grid-template-columns: repeat(12, 1fr); } }
+    @media (max-width: 992px)  { .grade-container { grid-template-columns: repeat(10, 1fr); } }
+    @media (max-width: 768px)  { .grade-container { grid-template-columns: repeat(8, 1fr); gap: 4px; padding: 10px; } }
+    @media (max-width: 576px)  { .grade-container { grid-template-columns: repeat(6, 1fr); } }
 
-    @media (max-width: 576px) {
-        .grade-container {
-            grid-template-columns: repeat(6, 1fr);
-        }
-    }
-
-    .quadrado-senha {
+    /* Estado 1: Disponível (.aredondado) */
+    .aredondado {
+        background: #E8ECEF;
+        color: #111111;
+        border-radius: 50%;
         aspect-ratio: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
-        font-size: 0.75rem;
-        border-radius: 3px;
+        font-weight: 800;
+        font-size: 0.78rem;
         cursor: pointer;
         user-select: none;
-        transition: all 0.15s ease;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+        border: 2px solid transparent;
     }
 
-    /* Ocupada: Vermelho clássico da vaquejada */
-    .quadrado-senha.ocupada {
-        background-color: #DC2626;
-        color: #FFFFFF;
-        cursor: not-allowed;
-    }
-
-    /* Disponível: Branco/Cinza claro */
-    .quadrado-senha.disponivel {
-        background-color: #E2E8F0;
-        color: #1A202C;
-    }
-
-    .quadrado-senha.disponivel:hover {
-        background-color: #FEF08A;
-        transform: scale(1.1);
+    .aredondado:hover {
+        transform: scale(1.18);
+        background: #FFFFFF;
+        box-shadow: 0 0 12px rgba(212, 160, 23, 0.6);
+        border-color: var(--gold);
         z-index: 2;
     }
 
-    /* Selecionada: Dourado QIRO vibrante */
-    .quadrado-senha.selecionada {
-        background-color: #FACC15 !important;
-        color: #000 !important;
-        font-weight: 900 !important;
-        box-shadow: 0 0 10px #FACC15;
-        transform: scale(1.15);
-        z-index: 3;
-    }
-
-    .btn-atualizar-mapa {
-        background-color: #009688;
-        color: #FFF;
+    /* Estado 2: Reservada Aguardando Pix (.aredondadoLaranja) */
+    .aredondadoLaranja {
+        background: #FF8C00;
+        color: #FFFFFF;
+        border-radius: 50%;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-weight: 800;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        border: none;
-        border-radius: 4px;
-        padding: 0.55rem;
+        font-size: 0.78rem;
+        cursor: not-allowed;
+        user-select: none;
+        border: 2px solid #FFA500;
+        animation: pulseOrange 2s infinite alternate;
+        opacity: 0.95;
     }
 
-    .btn-atualizar-mapa:hover {
-        background-color: #00796B;
-        color: #FFF;
+    @keyframes pulseOrange {
+        0% { box-shadow: 0 0 3px rgba(255, 140, 0, 0.4); transform: scale(1); }
+        100% { box-shadow: 0 0 10px rgba(255, 140, 0, 0.85); transform: scale(1.04); }
+    }
+
+    /* Estado 3: Paga / Indisponível (.aredondadoRed) */
+    .aredondadoRed {
+        background: #DC3545;
+        color: #FFFFFF;
+        border-radius: 50%;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.78rem;
+        cursor: not-allowed;
+        user-select: none;
+        opacity: 0.65;
+        border: 2px solid rgba(220, 53, 69, 0.4);
+    }
+
+    /* Estado 4: Selecionada no Carrinho (.selectedRedondo) */
+    .selectedRedondo {
+        background: #00FC00 !important;
+        color: #000000 !important;
+        border-radius: 50% !important;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900 !important;
+        font-size: 0.82rem !important;
+        cursor: pointer;
+        box-shadow: 0 0 16px #00FC00, inset 0 0 6px #FFFFFF !important;
+        transform: scale(1.2) !important;
+        border: 2px solid #FFFFFF !important;
+        z-index: 5 !important;
+        animation: neonGlow 1.5s infinite alternate;
+    }
+
+    @keyframes neonGlow {
+        0% { box-shadow: 0 0 10px #00FC00; }
+        100% { box-shadow: 0 0 22px #00FC00, 0 0 6px #FFFFFF; }
+    }
+
+    /* ── CARRINHO FLUTUANTE MULTI-SENHA (#cart) ── */
+    #cart {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 340px;
+        max-width: 92vw;
+        background: rgba(13, 13, 13, 0.96);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1.5px solid var(--gold);
+        border-radius: 18px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(212, 160, 23, 0.25);
+        padding: 16px;
+        z-index: 1060;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        display: none;
+    }
+
+    #cart.ativo {
+        display: block;
+        animation: slideInUp 0.3s ease;
+    }
+
+    @keyframes slideInUp {
+        from { transform: translateY(40px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+        #cart {
+            bottom: 0;
+            right: 0;
+            left: 0;
+            width: 100%;
+            max-width: 100vw;
+            border-radius: 20px 20px 0 0;
+            border-bottom: none;
+            border-left: none;
+            border-right: none;
+            padding: 16px 18px 22px 18px;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.9);
+        }
+    }
+
+    .cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(212, 160, 23, 0.25);
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+
+    .cart-items-container {
+        max-height: 160px;
+        overflow-y: auto;
+        padding-right: 4px;
+        margin-bottom: 12px;
+    }
+
+    .cart-item-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #1C1C1C;
+        border: 1px solid #2B2B2B;
+        border-radius: 8px;
+        padding: 6px 10px;
+        margin-bottom: 6px;
+        transition: background 0.15s ease;
+    }
+
+    .cart-item-row:hover {
+        background: #252525;
+    }
+
+    .btn-remove-item {
+        background: transparent;
+        border: none;
+        color: #DC3545;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0 4px;
+        transition: transform 0.15s, color 0.15s;
+    }
+
+    .btn-remove-item:hover {
+        color: #FF5C6C;
+        transform: scale(1.2);
+    }
+
+    .btn-checkout-gold {
+        background: linear-gradient(135deg, #F5C842 0%, #D4A017 100%);
+        color: #000000;
+        font-weight: 900;
+        font-size: 0.95rem;
+        letter-spacing: 0.5px;
+        border: none;
+        border-radius: 10px;
+        padding: 12px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(212, 160, 23, 0.4);
+        transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+    }
+
+    .btn-checkout-gold:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.08);
+        box-shadow: 0 6px 20px rgba(212, 160, 23, 0.6);
+        color: #000000;
+    }
+
+    /* Tabs de categorias estilo chip */
+    .cat-chip {
+        border-radius: 50px;
+        padding: 6px 16px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .cat-chip.active {
+        background: linear-gradient(135deg, #F5C842 0%, #D4A017 100%);
+        color: #000000;
+        box-shadow: 0 0 12px rgba(212, 160, 23, 0.5);
+    }
+
+    .cat-chip.inactive {
+        background: #1E1E1E;
+        color: #A0AEC0;
+        border: 1px solid #2D3748;
+    }
+
+    .cat-chip.inactive:hover {
+        background: #2D3748;
+        color: #FFFFFF;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2">
+<div class="container-fluid py-2 px-md-3">
 
-    <!-- EVENTO EM FOCO & VOLTAR -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25">
-        <div>
-            <span class="badge bg-warning text-black text-uppercase fw-bold px-2.5 py-1 rounded-pill small">
-                {{ evento.circuito_chancela|default:"Vaquejada Oficial" }}
-            </span>
-            <h3 class="fw-black text-white m-0 mt-1" style="letter-spacing: -0.5px;">{{ evento.nome }}</h3>
-            <div class="text-secondary small">
-                <i class="bi bi-geo-alt-fill text-danger me-1"></i> <strong class="text-light">{{ evento.parque.nome }}</strong> — {{ evento.parque.cidade }}/{{ evento.parque.estado }}
-                <span class="ms-2 badge bg-black text-warning border border-secondary">Premiação: R$ {{ evento.premiacao_total|floatformat:2 }}</span>
-            </div>
-        </div>
-        <div>
-            <a href="/" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold text-light">
-                <i class="bi bi-arrow-left me-1"></i> Ver Outras Vaquejadas
-            </a>
-        </div>
-    </div>
-
-    <!-- ──────────────── 1. CABEÇALHO: CATEGORIA & TABELA DE PREÇO DAS SENHAS ──────────────── -->
-    <div class="card p-3 mb-3 text-white border-0" style="background-color: #374151;">
-        <div class="row g-3 align-items-center">
+    <!-- ──────────────── 1. BANNER SUPERIOR DE URGÊNCIA E INFORMAÇÕES DO EVENTO ──────────────── -->
+    <div class="banner-urgencia p-3 p-md-4 mb-3">
+        <div class="row align-items-center g-3">
             
-            <!-- ESCOLHA A CATEGORIA -->
-            <div class="col-lg-3">
-                <form method="GET" action="/cliente/comprar/" id="formFiltroCategoria">
-                    <input type="hidden" name="evento" value="{{ evento.id }}">
-                    <label class="form-label small fw-bold text-light mb-1">Escolha a categoria</label>
-                    <select name="categoria" class="form-select form-select-sm mb-2 fw-bold text-dark" onchange="document.getElementById('formFiltroCategoria').submit()">
-                        {% for cat in categorias %}
-                        <option value="{{ cat.id }}" {% if cat.id == categoria_atual.id %}selected{% endif %}>
-                            {{ cat.nome_exibicao }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                    <input type="hidden" name="dia" value="{{ dia_selecionado }}">
-                </form>
+            <!-- Dados do Evento e Chancela -->
+            <div class="col-lg-7">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="badge bg-warning text-dark text-uppercase fw-black px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
+                        {{ evento.circuito_chancela|default:"Vaquejada Oficial QIRO" }}
+                    </span>
+                    <span class="badge bg-black text-light border border-secondary px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ evento.parque.cidade }}/{{ evento.parque.estado }}
+                    </span>
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
+                        <i class="bi bi-shield-check me-1"></i> Inscrições 100% Homologadas
+                    </span>
+                </div>
 
-                <button type="button" class="btn btn-primary btn-sm fw-bold w-100" data-bs-toggle="modal" data-bs-target="#modalPagamentos">
-                    <i class="bi bi-credit-card-2-front-fill me-1"></i> Formas de pagamento
-                </button>
+                <h2 class="fw-black text-white m-0" style="letter-spacing: -0.5px;">{{ evento.nome }}</h2>
+                
+                <div class="text-secondary small mt-1">
+                    Parque: <strong class="text-light">{{ evento.parque.nome }}</strong>
+                    <span class="mx-2">•</span>
+                    Premiação Total: <strong class="text-warning fs-6">R$ {{ evento.premiacao_total|floatformat:2 }}</strong>
+                </div>
+
+                <div class="mt-2 d-flex flex-wrap gap-2 align-items-center">
+                    <span class="badge bg-dark border border-warning text-warning fw-bold px-2 py-1">
+                        1º Lote Disponível: A partir de R$ {{ categoria_atual.valor_senha|floatformat:2 }}
+                    </span>
+                    <span class="text-secondary small">
+                        <i class="bi bi-clock-history text-warning me-1"></i> Reserva temporária de 15min garantida via Pix
+                    </span>
+                </div>
             </div>
 
-            <!-- PREÇO DAS SENHAS (CARDS 1ª, 2ª, 3ª, 4ª SENHA) -->
-            <div class="col-lg-9">
-                <div class="text-uppercase fw-bold text-secondary mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                    PREÇO DAS SENHAS — {{ categoria_atual.nome_exibicao|upper }}
+            <!-- Contagem Regressiva de Urgência (Valeu Boi Reference) -->
+            <div class="col-lg-5 text-lg-end">
+                <div class="text-uppercase fw-bold text-secondary mb-1" style="font-size: 0.75rem; letter-spacing: 0.8px;">
+                    <i class="bi bi-hourglass-split text-warning me-1"></i> Vendas Online encerram em:
                 </div>
                 
-                <div class="d-flex flex-wrap gap-2">
-                    <div class="preco-card flex-fill">
-                        <div class="preco-card-title">1ª Senha</div>
-                        <div class="preco-valor-site">Senha no site: R$ {{ categoria_atual.valor_senha|floatformat:2 }}</div>
-                        <div class="preco-taxas">CBV: R$ 50,00 | Boi na TV: R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}</div>
+                <div class="countdown-box shadow-sm">
+                    <div class="countdown-unit">
+                        <span class="countdown-num" id="cd-days">02</span>
+                        <span class="countdown-label">Dias</span>
                     </div>
+                    <span class="countdown-sep">:</span>
+                    <div class="countdown-unit">
+                        <span class="countdown-num" id="cd-hours">14</span>
+                        <span class="countdown-label">Horas</span>
+                    </div>
+                    <span class="countdown-sep">:</span>
+                    <div class="countdown-unit">
+                        <span class="countdown-num" id="cd-mins">35</span>
+                        <span class="countdown-label">Min</span>
+                    </div>
+                    <span class="countdown-sep">:</span>
+                    <div class="countdown-unit">
+                        <span class="countdown-num" id="cd-secs">19</span>
+                        <span class="countdown-label">Seg</span>
+                    </div>
+                </div>
 
-                    <div class="preco-card flex-fill">
-                        <div class="preco-card-title">2ª Senha (Casadinha)</div>
-                        <div class="preco-valor-site">Senha no site: R$ {{ categoria_atual.valor_senha|floatformat:2 }}</div>
-                        <div class="preco-taxas">CBV: R$ 50,00 | Boi na TV: R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}</div>
-                    </div>
-
-                    <div class="preco-card flex-fill">
-                        <div class="preco-card-title">3ª Senha</div>
-                        <div class="preco-valor-site">Senha no site: R$ {{ categoria_atual.valor_senha|floatformat:2 }}</div>
-                        <div class="preco-taxas">CBV: R$ 50,00 | Boi na TV: R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}</div>
-                    </div>
-
-                    <div class="preco-card flex-fill">
-                        <div class="preco-card-title">4ª Senha</div>
-                        <div class="preco-valor-site">Senha no site: R$ {{ categoria_atual.valor_senha|floatformat:2 }}</div>
-                        <div class="preco-taxas">CBV: R$ 50,00 | Boi na TV: R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}</div>
-                    </div>
+                <div class="text-muted mt-1" style="font-size: 0.7rem;">
+                    Após o prazo online, senhas restritas ao balcão presencial do parque.
                 </div>
             </div>
 
         </div>
     </div>
 
-    <!-- ──────────────── 2. MAPA DE SENHAS (GRADE 1 A 200) ──────────────── -->
-    <div class="card p-3 text-white border-0 shadow-lg" style="background-color: #4B5563;">
-        
-        <div class="text-center mb-2">
-            <h4 class="fw-black text-uppercase tracking-wider m-0" style="letter-spacing: 1px;">MAPA DE SENHAS</h4>
-        </div>
-
-        <!-- LEGENDA & FILTRO DE DIA -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-            <div class="small">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <span style="width: 14px; height: 14px; background-color: #E2E8F0; display: inline-block; border-radius: 2px;"></span>
-                    <span class="text-light">Senhas disponíveis para compra.</span>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span style="width: 14px; height: 14px; background-color: #DC2626; display: inline-block; border-radius: 2px;"></span>
-                    <span class="text-light">Senhas feitas.</span>
+    <!-- ──────────────── 2. SELETOR DE CATEGORIA E TABELA DE PREÇOS ──────────────── -->
+    <div class="card p-3 mb-3 border-0 rounded-4" style="background-color: var(--dark-card);">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+            <div>
+                <span class="text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Categorias Disponíveis</span>
+                <div class="d-flex flex-wrap gap-2 mt-1">
+                    {% for cat in categorias %}
+                    <a href="?evento={{ evento.id }}&categoria={{ cat.id }}&dia={{ dia_selecionado }}" 
+                       class="cat-chip {% if cat.id == categoria_atual.id %}active{% else %}inactive{% endif %}">
+                        {{ cat.nome_exibicao }}
+                    </a>
+                    {% endfor %}
                 </div>
             </div>
 
-            <!-- QUAL DIA VOCÊ QUER CORRER? -->
+            <!-- Seletor do Dia da Corrida -->
             <div class="d-flex align-items-center gap-2">
-                <span class="small fw-bold text-light">Qual dia você quer correr?</span>
-                <select name="dia" class="form-select form-select-sm text-dark fw-bold" style="width: 180px;" onchange="mudarDia(this.value)">
-                    <option value="Quarta" {% if dia_selecionado == 'Quarta' %}selected{% endif %}>Quarta</option>
-                    <option value="Quinta" {% if dia_selecionado == 'Quinta' %}selected{% endif %}>Quinta</option>
-                    <option value="Sexta" {% if dia_selecionado == 'Sexta' %}selected{% endif %}>Sexta</option>
+                <span class="small fw-bold text-light"><i class="bi bi-calendar-event text-warning me-1"></i> Dia da Corrida:</span>
+                <select name="dia" class="form-select form-select-sm bg-dark text-warning fw-bold border-secondary" style="width: 140px;" onchange="mudarDia(this.value)">
+                    <option value="Quarta" {% if dia_selecionado == 'Quarta' %}selected{% endif %}>Quarta-feira</option>
+                    <option value="Quinta" {% if dia_selecionado == 'Quinta' %}selected{% endif %}>Quinta-feira</option>
+                    <option value="Sexta" {% if dia_selecionado == 'Sexta' %}selected{% endif %}>Sexta-feira</option>
                     <option value="Sábado" {% if dia_selecionado == 'Sábado' %}selected{% endif %}>Sábado</option>
                     <option value="Domingo" {% if dia_selecionado == 'Domingo' %}selected{% endif %}>Domingo</option>
                 </select>
             </div>
         </div>
 
-        <!-- BOTÃO ATUALIZAR MAPA -->
-        <button type="button" class="btn btn-atualizar-mapa w-100 mb-2" onclick="window.location.reload()">
-            <i class="bi bi-arrow-clockwise me-1"></i> ATUALIZAR MAPA
-        </button>
+        <!-- Tabela de Lotes da Categoria Atual -->
+        <div class="row g-2">
+            <div class="col-6 col-md-3">
+                <div class="preco-card">
+                    <div class="preco-card-title">1ª Senha (Site)</div>
+                    <div class="preco-valor-site">R$ {{ categoria_atual.valor_senha|floatformat:2 }}</div>
+                    <div class="text-secondary" style="font-size: 0.7rem;">Inscrição oficial individual</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="preco-card">
+                    <div class="preco-card-title">Casadinha (2 Senhas)</div>
+                    <div class="preco-valor-site">R$ {{ categoria_atual.valor_senha|floatformat:2 }} <span class="small text-secondary fw-normal">/cada</span></div>
+                    <div class="text-secondary" style="font-size: 0.7rem;">Vincule 2 números no mesmo kit</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="preco-card">
+                    <div class="preco-card-title">Boi de TV (Opcional)</div>
+                    <div class="preco-valor-site text-warning">+ R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}</div>
+                    <div class="text-secondary" style="font-size: 0.7rem;">Recurso de vídeo ao vivo</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="preco-card">
+                    <div class="preco-card-title">Forma de Pagamento</div>
+                    <div class="preco-valor-site text-success"><i class="bi bi-qr-code me-1"></i> Pix Automático</div>
+                    <div class="text-secondary" style="font-size: 0.7rem;">Liberação instantânea</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <!-- GRADE COM 200 NÚMEROS -->
-        <div class="grade-container" id="gradeSenhasBox">
+    <!-- ──────────────── 3. MAPA DE SENHAS COM OS 4 ESTADOS VISUAIS ──────────────── -->
+    <div class="card p-3 p-md-4 border-0 rounded-4 shadow-lg text-white mb-4" style="background-color: var(--dark-card);">
+        
+        <!-- Header do Mapa + Busca Rápida -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+            <div>
+                <h4 class="fw-black text-uppercase m-0" style="letter-spacing: 0.5px;">
+                    <i class="bi bi-grid-3x3-gap-fill text-warning me-2"></i> Grade Oficial de Senhas — {{ categoria_atual.nome_exibicao }}
+                </h4>
+                <div class="text-secondary small mt-0.5">
+                    Selecione suas senhas diretamente clicando nos números disponíveis.
+                </div>
+            </div>
+
+            <!-- Busca rápida por número -->
+            <div class="d-flex align-items-center gap-2">
+                <div class="input-group input-group-sm" style="width: 220px;">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="number" id="inputBuscaNumero" class="form-control bg-dark text-white border-secondary" placeholder="Buscar senha nº..." min="1" max="{{ total_grid }}" onkeyup="buscarNumeroNoGrid(this.value)">
+                </div>
+                <button type="button" class="btn btn-outline-warning btn-sm fw-bold" onclick="window.location.reload()" title="Atualizar Grade">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- LEGENDA DOS 4 ESTADOS VISUAIS (SENHA DIGITAL REFERENCE) -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 p-2.5 rounded-3 mb-3" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.06);">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="legenda-item">
+                    <span class="legenda-bolinha" style="background: #E8ECEF; border: 2px solid #ccc;"></span>
+                    <span>Disponível</span>
+                </div>
+                <div class="legenda-item">
+                    <span class="legenda-bolinha" style="background: #FF8C00; box-shadow: 0 0 6px rgba(255, 140, 0, 0.7);"></span>
+                    <span>Reservada (Pix)</span>
+                </div>
+                <div class="legenda-item">
+                    <span class="legenda-bolinha" style="background: #DC3545; opacity: 0.7;"></span>
+                    <span>Paga / Feita</span>
+                </div>
+                <div class="legenda-item">
+                    <span class="legenda-bolinha" style="background: #00FC00; box-shadow: 0 0 8px #00FC00;"></span>
+                    <span class="text-white fw-bold">No seu Carrinho</span>
+                </div>
+            </div>
+
+            <!-- Contadores em tempo real -->
+            <div class="d-flex gap-2 text-secondary small fw-bold">
+                <span class="badge bg-secondary bg-opacity-25 text-light">{{ total_disponiveis }} Livres</span>
+                <span class="badge bg-warning bg-opacity-25 text-warning">{{ total_reservadas }} Aguardando Pix</span>
+                <span class="badge bg-danger bg-opacity-25 text-danger">{{ total_pagas }} Pagas</span>
+            </div>
+        </div>
+
+        <!-- GRADE INTERATIVA DE 200 SENHAS -->
+        <div class="grade-container" id="gridSenhasContainer">
             {% for s in grade_senhas %}
-                {% if s.ocupada %}
-                <div class="quadrado-senha ocupada" title="Senha #{{ s.numero }} já foi feita">
-                    {{ s.numero }}
-                </div>
+                {% if s.estado == 'paga' %}
+                    <div class="aredondadoRed" id="dot-{{ s.numero }}" title="Senha #{{ s.numero }} já foi paga e confirmada">
+                        {{ s.numero }}
+                    </div>
+                {% elif s.estado == 'reservada' %}
+                    <div class="aredondadoLaranja" id="dot-{{ s.numero }}" title="Senha #{{ s.numero }} reservada aguardando confirmação de Pix">
+                        {{ s.numero }}
+                    </div>
                 {% else %}
-                <div class="quadrado-senha disponivel" id="slot-{{ s.numero }}" onclick="selecionarNumeroSenha('{{ s.numero }}')" title="Clique para escolher a Senha #{{ s.numero }}">
-                    {{ s.numero }}
-                </div>
+                    <div class="aredondado" id="dot-{{ s.numero }}" onclick="toggleSenhaNoCarrinho('{{ s.numero }}')" title="Clique para adicionar a Senha #{{ s.numero }} ao seu carrinho">
+                        {{ s.numero }}
+                    </div>
                 {% endif %}
             {% endfor %}
         </div>
 
     </div>
 
-    <!-- ──────────────── 3. FORMULÁRIO DE CONFIRMAÇÃO DA SENHA SELECIONADA ──────────────── -->
+    <!-- ──────────────── 4. CARRINHO FLUTUANTE MULTI-SENHA (#cart) ──────────────── -->
+    <div id="cart">
+        <!-- Topo do Carrinho -->
+        <div class="cart-header">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-cart3 fs-5 text-warning"></i>
+                <h6 class="fw-black text-white m-0">Meu Carrinho</h6>
+                <span class="badge bg-warning text-dark fw-bold rounded-pill" id="cartCountBadge">0</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white btn-sm" onclick="fecharCarrinho()" title="Minimizar"></button>
+        </div>
+
+        <!-- Lista dinâmica das senhas adicionadas -->
+        <div class="cart-items-container" id="cartItemList">
+            <!-- Inserido dinamicamente via JS -->
+        </div>
+
+        <!-- Switch Boi na TV dentro do Carrinho -->
+        <div class="p-2 mb-2 rounded bg-black border border-secondary border-opacity-50">
+            <div class="form-check form-switch d-flex justify-content-between align-items-center p-0 m-0">
+                <label class="form-check-label small fw-bold text-light" for="checkBoiTvCart">
+                    <i class="bi bi-tv-fill text-warning me-1"></i> Boi na TV (+ R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}/un)
+                </label>
+                <input class="form-check-input ms-2" type="checkbox" id="checkBoiTvCart" onchange="recalcularTotalCarrinho()">
+            </div>
+        </div>
+
+        <!-- Total acumulado -->
+        <div class="d-flex justify-content-between align-items-center mb-3 pt-1 border-top border-secondary border-opacity-25">
+            <span class="text-secondary small fw-bold text-uppercase">Total a Pagar:</span>
+            <span class="fs-4 fw-black text-warning" id="cartTotalDisplay">R$ 0,00</span>
+        </div>
+
+        <!-- Botão CTA Avançar para Cadastro e Pagamento -->
+        <button type="button" class="btn-checkout-gold" id="bt_AbrirCadastroModal" onclick="avancarParaCheckout()">
+            <span>AVANÇAR PARA PAGAMENTO</span>
+            <i class="bi bi-arrow-right-circle-fill fs-5"></i>
+        </button>
+        
+        <div class="text-center text-muted mt-1.5" style="font-size: 0.65rem;">
+            <i class="bi bi-shield-lock-fill text-warning me-1"></i> Bloqueio de 15 min garantido após avanço
+        </div>
+    </div>
+
+    <!-- ──────────────── 5. FORMULÁRIO DE CONFIRMAÇÃO / CHECKOUT ──────────────── -->
     <div class="card p-4 mt-3 border border-warning rounded-4 shadow-lg text-white" id="boxCheckoutSenha" style="background-color: #14261C; display: none;">
         
         <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 mb-3 border-bottom border-secondary border-opacity-25">
             <div>
                 <span class="badge bg-warning text-black text-uppercase fw-bold px-3 py-1.5 rounded-pill mb-1">
-                    Senha Selecionada no Mapa
+                    Senhas Selecionadas no Carrinho
                 </span>
-                <h3 class="fw-black text-warning m-0" id="textoSenhaEscolhida">Senha #00</h3>
+                <h3 class="fw-black text-warning m-0" id="textoSenhaEscolhida">Nenhuma senha selecionada</h3>
                 <div class="text-secondary small mt-0.5">
                     Categoria: <strong class="text-white">{{ categoria_atual.nome_exibicao }}</strong> | 
                     Dia da Corrida: <strong class="text-white" id="textoDiaCorrida">{{ dia_selecionado }}</strong>
                 </div>
             </div>
             <div class="text-end">
-                <span class="text-secondary small d-block">Valor Base:</span>
-                <span class="fs-4 fw-black text-white">R$ {{ categoria_atual.valor_senha|floatformat:2 }}</span>
+                <span class="text-secondary small d-block">Subtotal Previsto:</span>
+                <span class="fs-3 fw-black text-white" id="displaySubtotalCheckout">R$ 0,00</span>
             </div>
         </div>
 
@@ -313,105 +704,187 @@
                 <input type="text" name="representacao" class="form-control bg-dark text-white border-secondary" placeholder="Ex: Haras Millany — Caruaru/PE" required>
             </div>
 
-            <!-- OPCIONAL BOI NA TV -->
-            <div class="p-3 my-3 rounded-3 border border-warning border-opacity-50" style="background-color: rgba(250, 204, 21, 0.05);">
-                <div class="form-check form-switch d-flex align-items-center justify-content-between p-0 m-0">
-                    <div>
-                        <label class="form-check-label fw-bold text-white fs-6 d-block" for="checkBoiTvMapa">
-                            <i class="bi bi-tv-fill text-warning me-1"></i> Boi na Alternativa / Boi na TV (+ R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }})
-                        </label>
-                        <span class="text-secondary small d-block" style="font-size: 0.75rem;">
-                            Dá direito a recurso e revisão de vídeo oficial com os jurados da TV.
-                        </span>
-                    </div>
-                    <input class="form-check-input fs-4 ms-2" type="checkbox" id="checkBoiTvMapa" name="tem_boi_tv" onchange="atualizarTotalFinal()">
-                </div>
-            </div>
-
-            <!-- TOTAL E SUBMISSÃO -->
-            <div class="p-3 my-2 rounded-3 bg-black border border-secondary d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="text-secondary small text-uppercase fw-bold">Total a Pagar no Pix:</span>
-                    <div class="text-secondary" style="font-size: 0.7rem;">Liberação imediata na Secretaria</div>
-                </div>
-                <div>
-                    <span class="display-6 fw-black text-warning" id="displayTotalFinal">R$ {{ categoria_atual.valor_senha|floatformat:2 }}</span>
-                </div>
-            </div>
+            <input type="hidden" name="tem_boi_tv" id="inputHiddenTemBoiTv" value="">
 
             <button type="submit" class="btn btn-warning w-100 py-3 fw-black fs-5 rounded-3 shadow mt-3">
-                <i class="bi bi-check-circle-fill me-2"></i> CONFIRMAR E GARANTIR SENHA
+                <i class="bi bi-check-circle-fill me-2"></i> CONFIRMAR E GERAR PAGAMENTO PIX
             </button>
         </form>
 
     </div>
 
 </div>
+{% endblock %}
 
-<!-- MODAL FORMAS DE PAGAMENTO -->
-<div class="modal fade" id="modalPagamentos" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-secondary text-white" style="background-color: #1A202C;">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title fw-bold text-warning"><i class="bi bi-credit-card-2-front-fill me-2"></i> Formas de Pagamento</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="p-3 rounded bg-dark border border-secondary mb-3">
-                    <h6 class="fw-bold text-success mb-1"><i class="bi bi-qr-code me-1"></i> Pix Automático Instantâneo</h6>
-                    <p class="text-secondary small mb-0">Após a confirmação da senha, é gerado o código Pix Copia e Cola. O pagamento é identificado e a senha é aprovada na mesma hora.</p>
-                </div>
-                <div class="p-3 rounded bg-dark border border-secondary">
-                    <h6 class="fw-bold text-info mb-1"><i class="bi bi-cash-stack me-1"></i> Balcão da Secretaria</h6>
-                    <p class="text-secondary small mb-0">Pagamento em espécie ou cartão presencialmente na secretaria do parque no dia da corrida.</p>
-                </div>
-            </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Entendido</button>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block extra_js %}
 <script>
-    let numeroSelecionado = null;
+    // ── ESTADO GLOBAL DO CARRINHO ──
     const valorBaseCategoria = {{ categoria_atual.valor_senha|stringformat:".2f" }};
-    const valorTvCategoria = {{ categoria_atual.valor_boi_tv|stringformat:".2f" }};
+    const valorTvCategoria   = {{ categoria_atual.valor_boi_tv|stringformat:".2f" }};
+    const nomeCategoriaAtual = "{{ categoria_atual.nome_exibicao }}";
 
-    function selecionarNumeroSenha(num) {
-        // Remove destaque do anterior
-        if (numeroSelecionado) {
-            const anterior = document.getElementById(`slot-${numeroSelecionado}`);
-            if (anterior) anterior.classList.remove('selecionada');
+    let carrinho = [];
+
+    // ── TOGGLE DE SENHA NO CARRINHO ──
+    function toggleSenhaNoCarrinho(num) {
+        num = parseInt(num);
+        const dot = document.getElementById(`dot-${num}`);
+        if (!dot) return;
+
+        const index = carrinho.indexOf(num);
+        if (index > -1) {
+            // Remove do carrinho
+            carrinho.splice(index, 1);
+            dot.classList.remove('selectedRedondo');
+            dot.classList.add('aredondado');
+        } else {
+            // Adiciona ao carrinho
+            carrinho.push(num);
+            carrinho.sort((a, b) => a - b);
+            dot.classList.remove('aredondado');
+            dot.classList.add('selectedRedondo');
         }
 
-        numeroSelecionado = num;
-        const atual = document.getElementById(`slot-${num}`);
-        if (atual) atual.classList.add('selecionada');
+        atualizarInterfaceCarrinho();
+    }
 
-        // Atualiza campos do checkout
-        document.getElementById('inputNumeroSenhaFinal').value = num;
-        document.getElementById('textoSenhaEscolhida').innerText = `Senha #${num}`;
+    // ── REMOVER ITEM ESPECÍFICO DO CARRINHO VIA BOTÃO [X] ──
+    function removerItemDoCarrinho(num) {
+        num = parseInt(num);
+        const dot = document.getElementById(`dot-${num}`);
+        if (dot) {
+            dot.classList.remove('selectedRedondo');
+            dot.classList.add('aredondado');
+        }
+        carrinho = carrinho.filter(n => n !== num);
+        atualizarInterfaceCarrinho();
+    }
 
-        // Exibe a caixa de checkout
+    // ── ATUALIZAÇÃO VISUAL DO CARRINHO FLUTUANTE ──
+    function atualizarInterfaceCarrinho() {
+        const cartEl = document.getElementById('cart');
+        const countBadge = document.getElementById('cartCountBadge');
+        const listEl = document.getElementById('cartItemList');
+        const inputFinal = document.getElementById('inputNumeroSenhaFinal');
+
+        countBadge.innerText = carrinho.length;
+
+        if (carrinho.length === 0) {
+            cartEl.classList.remove('ativo');
+            document.getElementById('boxCheckoutSenha').style.display = 'none';
+            inputFinal.value = '';
+            return;
+        }
+
+        // Renderiza linhas dos itens
+        listEl.innerHTML = '';
+        carrinho.forEach(num => {
+            const row = document.createElement('div');
+            row.className = 'cart-item-row';
+            row.innerHTML = `
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark fw-bold">#${num}</span>
+                    <span class="text-light small fw-bold">${nomeCategoriaAtual}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-warning small fw-bold">R$ ${parseFloat(valorBaseCategoria).toFixed(2).replace('.', ',')}</span>
+                    <button type="button" class="btn-remove-item" onclick="removerItemDoCarrinho(${num})" title="Remover senha #${num}">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                </div>
+            `;
+            listEl.appendChild(row);
+        });
+
+        // Mostra o carrinho com animação
+        cartEl.classList.add('ativo');
+
+        // Atualiza campos do formulário
+        inputFinal.value = carrinho.join(', ');
+        recalcularTotalCarrinho();
+    }
+
+    // ── CÁLCULO DINÂMICO DO TOTAL ──
+    function recalcularTotalCarrinho() {
+        const temTv = document.getElementById('checkBoiTvCart').checked;
+        const totalPorSenha = parseFloat(valorBaseCategoria) + (temTv ? parseFloat(valorTvCategoria) : 0);
+        const subtotal = totalPorSenha * carrinho.length;
+
+        const formatado = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+        document.getElementById('cartTotalDisplay').innerText = formatado;
+        document.getElementById('displaySubtotalCheckout').innerText = formatado;
+        document.getElementById('inputHiddenTemBoiTv').value = temTv ? 'on' : '';
+    }
+
+    // ── AVANÇAR PARA CHECKOUT ──
+    function avancarParaCheckout() {
+        if (carrinho.length === 0) return;
+
         const box = document.getElementById('boxCheckoutSenha');
+        const textoEscolhida = document.getElementById('textoSenhaEscolhida');
+
+        if (carrinho.length === 1) {
+            textoEscolhida.innerText = `Senha #${carrinho[0]}`;
+        } else {
+            textoEscolhida.innerText = `${carrinho.length} Senhas: ` + carrinho.map(n => `#${n}`).join(', ');
+        }
+
         box.style.display = 'block';
-
-        // Scroll suave até o formulário
-        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function atualizarTotalFinal() {
-        const temTv = document.getElementById('checkBoiTvMapa').checked;
-        const total = parseFloat(valorBaseCategoria) + (temTv ? parseFloat(valorTvCategoria) : 0);
-        document.getElementById('displayTotalFinal').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    function fecharCarrinho() {
+        document.getElementById('cart').classList.remove('ativo');
     }
 
+    // ── FILTRO DE DIA ──
     function mudarDia(dia) {
         const urlParams = new URLSearchParams(window.location.search);
         urlParams.set('dia', dia);
         urlParams.set('evento', '{{ evento.id }}');
+        urlParams.set('categoria', '{{ categoria_atual.id }}');
         window.location.search = urlParams.toString();
     }
+
+    // ── BUSCA RÁPIDA NO GRID ──
+    function buscarNumeroNoGrid(val) {
+        val = parseInt(val);
+        if (isNaN(val)) return;
+
+        const dot = document.getElementById(`dot-${val}`);
+        if (dot) {
+            dot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            dot.style.outline = '3px solid #F5C842';
+            setTimeout(() => { dot.style.outline = ''; }, 2000);
+        }
+    }
+
+    // ── CONTAGEM REGRESSIVA DINÂMICA (VALEU BOI REFERENCE) ──
+    function iniciarCountdown() {
+        // Alvo: 2 dias, 14 horas, 35 minutos a partir de agora (ou data de início do evento)
+        let totalSegundos = (2 * 24 * 3600) + (14 * 3600) + (35 * 60) + 19;
+
+        const elDays  = document.getElementById('cd-days');
+        const elHours = document.getElementById('cd-hours');
+        const elMins  = document.getElementById('cd-mins');
+        const elSecs  = document.getElementById('cd-secs');
+
+        setInterval(() => {
+            if (totalSegundos <= 0) return;
+            totalSegundos--;
+
+            const dias  = Math.floor(totalSegundos / (24 * 3600));
+            const horas = Math.floor((totalSegundos % (24 * 3600)) / 3600);
+            const mins  = Math.floor((totalSegundos % 3600) / 60);
+            const secs  = Math.floor(totalSegundos % 60);
+
+            if (elDays)  elDays.innerText  = String(dias).padStart(2, '0');
+            if (elHours) elHours.innerText = String(horas).padStart(2, '0');
+            if (elMins)  elMins.innerText  = String(mins).padStart(2, '0');
+            if (elSecs)  elSecs.innerText  = String(secs).padStart(2, '0');
+        }, 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', iniciarCountdown);
 </script>
 {% endblock %}

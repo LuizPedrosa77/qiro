@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from datetime import datetime
+from django.utils import timezone
 
 from contas.models import Usuario
 from eventos.models import Evento
@@ -238,6 +239,7 @@ def cliente_comprar(request):
     """
     Fluxo de compra de senha com Mapa Interativo (Grade 1 a 200) e Tabela de Preços,
     selecionando especificamente a Vaquejada e Categoria desejada.
+    Suporta os 4 estados visuais: Disponível, Reservada (Aguardando Pix), Paga e No Carrinho.
     """
     evento_id = request.GET.get('evento') or request.POST.get('evento_id')
     if evento_id:
@@ -245,7 +247,7 @@ def cliente_comprar(request):
     else:
         evento = Evento.objects.filter(status=Evento.Status.EM_ANDAMENTO).first() or Evento.objects.first()
 
-    categorias = Categoria.objects.filter(evento=evento, ativo=True)
+    categorias = Categoria.objects.filter(evento=evento, ativo=True) if evento else Categoria.objects.none()
 
     # Categoria selecionada
     cat_id = request.GET.get('categoria')
@@ -254,24 +256,51 @@ def cliente_comprar(request):
     else:
         categoria_atual = categorias.filter(tipo=Categoria.TipoCategoria.AMADOR).first() or categorias.first()
 
-    dia_selecionado = request.GET.get('dia', 'Quarta')
+    dia_selecionado = request.GET.get('dia', 'Quinta')
 
-    # Senhas já compradas na categoria desse evento
-    senhas_feitas = set(
-        SenhaInscricao.objects.filter(evento=evento, categoria=categoria_atual).values_list('numero_senha', flat=True)
-    )
+    # Senhas já compradas ou reservadas
+    agora = timezone.now()
+    senhas_pagas = set()
+    senhas_reservadas = set()
 
-    # Simula a ocupação visual clássica para demonstração se a categoria tiver poucas senhas
-    if len(senhas_feitas) < 10:
-        senhas_feitas.update(range(1, 148))
-        senhas_feitas.update([160, 162, 165, 166, 168, 169, 175, 180, 181, 182, 184])
+    if evento and categoria_atual:
+        senhas_qs = SenhaInscricao.objects.filter(evento=evento, categoria=categoria_atual)
+        for s in senhas_qs:
+            if s.status == SenhaInscricao.StatusSenha.PAGA:
+                senhas_pagas.add(s.numero_senha)
+            elif s.status == SenhaInscricao.StatusSenha.RESERVADA:
+                if s.reservada_ate and s.reservada_ate < agora:
+                    # Reserva expirada, considera livre
+                    pass
+                else:
+                    senhas_reservadas.add(s.numero_senha)
 
-    total_grid = 200
+    # Simulação para demonstração visual se a categoria tiver poucas senhas no banco
+    if len(senhas_pagas) + len(senhas_reservadas) < 10:
+        senhas_pagas.update(range(1, 140))
+        senhas_reservadas.update([142, 145, 148, 150])
+
+    total_grid = categoria_atual.limite_senhas if (categoria_atual and categoria_atual.limite_senhas) else 200
     grade_senhas = []
+    total_disponiveis = 0
+    total_reservadas_count = 0
+    total_pagas_count = 0
+
     for num in range(1, total_grid + 1):
+        if num in senhas_pagas:
+            estado = 'paga'
+            total_pagas_count += 1
+        elif num in senhas_reservadas:
+            estado = 'reservada'
+            total_reservadas_count += 1
+        else:
+            estado = 'disponivel'
+            total_disponiveis += 1
+
         grade_senhas.append({
             'numero': num,
-            'ocupada': num in senhas_feitas
+            'estado': estado,
+            'ocupada': estado in ['paga', 'reservada'],
         })
 
     if request.method == 'POST':
@@ -280,14 +309,30 @@ def cliente_comprar(request):
         
         numero_senha_str = request.POST.get('numero_senha', '').strip()
         if not numero_senha_str:
-            messages.error(request, 'Por favor, selecione um número disponível no Mapa de Senhas.')
+            messages.error(request, 'Por favor, selecione ao menos um número disponível no Mapa de Senhas.')
             return redirect(f"/cliente/comprar/?evento={evento.id}&categoria={categoria.id}&dia={dia_selecionado}")
 
-        numero_senha = int(numero_senha_str)
+        # Suporta número único ou lista separada por vírgula (carrinho multi-senhas)
+        numeros_selecionados = []
+        for pedaco in numero_senha_str.split(','):
+            pedaco = pedaco.strip()
+            if pedaco.isdigit():
+                numeros_selecionados.append(int(pedaco))
+
+        if not numeros_selecionados:
+            messages.error(request, 'Nenhum número válido foi selecionado.')
+            return redirect(f"/cliente/comprar/?evento={evento.id}&categoria={categoria.id}&dia={dia_selecionado}")
 
         # Checagem de disponibilidade
-        if SenhaInscricao.objects.filter(evento=evento, categoria=categoria, numero_senha=numero_senha).exists():
-            messages.error(request, f'A senha #{numero_senha} já está ocupada. Por favor, escolha outro número.')
+        conflitos = SenhaInscricao.objects.filter(
+            evento=evento,
+            categoria=categoria,
+            numero_senha__in=numeros_selecionados,
+            status=SenhaInscricao.StatusSenha.PAGA
+        ).values_list('numero_senha', flat=True)
+
+        if conflitos:
+            messages.error(request, f'A(s) senha(s) #{", #".join(map(str, conflitos))} já foi(ram) comprada(s). Por favor, escolha outros números.')
             return redirect(f"/cliente/comprar/?evento={evento.id}&categoria={categoria.id}&dia={dia_selecionado}")
 
         dia_corrida = request.POST.get('dia_corrida', dia_selecionado)
@@ -307,23 +352,38 @@ def cliente_comprar(request):
             defaults={'funcao': Animal.Funcao.ESTEIRA, 'proprietario': request.user}
         )
 
-        valor_total = categoria.valor_senha + (categoria.valor_boi_tv if tem_boi_tv else 0)
+        valor_total_unidade = categoria.valor_senha + (categoria.valor_boi_tv if tem_boi_tv else 0)
 
-        senha = SenhaInscricao.objects.create(
-            evento=evento,
-            categoria=categoria,
-            numero_senha=numero_senha,
-            vaqueiro_puxador=request.user,
-            cavalo_puxador=cav_pux,
-            cavalo_esteireiro=cav_est,
-            representacao=representacao,
-            tem_boi_tv=tem_boi_tv,
-            status=SenhaInscricao.StatusSenha.PAGA,
-            valor_total=valor_total,
-            dia_corrida=dia_corrida
-        )
+        senhas_geradas = []
+        eh_kit_casadinha = len(numeros_selecionados) >= 2
+        segunda_num = numeros_selecionados[1] if eh_kit_casadinha else None
 
-        messages.success(request, f'Parabéns! Senha #{numero_senha} garantida com sucesso na {categoria.nome_exibicao} ({evento.nome})!')
+        for idx, num_s in enumerate(numeros_selecionados):
+            senha_obj = SenhaInscricao.objects.create(
+                evento=evento,
+                categoria=categoria,
+                numero_senha=num_s,
+                vaqueiro_puxador=request.user,
+                cavalo_puxador=cav_pux,
+                cavalo_esteireiro=cav_est,
+                representacao=representacao,
+                tem_boi_tv=tem_boi_tv,
+                status=SenhaInscricao.StatusSenha.PAGA,
+                valor_total=valor_total_unidade,
+                dia_corrida=dia_corrida,
+                origem_venda=SenhaInscricao.OrigemVenda.ONLINE,
+                forma_pagamento=SenhaInscricao.FormaPagamento.PIX,
+                eh_kit=eh_kit_casadinha,
+                numero_segunda_senha=segunda_num if idx == 0 else None
+            )
+            senhas_geradas.append(senha_obj)
+
+        if len(senhas_geradas) == 1:
+            messages.success(request, f'Parabéns! Senha #{numeros_selecionados[0]} garantida com sucesso na {categoria.nome_exibicao} ({evento.nome})!')
+        else:
+            nums_txt = ", ".join(f"#{s.numero_senha}" for s in senhas_geradas)
+            messages.success(request, f'Parabéns! {len(senhas_geradas)} senhas ({nums_txt}) garantidas com sucesso na {categoria.nome_exibicao} ({evento.nome})!')
+
         return redirect('cliente_secretaria')
 
     return render(request, 'cliente/comprar.html', {
@@ -332,6 +392,10 @@ def cliente_comprar(request):
         'categoria_atual': categoria_atual,
         'dia_selecionado': dia_selecionado,
         'grade_senhas': grade_senhas,
-        'senhas_feitas_total': len(senhas_feitas),
-        'senhas_livres_total': total_grid - len(senhas_feitas),
+        'total_disponiveis': total_disponiveis,
+        'total_reservadas': total_reservadas_count,
+        'total_pagas': total_pagas_count,
+        'senhas_feitas_total': total_pagas_count + total_reservadas_count,
+        'senhas_livres_total': total_disponiveis,
+        'total_grid': total_grid,
     })

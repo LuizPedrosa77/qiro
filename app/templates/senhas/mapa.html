@@ -40,29 +40,46 @@
         </div>
     </div>
 
-    <!-- MAPA VISUAL DE SENHAS (MOCKUP IMAGEM 7) -->
+    <!-- MAPA VISUAL DE SENHAS COM OS 4 ESTADOS VISUAIS (MOCKUP IMAGEM 7) -->
     <div class="my-4">
-        <div class="d-flex align-items-center gap-4 small mb-2 fw-semibold">
-            <div class="d-flex align-items-center gap-1.5">
-                <span class="d-inline-block bg-white rounded border border-secondary" style="width: 16px; height: 16px;"></span>
-                <span class="text-secondary">Senhas disponíveis para compra</span>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 small mb-2 fw-semibold">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="d-inline-block rounded-circle" style="width: 14px; height: 14px; background: #E8ECEF;"></span>
+                    <span class="text-light">Disponível</span>
+                </div>
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="d-inline-block rounded-circle" style="width: 14px; height: 14px; background: #FF8C00;"></span>
+                    <span class="text-warning">Reservada (Pix)</span>
+                </div>
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="d-inline-block rounded-circle" style="width: 14px; height: 14px; background: #DC3545;"></span>
+                    <span class="text-danger">Paga / Feita</span>
+                </div>
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="d-inline-block rounded-circle" style="width: 14px; height: 14px; background: #00FC00; box-shadow: 0 0 6px #00fc00;"></span>
+                    <span class="text-success fw-bold">Selecionada</span>
+                </div>
             </div>
-            <div class="d-flex align-items-center gap-1.5">
-                <span class="d-inline-block bg-danger rounded" style="width: 16px; height: 16px;"></span>
-                <span class="text-secondary">Senhas feitas / pagas</span>
+
+            <div class="d-flex gap-2 text-secondary small fw-bold">
+                <span class="badge bg-secondary bg-opacity-25 text-light">{{ total_disponiveis }} Livres</span>
+                <span class="badge bg-warning bg-opacity-25 text-warning">{{ total_reservadas }} Aguardando Pix</span>
+                <span class="badge bg-danger bg-opacity-25 text-danger">{{ total_pagas }} Pagas</span>
             </div>
         </div>
 
-        <!-- Grade de 75 a 100 Quadrados -->
+        <!-- Grade com Estilo Arredondado Moderno -->
         <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
             <div class="d-flex flex-wrap gap-1.5 justify-content-start">
                 {% for s in grade_senhas %}
                 <a href="?categoria={{ categoria_atual.id }}&dia={{ dia_selecionado }}&senha_num={{ s.numero }}"
-                    class="d-flex align-items-center justify-content-center text-decoration-none fw-bold rounded transition 
-                    {% if s.numero == senha_selecionada %}bg-warning text-black ring-2 shadow
-                    {% elif s.ocupada %}bg-danger text-white pe-none opacity-85
-                    {% else %}bg-white text-dark hover-bg-gray{% endif %}"
-                    style="width: 44px; height: 38px; font-size: 0.8rem;">
+                    class="d-flex align-items-center justify-content-center text-decoration-none fw-bold rounded-circle transition 
+                    {% if s.numero == senha_selecionada %}bg-success text-black ring-2 shadow border border-white
+                    {% elif s.estado == 'paga' %}bg-danger text-white pe-none opacity-65
+                    {% elif s.estado == 'reservada' %}bg-warning text-dark pe-none opacity-90
+                    {% else %}bg-light text-dark hover-bg-gray{% endif %}"
+                    style="width: 40px; height: 40px; font-size: 0.8rem; {% if s.numero == senha_selecionada %}background-color: #00FC00 !important; box-shadow: 0 0 10px #00fc00;{% endif %}">
                     {{ s.numero }}
                 </a>
                 {% endfor %}
