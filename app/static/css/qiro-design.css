@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap');
+
+/* QIRO Design System — a restrained, editorial visual language for the platform. */
+:root {
+  --qiro-ink: #10100e;
+  --qiro-panel: #191916;
+  --qiro-panel-raised: #22221e;
+  --qiro-paper: #f4f0e8;
+  --qiro-sand: #d7c8ae;
+  --qiro-muted: #9d988e;
+  --qiro-line: rgba(215, 200, 174, .18);
+  --qiro-gold: #c8912b;
+  --qiro-gold-light: #e2b557;
+  --qiro-green: #4e7b59;
+  --qiro-red: #b64a3d;
+}
+
+body {
+  background: var(--qiro-ink) !important;
+  color: var(--qiro-paper) !important;
+  font-family: "Barlow", "Montserrat", Arial, sans-serif !important;
+  letter-spacing: .01em;
+}
+
+h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-family: "Barlow Condensed", "Arial Narrow", "Montserrat", sans-serif !important;
+  font-weight: 700;
+  letter-spacing: .025em;
+}
+
+a { color: inherit; }
+.text-warning, .text-qiro-yellow { color: var(--qiro-gold-light) !important; }
+.text-secondary { color: var(--qiro-muted) !important; }
+.bg-dark, .bg-qiro-dark, .bg-qiro-black { background-color: var(--qiro-panel) !important; }
+
+/* Surfaces */
+.card, .modal-content, .offcanvas, .bg-qiro-card, .sidebar-qiro, .how-card, .event-card,
+.purchase-card, .summary-card, .dashboard-card {
+  background: var(--qiro-panel) !important;
+  border: 1px solid var(--qiro-line) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+.card:hover, .event-card:hover { border-color: rgba(200, 145, 43, .62) !important; transform: none !important; }
+
+/* Buttons and form controls */
+.btn, button, .btn-top-login, .btn-top-cadastro, .btn-qiro-tab {
+  border-radius: 5px !important;
+  font-weight: 700 !important;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+.btn-warning, .btn-qiro-primary, .btn-top-cadastro {
+  background: var(--qiro-gold) !important;
+  border-color: var(--qiro-gold) !important;
+  color: #16130d !important;
+}
+.btn-warning:hover, .btn-qiro-primary:hover, .btn-top-cadastro:hover {
+  background: var(--qiro-gold-light) !important;
+  border-color: var(--qiro-gold-light) !important;
+}
+.btn-outline-warning, .btn-top-login {
+  border-color: var(--qiro-gold) !important;
+  color: var(--qiro-gold-light) !important;
+  background: transparent !important;
+}
+.form-control, .form-select, .input-group-text {
+  background: #141412 !important;
+  border-color: var(--qiro-line) !important;
+  color: var(--qiro-paper) !important;
+  border-radius: 4px !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--qiro-gold) !important;
+  box-shadow: 0 0 0 .2rem rgba(200, 145, 43, .14) !important;
+}
+
+/* Public navigation */
+.topbar-qiro, .top-navbar, header.border-b {
+  background: rgba(16,16,14,.96) !important;
+  border-color: var(--qiro-line) !important;
+  box-shadow: none !important;
+}
+.nav-link-custom, .sidebar-link { border-radius: 4px !important; }
+.nav-link-custom:hover { color: var(--qiro-gold-light) !important; }
+.sidebar-link.active { background: var(--qiro-gold) !important; color: #16130d !important; }
+.sidebar-link:hover { background: var(--qiro-panel-raised) !important; }
+
+/* Content cadence */
+.hero-section, .page-hero { border-bottom: 1px solid var(--qiro-line); }
+.section-label, .eyebrow, .text-uppercase { letter-spacing: .14em; }
+.badge { border-radius: 3px !important; letter-spacing: .055em; }
+.table { color: var(--qiro-paper) !important; }
+.table > :not(caption) > * > * { background: transparent !important; border-color: var(--qiro-line) !important; }
+
+/* Ticket map: operational rather than decorative. */
+.senha, .senha-numero, .aredondado, .ticket-number {
+  border-radius: 5px !important;
+  box-shadow: none !important;
+}
+.status-legend, .legend, .mapa-legenda { border-top: 1px solid var(--qiro-line); border-bottom: 1px solid var(--qiro-line); }
+
+/* Operational screens use hierarchy, not decorative gradients. */
+.hub-card { background: var(--qiro-panel) !important; border-radius: 7px !important; }
+.hub-card:hover { background: var(--qiro-panel-raised) !important; border-color: var(--qiro-gold) !important; }
+.hub-icon, .how-icon { border-radius: 5px !important; box-shadow: none !important; }
+.faixa-coluna-header, .faixa-coluna-header.faixa-atencao {
+  background: #25251f !important;
+  border: 1px solid var(--qiro-line) !important;
+  border-bottom-color: var(--qiro-gold) !important;
+  border-radius: 5px 5px 0 0 !important;
+  box-shadow: none !important;
+}
+.card-conjunto-atual, .card-proximo, .card-cartao, .painel-juiz, .painel-locutor {
+  background: var(--qiro-panel) !important;
+  border-color: var(--qiro-line) !important;
+  box-shadow: none !important;
+}
+.locutor-topo-btn { background: transparent !important; border-radius: 4px !important; border-color: var(--qiro-gold) !important; color: var(--qiro-gold-light) !important; box-shadow: none !important; }
+.locutor-topo-btn:hover { background: var(--qiro-gold) !important; color: #16130d !important; transform: none !important; }
+
+/* Checkout avoids neon and gives the selection map a calm visual order. */
+.banner-urgencia, .countdown-box, .cart-panel, .checkout-summary, .pix-box {
+  background: var(--qiro-panel) !important;
+  border-color: var(--qiro-line) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+.banner-urgencia::before { background: var(--qiro-gold) !important; animation: none !important; }
+.countdown-num { color: var(--qiro-gold-light) !important; text-shadow: none !important; }
+
+@media (max-width: 767px) {
+  h1 { font-size: clamp(2rem, 9vw, 3rem); }
+  .card, .modal-content { border-radius: 6px !important; }
+}
