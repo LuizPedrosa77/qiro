@@ -3,208 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}QIRO — Área do Cliente{% endblock %}</title>
-    
+    <title>{% block title %}QIRO — Área do Vaqueiro{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/qiro-design.css">
-
-    <style>
-        :root {
-            --qiro-dark: #0F1F17;
-            --qiro-green: #192D21;
-            --qiro-green-light: #244432;
-            --qiro-card-bg: #14261C;
-            --qiro-border: #254231;
-            --qiro-yellow: #FACC15;
-            --qiro-neutral: #BCB9B5;
-            --qiro-white: #FBFBFB;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--qiro-dark);
-            color: var(--qiro-white);
-            min-height: 100vh;
-        }
-
-        /* Top Navbar */
-        .top-navbar {
-            background-color: var(--qiro-green);
-            border-bottom: 1px solid var(--qiro-border);
-            height: 64px;
-        }
-
-        /* Sidebar Offcanvas & Desktop */
-        .sidebar-qiro {
-            background-color: #122119;
-            border-right: 1px solid var(--qiro-border);
-            width: 270px;
-            min-height: calc(100vh - 64px);
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-            padding: 0.85rem 1.25rem;
-            color: #9CA3AF;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border-radius: 12px;
-            margin: 0.2rem 0.8rem;
-            transition: all 0.2s ease;
-        }
-
-        .sidebar-link:hover {
-            background-color: #1A3426;
-            color: #FFF;
-        }
-
-        .sidebar-link.active {
-            background-color: var(--qiro-yellow);
-            color: #000;
-            font-weight: 800;
-        }
-
-        .sidebar-link.active i {
-            color: #000 !important;
-        }
-
-        .badge-qiro {
-            background-color: #1F3A2B;
-            color: var(--qiro-yellow);
-            border: 1px solid var(--qiro-border);
-        }
-    </style>
     {% block extra_head %}{% endblock %}
+    <style>
+        :root { --ink:#352318; --brown:#70441f; --cream:#f7f3ed; --cream-deep:#eee7dd; --line:#ded4c8; --muted:#796453; --danger:#c34235; }
+        * { box-sizing: border-box; } body { margin:0; color:var(--ink); background:var(--cream); font-family:'DM Sans',sans-serif; }
+        .app-shell { min-height:100vh; display:flex; }.client-sidebar { position:sticky; top:0; width:320px; height:100vh; padding:22px 20px; display:flex; flex-direction:column; background:#fcfaf6; border-right:1px solid var(--line); }
+        .brand { display:flex; align-items:center; gap:12px; color:var(--ink); text-decoration:none; margin:0 12px 30px; }.brand-mark { width:48px; height:48px; display:grid; place-items:center; color:#fff7d8; background:var(--brown); border-radius:14px 14px 5px 5px; font-size:23px; }.brand-word { font:700 20px/1.05 'Outfit',sans-serif; letter-spacing:.02em; }
+        .client-profile { padding:15px; background:var(--cream-deep); border-radius:18px; margin-bottom:25px; }.client-profile small { display:block; color:var(--muted); margin-bottom:3px; }.client-profile strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:600 16px 'Outfit',sans-serif; }
+        .client-nav { display:grid; gap:7px; }.client-nav a { display:flex; align-items:center; gap:16px; padding:14px 15px; border-radius:14px; color:#806c5b; font-weight:600; text-decoration:none; transition:.18s ease; }.client-nav a i { font-size:21px; width:24px; text-align:center; }.client-nav a:hover { color:var(--brown); background:#f2ece4; }.client-nav a.active { background:var(--brown); color:#fff; box-shadow:0 3px 8px rgba(80,44,18,.18); }
+        .sidebar-bottom { margin-top:auto; padding:12px 14px 0; color:#a28f7d; font-size:12px; }.logout-link { color:var(--danger)!important; }.logout-link:hover { background:#f9e8e5!important; }
+        .client-main { flex:1; min-width:0; padding:38px 40px 28px; background:var(--cream); }.page-wrap { max-width:1520px; margin:0 auto; }.page-eyebrow { color:#b2751b; font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }.page-title { margin:0; font:800 clamp(31px,3.3vw,43px)/1.08 'Outfit',sans-serif; letter-spacing:-.035em; }.page-subtitle { color:var(--muted); margin:8px 0 0; font-size:18px; }.client-card { background:#fff; border:1px solid var(--line); border-radius:20px; box-shadow:0 2px 4px rgba(70,45,25,.05); }.btn-client-primary { background:var(--brown); color:#fff; border:1px solid var(--brown); border-radius:14px; padding:13px 19px; font-weight:700; text-decoration:none; }.btn-client-primary:hover { background:#573316; border-color:#573316; color:#fff; }.btn-client-soft { background:#f6f1ea; color:var(--ink); border:1px solid var(--line); border-radius:12px; font-weight:700; }.form-control,.form-select { border:1px solid var(--line); border-radius:13px; padding:12px 15px; color:var(--ink); background:#fbf8f4; }.form-control:focus,.form-select:focus { border-color:#b58354; box-shadow:0 0 0 .2rem rgba(112,68,31,.12); background:#fff; }
+        @media(max-width:991px){.client-sidebar{display:none}.client-main{padding:22px 18px 28px}.mobile-bar{display:flex!important}.page-subtitle{font-size:16px}}
+    </style>
 </head>
 <body>
-
-    <!-- TOP NAVBAR -->
-    <header class="top-navbar px-3 px-md-4 d-flex align-items-center justify-content-between sticky-top shadow-sm">
-        <div class="d-flex align-items-center gap-3">
-            <!-- Botão Menu Mobile (Offcanvas) -->
-            <button class="btn btn-dark d-lg-none border-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
-                <i class="bi bi-list fs-5"></i>
-            </button>
-
-            <!-- Logo QIRO -->
-            <a href="/" class="d-flex align-items-center text-decoration-none text-white gap-2">
-                <svg viewBox="0 0 100 80" style="width: 32px; height: 28px;" fill="#BCB9B5">
-                    <path d="M75 10 C70 5, 55 12, 45 22 C40 27, 30 25, 25 35 C20 45, 22 55, 18 65 C17 68, 14 72, 12 75 L20 75 C24 68, 26 58, 28 50 C35 48, 45 52, 55 45 C65 38, 70 28, 75 22 C78 18, 82 15, 80 12 Z" />
-                    <path d="M55 45 L62 75 L70 75 L62 48 L75 48 L85 75 L93 75 L80 40 C75 35, 68 40, 55 45 Z" />
-                </svg>
-                <span class="fs-4 fw-black tracking-tight" style="letter-spacing: -1.5px;">qiro</span>
-            </a>
-
-            <!-- Evento Ativo -->
-            {% if evento %}
-            <div class="d-none d-md-block ms-2 ps-3 border-start border-secondary border-opacity-25">
-                <span class="badge badge-qiro px-2.5 py-1 rounded-pill small">
-                    <i class="bi bi-trophy-fill me-1"></i> {{ evento.nome }}
-                </span>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Usuário Logado & Logout -->
-        <div class="d-flex align-items-center gap-3">
-            <div class="text-end d-none d-sm-block">
-                <div class="small fw-bold text-white">{{ request.user.first_name|default:request.user.username }}</div>
-                <div class="text-secondary" style="font-size: 0.7rem;">Vaqueiro / Competidor</div>
-            </div>
-            <a href="/cliente/logout/" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" title="Sair da conta">
-                <i class="bi bi-box-arrow-right me-1"></i> Sair
-            </a>
-        </div>
-    </header>
-
-    <div class="d-flex">
-        
-        <!-- SIDEBAR DESKTOP (FIXA) -->
-        <aside class="sidebar-qiro d-none d-lg-block py-3">
-            <div class="px-3 mb-3">
-                <div class="text-secondary text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                    Navegação do Vaqueiro
-                </div>
-            </div>
-
-            <nav class="nav flex-column">
-                <a href="/vaquejadas/" class="sidebar-link {% if request.path == '/vaquejadas/' %}active{% endif %}">
-                    <i class="bi bi-grid-fill fs-5 text-warning"></i>
-                    <span>Todas as Vaquejadas</span>
-                </a>
-
-                <a href="/cliente/secretaria/" class="sidebar-link {% if request.path == '/cliente/secretaria/' %}active{% endif %}">
-                    <i class="bi bi-building fs-5 text-warning"></i>
-                    <span>Minhas Senhas (Secretaria)</span>
-                </a>
-
-                <a href="/cliente/comprar/" class="sidebar-link {% if request.path == '/cliente/comprar/' %}active{% endif %}">
-                    <i class="bi bi-plus-circle-fill fs-5 text-success"></i>
-                    <span>Comprar Senhas</span>
-                </a>
-
-                <a href="/tv-vaqueiro/" class="sidebar-link {% if request.path == '/tv-vaqueiro/' %}active{% endif %}">
-                    <i class="bi bi-tv-fill fs-5 text-danger"></i>
-                    <span>TV Vaqueiro (Ao Vivo 24H)</span>
-                </a>
-            </nav>
-
-            <div class="px-3 mt-5 pt-4 border-top border-secondary border-opacity-10 text-center">
-                <div class="p-3 rounded-4 bg-dark border border-secondary border-opacity-25">
-                    <i class="bi bi-whatsapp text-success fs-3 mb-1 d-block"></i>
-                    <div class="fw-bold small text-white">Suporte ao Vaqueiro</div>
-                    <div class="text-secondary" style="font-size: 0.7rem;">Dúvidas com suas senhas? Fale com a secretaria do evento.</div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- SIDEBAR MOBILE (OFFCANVAS) -->
-        <div class="offcanvas offcanvas-start bg-dark text-white border-end border-secondary" tabindex="-1" id="sidebarOffcanvas" style="width: 280px; background-color: #122119 !important;">
-            <div class="offcanvas-header border-bottom border-secondary border-opacity-25">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="fs-4 fw-black text-warning">qiro</span>
-                    <span class="badge bg-secondary small">Vaqueiro</span>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
-            </div>
-            <div class="offcanvas-body p-0 py-3">
-                <nav class="nav flex-column">
-                    <a href="/cliente/secretaria/" class="sidebar-link {% if request.path == '/cliente/secretaria/' %}active{% endif %}">
-                        <i class="bi bi-building fs-5 text-warning"></i>
-                        <span>Secretaria</span>
-                    </a>
-                    <a href="/cliente/comprar/" class="sidebar-link {% if request.path == '/cliente/comprar/' %}active{% endif %}">
-                        <i class="bi bi-plus-circle-fill fs-5 text-success"></i>
-                        <span>Comprar Senhas</span>
-                    </a>
-                    <a href="/tv-vaqueiro/" class="sidebar-link {% if request.path == '/tv-vaqueiro/' %}active{% endif %}">
-                        <i class="bi bi-tv-fill fs-5 text-danger"></i>
-                        <span>TV Vaqueiro (Ao Vivo 24H)</span>
-                    </a>
-                    <div class="border-top border-secondary border-opacity-25 my-3 mx-3"></div>
-                    <a href="/cliente/logout/" class="sidebar-link text-danger">
-                        <i class="bi bi-box-arrow-right fs-5"></i>
-                        <span>Sair da Conta</span>
-                    </a>
-                </nav>
-            </div>
-        </div>
-
-        <!-- CONTEÚDO PRINCIPAL -->
-        <main class="flex-grow-1 p-3 p-md-4" style="background-color: var(--qiro-dark); min-height: calc(100vh - 64px);">
-            {% block content %}{% endblock %}
-        </main>
-
-    </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    {% block extra_js %}{% endblock %}
+    <div class="mobile-bar d-none align-items-center justify-content-between p-3 border-bottom" style="background:#fcfaf6;border-color:var(--line)!important;"><a href="/cliente/secretaria/" class="brand mb-0 ms-0"><span class="brand-mark" style="width:36px;height:36px;font-size:17px;"><i class="bi bi-trophy-fill"></i></span><span class="brand-word">QIRO</span></a><button class="btn btn-client-soft" data-bs-toggle="offcanvas" data-bs-target="#clientMenu"><i class="bi bi-list fs-5"></i></button></div>
+    <div class="app-shell"><aside class="client-sidebar"><a href="/cliente/secretaria/" class="brand"><span class="brand-mark"><i class="bi bi-trophy-fill"></i></span><span class="brand-word">QIRO<br><small style="font:500 12px 'DM Sans';letter-spacing:.08em;color:#9a795a;">ÁREA DO VAQUEIRO</small></span></a><div class="client-profile"><small>Vaqueiro</small><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><small>CPF {{ request.user.cpf|default:"não informado" }}</small></div>{% include "cliente/_menu.html" %}<div class="sidebar-bottom">QIRO · Plataforma do Vaqueiro</div></aside><main class="client-main"><div class="page-wrap">{% if messages %}{% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-4" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}{% block content %}{% endblock %}</div></main></div>
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="clientMenu" style="width:310px;background:#fcfaf6;"><div class="offcanvas-header"><span class="brand-word">QIRO</span><button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div><div class="offcanvas-body"><div class="client-profile"><small>Vaqueiro</small><strong>{{ request.user.get_full_name|default:request.user.username }}</strong></div>{% include "cliente/_menu.html" %}</div></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>{% block extra_js %}{% endblock %}
 </body>
 </html>

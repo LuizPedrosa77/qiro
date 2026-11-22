@@ -1,0 +1,7 @@
+{% extends "cliente/base_cliente.html" %}
+{% block title %}QIRO — Pagamentos{% endblock %}
+{% block content %}
+<div class="mb-4"><h1 class="page-title">Pagamentos</h1><p class="page-subtitle">Acompanhe pagamentos aprovados, pendentes e cancelados.</p></div>
+<form class="d-flex gap-2 mb-4" method="get"><select class="form-select" style="max-width:270px" name="status"><option value="">Todos os pagamentos</option>{% for value,label in status_opcoes %}<option value="{{ value }}" {% if status_selecionado == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><button class="btn btn-client-soft px-4">Filtrar</button></form>
+<section class="client-card overflow-hidden">{% if pagamentos %}<div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th class="ps-4">Data</th><th>Referência</th><th>Método</th><th>Status</th><th class="text-end pe-4">Valor</th></tr></thead><tbody>{% for p in pagamentos %}<tr><td class="ps-4">{{ p.criado_em|date:"d/m/Y" }}</td><td><strong>{{ p.senha.evento.nome }}</strong><small class="d-block text-secondary">Senha #{{ p.senha.numero_senha }} · {{ p.senha.categoria.nome_exibicao }}</small></td><td>{{ p.get_metodo_display }}</td><td><span class="badge text-bg-light border">{{ p.get_status_display }}</span></td><td class="text-end pe-4">R$ {{ p.valor_total|floatformat:2 }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="p-5 text-center text-secondary">Nenhum pagamento por aqui ainda. Reserve senhas em uma vaquejada com vendas abertas.</div>{% endif %}</section>
+{% endblock %}

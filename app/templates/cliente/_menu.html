@@ -1,0 +1,8 @@
+<nav class="client-nav">
+    <a href="/cliente/secretaria/" class="{% if request.path == '/cliente/secretaria/' %}active{% endif %}"><i class="bi bi-grid-1x2"></i><span>Visão geral</span></a>
+    <a href="/cliente/minhas-senhas/" class="{% if request.path == '/cliente/minhas-senhas/' %}active{% endif %}"><i class="bi bi-ticket-perforated"></i><span>Minhas senhas</span></a>
+    <a href="/cliente/comprar/" class="{% if request.path == '/cliente/comprar/' %}active{% endif %}"><i class="bi bi-plus-circle"></i><span>Comprar senha</span></a>
+    <a href="/cliente/pagamentos/" class="{% if request.path == '/cliente/pagamentos/' %}active{% endif %}"><i class="bi bi-wallet2"></i><span>Pagamentos</span></a>
+    <a href="/cliente/perfil/" class="{% if request.path == '/cliente/perfil/' %}active{% endif %}"><i class="bi bi-person"></i><span>Perfil</span></a>
+    <a href="/cliente/logout/" class="logout-link"><i class="bi bi-box-arrow-right"></i><span>Sair</span></a>
+</nav>

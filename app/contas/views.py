@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Sum
 from datetime import datetime
 from django.utils import timezone
 
@@ -10,6 +10,7 @@ from contas.models import Usuario
 from eventos.models import Evento
 from senhas.models import Categoria, SenhaInscricao
 from competidores.models import Animal
+from financeiro.models import Transacao
 
 
 def tela_inicial(request):
@@ -209,29 +210,96 @@ def equipe_hub(request):
 
 @login_required(login_url='/cliente/login/')
 def cliente_secretaria(request):
-    """
-    Menu 'Secretaria' do Cliente:
-    Exibe as senhas compradas pelo vaqueiro agrupadas por Vaquejada, com opção de comprar mais.
-    """
+    """Visão geral do vaqueiro (a rota legada /secretaria/ permanece compatível)."""
     cpf_numeros = ''.join(filter(str.isdigit, request.user.cpf or ''))
     senhas_usuario = SenhaInscricao.objects.filter(
         Q(vaqueiro_puxador=request.user) |
         Q(vaqueiro_puxador__cpf=request.user.cpf) |
         Q(vaqueiro_puxador__cpf=cpf_numeros)
-    ).select_related('evento', 'evento__parque', 'categoria', 'cavalo_puxador', 'cavalo_esteireiro').order_by('-criado_em')
+    ).select_related('evento', 'evento__parque', 'categoria').order_by('-criado_em')
+    pagamentos = Transacao.objects.filter(usuario=request.user).select_related('senha', 'senha__evento')
+    hoje = timezone.localdate()
+    proxima = senhas_usuario.filter(
+        evento__data_inicio__gte=hoje,
+        status__in=[SenhaInscricao.StatusSenha.PAGA, SenhaInscricao.StatusSenha.RESERVADA]
+    ).order_by('evento__data_inicio').first()
 
-    # Agrupa por evento
-    eventos_com_senhas = {}
-    for s in senhas_usuario:
-        if s.evento not in eventos_com_senhas:
-            eventos_com_senhas[s.evento] = []
-        eventos_com_senhas[s.evento].append(s)
-
-    return render(request, 'cliente/secretaria.html', {
-        'senhas': senhas_usuario,
-        'eventos_com_senhas': eventos_com_senhas,
+    return render(request, 'cliente/visao_geral.html', {
+        'senhas_recentes': senhas_usuario[:4],
         'total_senhas': senhas_usuario.count(),
+        'pagamentos_pendentes': pagamentos.filter(status=Transacao.StatusPagamento.PENDENTE).count(),
+        'proxima_senha': proxima,
+        'total_investido': pagamentos.filter(status=Transacao.StatusPagamento.PAGO).aggregate(total=Sum('valor_total'))['total'] or 0,
+        'pagamento_pendente': pagamentos.filter(status=Transacao.StatusPagamento.PENDENTE).order_by('-criado_em').first(),
     })
+
+
+@login_required(login_url='/cliente/login/')
+def cliente_minhas_senhas(request):
+    """Lista pesquisável das inscrições pertencentes ao vaqueiro logado."""
+    busca = request.GET.get('busca', '').strip()
+    status = request.GET.get('status', '').strip()
+    cpf_numeros = ''.join(filter(str.isdigit, request.user.cpf or ''))
+    senhas = SenhaInscricao.objects.filter(
+        Q(vaqueiro_puxador=request.user) |
+        Q(vaqueiro_puxador__cpf=request.user.cpf) |
+        Q(vaqueiro_puxador__cpf=cpf_numeros)
+    ).select_related('evento', 'evento__parque', 'categoria', 'cavalo_puxador', 'cavalo_esteireiro').prefetch_related('passadas').order_by('-criado_em')
+    if busca:
+        senhas = senhas.filter(
+            Q(evento__nome__icontains=busca) |
+            Q(categoria__nome_exibicao__icontains=busca) |
+            Q(numero_senha__icontains=busca)
+        )
+    if status:
+        senhas = senhas.filter(status=status)
+    return render(request, 'cliente/minhas_senhas.html', {
+        'senhas': senhas,
+        'busca': busca,
+        'status_selecionado': status,
+        'status_opcoes': SenhaInscricao.StatusSenha.choices,
+    })
+
+
+@login_required(login_url='/cliente/login/')
+def cliente_pagamentos(request):
+    """Histórico financeiro do cliente, separado dos dados de inscrição."""
+    status = request.GET.get('status', '').strip()
+    pagamentos = Transacao.objects.filter(usuario=request.user).select_related(
+        'senha', 'senha__evento', 'senha__categoria'
+    ).order_by('-criado_em')
+    if status:
+        pagamentos = pagamentos.filter(status=status)
+    return render(request, 'cliente/pagamentos.html', {
+        'pagamentos': pagamentos,
+        'status_selecionado': status,
+        'status_opcoes': Transacao.StatusPagamento.choices,
+    })
+
+
+@login_required(login_url='/cliente/login/')
+def cliente_perfil(request):
+    """Atualiza os dados de contato do cliente; CPF permanece imutável."""
+    user = request.user
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        if email and Usuario.objects.exclude(pk=user.pk).filter(email=email).exists():
+            messages.error(request, 'Este e-mail já está sendo usado por outra conta.')
+        else:
+            user.first_name = request.POST.get('nome', '').strip()
+            user.last_name = request.POST.get('sobrenome', '').strip()
+            user.email = email
+            user.telefone = request.POST.get('telefone', '').strip()
+            user.cidade = request.POST.get('cidade', '').strip()
+            user.estado = request.POST.get('estado', '').strip().upper()[:2]
+            user.endereco = request.POST.get('endereco', '').strip()
+            user.numero = request.POST.get('numero', '').strip()
+            user.bairro = request.POST.get('bairro', '').strip()
+            user.cep = request.POST.get('cep', '').strip()
+            user.save()
+            messages.success(request, 'Seus dados foram atualizados.')
+            return redirect('cliente_perfil')
+    return render(request, 'cliente/perfil.html', {'estados': ['AL', 'BA', 'CE', 'PE', 'PB', 'PI', 'RN', 'SE']})
 
 
 @login_required(login_url='/cliente/login/')
