@@ -13,6 +13,12 @@ class SenhasInscricaoTestCase(TestCase):
             password='testpassword',
             papel=Usuario.Papel.ORGANIZADOR
         )
+        self.operador = Usuario.objects.create_user(
+            username='operador_balcao',
+            password='testpassword',
+            first_name='Claudio',
+            papel=Usuario.Papel.SECRETARIA
+        )
         self.parque = Parque.objects.create(
             nome='Parque Millany',
             cidade='Caruaru',
@@ -68,3 +74,110 @@ class SenhasInscricaoTestCase(TestCase):
         self.assertEqual(senha.valor_total, 600.00)  # 500 + 100 de TV
         self.assertEqual(senha.status, SenhaInscricao.StatusSenha.PAGA)
         self.assertEqual(senha.cavalo_puxador.nome, 'Jeck Yease')
+
+    def test_venda_balcao_presencial_dinheiro_e_recibo(self):
+        """Verifica emissão presencial de balcão com Dinheiro e emissão de comprovante térmico."""
+        self.client.login(username='operador_balcao', password='testpassword')
+        dados = {
+            'categoria_id': str(self.categoria.id),
+            'numero_senha': 25,
+            'cpf': '444.555.666-77',
+            'nome': 'Severino Vaqueiro',
+            'apelido': 'Biu',
+            'estado': 'PB',
+            'cidade': 'Campina Grande',
+            'telefone': '(83) 98888-7777',
+            'cavalo_puxador': 'Apollo Steel',
+            'esteireiro': 'Zé',
+            'cavalo_esteira': 'Barão',
+            'representacao': 'Haras Borborema',
+            'forma_pagamento': 'DINHEIRO',
+            'valor_recebido': '600.00',
+            'tem_boi_tv': 'on',
+            'dia_corrida': 'Sexta',
+            'imprimir_recibo': 'on'
+        }
+        res = self.client.post('/senhas/finalizar-inscricao/', data=dados)
+        self.assertEqual(res.status_code, 302)
+
+        senha = SenhaInscricao.objects.get(categoria=self.categoria, numero_senha=25)
+        self.assertEqual(senha.origem_venda, SenhaInscricao.OrigemVenda.BALCAO_PRESENCIAL)
+        self.assertEqual(senha.forma_pagamento, SenhaInscricao.FormaPagamento.DINHEIRO)
+        self.assertEqual(senha.status, SenhaInscricao.StatusSenha.PAGA)
+        self.assertEqual(senha.operador_secretaria, self.operador)
+
+        # Testa visualização do recibo
+        res_recibo = self.client.get(f'/senhas/recibo/{senha.codigo_autenticidade}/')
+        self.assertEqual(res_recibo.status_code, 200)
+        self.assertContains(res_recibo, 'Severino Vaqueiro')
+        self.assertContains(res_recibo, 'Apollo Steel')
+        self.assertContains(res_recibo, 'Dinheiro em Espécie')
+
+    def test_venda_balcao_cortesia(self):
+        """Verifica emissão de senha cortesia com valor total zerado."""
+        dados = {
+            'categoria_id': str(self.categoria.id),
+            'numero_senha': 30,
+            'cpf': '888.999.000-11',
+            'nome': 'Convidado Especial',
+            'apelido': 'Convidado',
+            'estado': 'PE',
+            'cidade': 'Recife',
+            'cavalo_puxador': 'Trovão',
+            'forma_pagamento': 'CORTESIA',
+            'autorizado_por': 'Diretoria de Prova',
+            'dia_corrida': 'Sábado'
+        }
+        res = self.client.post('/senhas/finalizar-inscricao/', data=dados)
+        self.assertEqual(res.status_code, 302)
+
+        senha = SenhaInscricao.objects.get(categoria=self.categoria, numero_senha=30)
+        self.assertEqual(senha.forma_pagamento, SenhaInscricao.FormaPagamento.CORTESIA)
+        self.assertEqual(senha.valor_total, 0.00)
+
+    def test_venda_balcao_casadinha(self):
+        """Verifica emissão de casadinha (duas senhas vinculadas no balcão)."""
+        dados = {
+            'categoria_id': str(self.categoria.id),
+            'numero_senha': 41,
+            'numero_segunda_senha': 42,
+            'eh_kit': 'on',
+            'cpf': '333.222.111-00',
+            'nome': 'Carlos Eduardo',
+            'apelido': 'Cadu',
+            'estado': 'AL',
+            'cidade': 'Maceió',
+            'cavalo_puxador': 'Flash Bryan',
+            'forma_pagamento': 'CARTAO_DEBITO',
+            'dia_corrida': 'Quinta'
+        }
+        res = self.client.post('/senhas/finalizar-inscricao/', data=dados)
+        self.assertEqual(res.status_code, 302)
+
+        s1 = SenhaInscricao.objects.get(categoria=self.categoria, numero_senha=41)
+        s2 = SenhaInscricao.objects.get(categoria=self.categoria, numero_senha=42)
+
+        self.assertTrue(s1.eh_kit)
+        self.assertEqual(s1.numero_segunda_senha, 42)
+        self.assertTrue(s2.eh_kit)
+        self.assertEqual(s2.numero_segunda_senha, 41)
+
+    def test_api_buscar_vaqueiro(self):
+        """Verifica a busca rápida de vaqueiro por CPF."""
+        Usuario.objects.create(
+            username='vaq_cadastrado_teste',
+            cpf='999.888.777-66',
+            first_name='Manoel',
+            apelido_locucao='Manoel Vaqueiro',
+            cidade='Bezerros',
+            estado='PE',
+            telefone='81987654321',
+            papel=Usuario.Papel.COMPETIDOR
+        )
+        res = self.client.get('/senhas/api/buscar-vaqueiro/?cpf=99988877766')
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertTrue(data['sucesso'])
+        self.assertEqual(data['nome'], 'Manoel')
+        self.assertEqual(data['apelido'], 'Manoel Vaqueiro')
+        self.assertEqual(data['cidade'], 'Bezerros')

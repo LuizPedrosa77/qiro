@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QIRO — Recibo de Secretaria #{{ senha.numero_senha }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #F3F4F6;
+            color: #000000;
+            font-family: 'Courier Prime', monospace;
+            padding: 20px;
+        }
+
+        .ticket-cupom {
+            width: 320px;
+            max-width: 100%;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border: 1px dashed #777777;
+            padding: 18px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .ticket-header {
+            text-align: center;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .ticket-number {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 900;
+            line-height: 1;
+            margin: 8px 0;
+            text-align: center;
+            letter-spacing: -1px;
+        }
+
+        .ticket-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            line-height: 1.35;
+            margin-bottom: 4px;
+        }
+
+        .ticket-divider {
+            border-top: 1px dashed #000;
+            margin: 8px 0;
+        }
+
+        .ticket-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .qr-placeholder {
+            width: 120px;
+            height: 120px;
+            margin: 10px auto;
+            background: #FFF;
+            border: 2px solid #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            text-align: center;
+            padding: 4px;
+        }
+
+        .actions-box {
+            width: 320px;
+            margin: 15px auto 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        @media print {
+            body {
+                background: #FFFFFF !important;
+                padding: 0 !important;
+            }
+            .ticket-cupom {
+                width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 4px 0 !important;
+            }
+            .actions-box {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket-cupom">
+        
+        <!-- CABEÇALHO DO PARQUE -->
+        <div class="ticket-header">
+            <h5 class="fw-black text-uppercase m-0" style="font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem;">
+                {{ senha.evento.parque.nome|default:"PARQUE DE VAQUEJADA" }}
+            </h5>
+            <div style="font-size: 0.75rem;">{{ senha.evento.nome }}</div>
+            <div style="font-size: 0.7rem; color: #444;">{{ senha.evento.parque.cidade }}/{{ senha.evento.parque.estado }}</div>
+            <div style="font-size: 0.68rem; margin-top: 4px;">COMPROVANTE OFICIAL DA SECRETARIA</div>
+        </div>
+
+        <!-- NÚMERO DA SENHA EM DESTAQUE -->
+        <div class="text-center text-uppercase fw-bold" style="font-size: 0.85rem; letter-spacing: 1px;">
+            {{ senha.categoria.nome_exibicao }}
+        </div>
+        <div class="ticket-number">
+            #{{ senha.numero_senha }}
+        </div>
+
+        {% if senha.eh_kit and senha.numero_segunda_senha %}
+        <div class="text-center fw-bold small text-uppercase mb-2" style="background: #000; color: #FFF; padding: 2px 0;">
+            CASADINHA (2ª SENHA: #{{ senha.numero_segunda_senha }})
+        </div>
+        {% endif %}
+
+        <div class="ticket-divider"></div>
+
+        <!-- DADOS DO VAQUEIRO E CAVALOS -->
+        <div class="ticket-row">
+            <span>VAQUEIRO:</span>
+            <strong class="text-end text-truncate" style="max-width: 180px;">{{ senha.vaqueiro_puxador.get_full_name|default:senha.vaqueiro_puxador.username }}</strong>
+        </div>
+        {% if senha.vaqueiro_puxador.apelido_locucao %}
+        <div class="ticket-row">
+            <span>LOCUÇÃO:</span>
+            <strong>{{ senha.vaqueiro_puxador.apelido_locucao }}</strong>
+        </div>
+        {% endif %}
+        <div class="ticket-row">
+            <span>CPF:</span>
+            <span>{{ senha.vaqueiro_puxador.cpf|default:"Não informado" }}</span>
+        </div>
+        <div class="ticket-row">
+            <span>CIDADE/UF:</span>
+            <span>{{ senha.vaqueiro_puxador.cidade|default:"-" }}/{{ senha.vaqueiro_puxador.estado|default:"-" }}</span>
+        </div>
+
+        <div class="ticket-divider"></div>
+
+        <div class="ticket-row">
+            <span>CAVALO PUXADOR:</span>
+            <strong>{{ senha.cavalo_puxador.nome|default:"-" }}</strong>
+        </div>
+        <div class="ticket-row">
+            <span>ESTEIREIRO:</span>
+            <span>{{ senha.vaqueiro_esteireiro.first_name|default:senha.vaqueiro_esteireiro.username|default:"-" }}</span>
+        </div>
+        <div class="ticket-row">
+            <span>CAVALO ESTEIRA:</span>
+            <span>{{ senha.cavalo_esteireiro.nome|default:"-" }}</span>
+        </div>
+        <div class="ticket-row">
+            <span>REPRESENTAÇÃO:</span>
+            <span class="text-truncate" style="max-width: 160px;">{{ senha.representacao|default:"-" }}</span>
+        </div>
+
+        <div class="ticket-divider"></div>
+
+        <!-- DADOS FINANCEIROS -->
+        <div class="ticket-row">
+            <span>DIA DA CORRIDA:</span>
+            <strong>{{ senha.dia_corrida|default:"Quinta" }}</strong>
+        </div>
+        <div class="ticket-row">
+            <span>BOI NA TV:</span>
+            <span>{% if senha.tem_boi_tv %}SIM (CONFIRMADO){% else %}NÃO{% endif %}</span>
+        </div>
+        <div class="ticket-row">
+            <span>FORMA DE PAGAMENTO:</span>
+            <strong>{{ senha.get_forma_pagamento_display }}</strong>
+        </div>
+        
+        <div class="ticket-divider"></div>
+
+        <div class="ticket-row align-items-center">
+            <span class="fw-bold">TOTAL PAGO:</span>
+            <span class="ticket-total">
+                {% if senha.forma_pagamento == 'CORTESIA' %}
+                    CORTESIA
+                {% else %}
+                    R$ {{ senha.valor_total|floatformat:2 }}
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="ticket-divider"></div>
+
+        <!-- CANCELA / QR CODE DE AUTENTICIDADE -->
+        <div class="text-center mt-2">
+            <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">VALIDAÇÃO DA PORTARIA / CANCELA</div>
+            <div class="qr-placeholder">
+                <i class="bi bi-qr-code fs-1"></i>
+                <span style="font-size: 0.55rem; line-height: 1; word-break: break-all; margin-top: 2px;">
+                    {{ senha.codigo_autenticidade|stringformat:"s"|slice:":18" }}...
+                </span>
+            </div>
+            <div style="font-size: 0.62rem; color: #555;">APRESENTE ESTE TICKET NA ENTRADA DA PISTA</div>
+        </div>
+
+        <div class="ticket-divider"></div>
+
+        <!-- RODAPÉ DA SECRETARIA -->
+        <div class="text-center" style="font-size: 0.65rem; color: #444;">
+            <div>EMITIDO EM: {{ senha.criado_em|date:"d/m/Y H:i" }}</div>
+            {% if senha.operador_secretaria %}
+            <div>OPERADOR: {{ senha.operador_secretaria.first_name|default:senha.operador_secretaria.username }}</div>
+            {% endif %}
+            <div class="fw-bold mt-1">QIRO — GESTÃO OFICIAL DE VAQUEJADA</div>
+        </div>
+
+    </div>
+
+    <!-- BOTÕES DE AÇÃO (NÃO IMPRIMEM) -->
+    <div class="actions-box">
+        <button type="button" class="btn btn-dark fw-bold py-2.5 shadow-sm" onclick="window.print()">
+            <i class="bi bi-printer-fill me-1"></i> Imprimir Comprovante
+        </button>
+        <a href="/senhas/mapa/?categoria={{ senha.categoria.id }}" class="btn btn-outline-secondary fw-bold py-2">
+            <i class="bi bi-arrow-left me-1"></i> Voltar ao Balcão da Secretaria
+        </a>
+    </div>
+
+    {% if auto_print %}
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                window.print();
+            }, 300);
+        });
+    </script>
+    {% endif %}
+
+</body>
+</html>

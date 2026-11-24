@@ -1,195 +1,708 @@
 {% extends "base.html" %}
 
-{% block title %}QIRO — Mapa de Senhas e Secretaria{% endblock %}
+{% block title %}QIRO — Balcão da Secretaria Presencial (PDV Oficial){% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --balcao-gold: #D4A017;
+        --balcao-dark: #121E17;
+        --balcao-card: #16281F;
+        --balcao-border: #244432;
+        --balcao-green: #00FC00;
+        --balcao-red: #DC3545;
+        --balcao-orange: #FF8C00;
+    }
+
+    .balcao-header-metric {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--balcao-border);
+        border-radius: 12px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-width: 140px;
+    }
+
+    .balcao-header-metric-title {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        color: #A0AEC0;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+
+    .balcao-header-metric-val {
+        font-size: 1.15rem;
+        font-weight: 900;
+        color: #FFFFFF;
+        line-height: 1;
+    }
+
+    /* Formas de Pagamento em Botões Táteis */
+    .btn-pagamento-balcao {
+        border: 2px solid #374151;
+        background: #111827;
+        color: #E5E7EB;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+        flex: 1 1 calc(20% - 8px);
+        min-width: 100px;
+    }
+
+    .btn-pagamento-balcao:hover {
+        border-color: var(--balcao-gold);
+        transform: translateY(-2px);
+    }
+
+    .btn-pagamento-balcao.active {
+        border-color: var(--balcao-gold);
+        background: linear-gradient(135deg, rgba(212, 160, 23, 0.25) 0%, rgba(245, 200, 66, 0.15) 100%);
+        color: #FACC15;
+        box-shadow: 0 0 12px rgba(212, 160, 23, 0.4);
+    }
+
+    .troco-box {
+        background: #000000;
+        border: 1.5px solid var(--balcao-green);
+        border-radius: 10px;
+        padding: 8px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Grade compacta da Secretaria */
+    .grade-balcao {
+        display: grid;
+        grid-template-columns: repeat(15, 1fr);
+        gap: 4px;
+        max-height: 380px;
+        overflow-y: auto;
+        padding: 8px;
+        background: #0B140F;
+        border: 1px solid var(--balcao-border);
+        border-radius: 12px;
+    }
+
+    @media (max-width: 1200px) { .grade-balcao { grid-template-columns: repeat(10, 1fr); } }
+    @media (max-width: 768px)  { .grade-balcao { grid-template-columns: repeat(8, 1fr); } }
+
+    .dot-balcao {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.72rem;
+        text-decoration: none;
+        transition: transform 0.12s, box-shadow 0.12s;
+        user-select: none;
+    }
+
+    .dot-balcao:hover {
+        transform: scale(1.2);
+        z-index: 3;
+    }
+
+    .dot-disponivel {
+        background: #E5E7EB;
+        color: #111827;
+    }
+
+    .dot-paga {
+        background: #DC2626;
+        color: #FFFFFF;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .dot-reservada {
+        background: #FF8C00;
+        color: #FFFFFF;
+        cursor: not-allowed;
+    }
+
+    .dot-selecionada {
+        background: #00FC00 !important;
+        color: #000000 !important;
+        box-shadow: 0 0 14px #00FC00;
+        border: 2px solid #FFFFFF;
+        transform: scale(1.22);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card bg-qiro-card border-qiro shadow-lg p-3 p-md-4 rounded-4">
+<div class="container-fluid py-2">
 
+    <!-- ──────────────── ALERTA DE MENSAGENS ──────────────── -->
     {% if messages %}
     <div class="mb-3">
         {% for message in messages %}
-        <div class="alert alert-success alert-dismissible fade show small py-2" role="alert">
-            <i class="bi bi-check-circle-fill me-1"></i> {{ message }}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show fw-bold py-2.5 shadow" role="alert">
+            <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle-fill{% else %}check-circle-fill{% endif %} me-2"></i> {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- ABAS DAS CATEGORIAS (MOCKUP IMAGEM 7 E 8) -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-3 border-bottom border-qiro">
-        <div class="d-flex flex-wrap gap-1.5">
-            {% for cat in categorias %}
-            <a href="?categoria={{ cat.id }}&dia={{ dia_selecionado }}" 
-                class="btn btn-sm text-uppercase fw-bold px-3 py-1.5 rounded-pill {% if cat.id == categoria_atual.id %}btn-warning text-black shadow{% else %}btn-dark text-secondary border-secondary{% endif %}"
-                style="font-size: 0.75rem;">
-                {{ cat.nome_exibicao }}
-            </a>
-            {% endfor %}
+    <!-- ──────────────── 1. CABEÇALHO DO OPERADOR & FECHAMENTO DE CAIXA EM TEMPO REAL ──────────────── -->
+    <div class="card p-3 mb-3 border-0 rounded-4 text-white shadow-lg" style="background-color: var(--balcao-card); border: 1px solid var(--balcao-border) !important;">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark fw-black px-2.5 py-1 rounded-pill" style="font-size: 0.75rem;">
+                        <i class="bi bi-person-badge-fill me-1"></i> OPERADOR DE BALCÃO
+                    </span>
+                    <span class="badge bg-black border border-secondary text-light px-2.5 py-1 rounded-pill" style="font-size: 0.75rem;">
+                        {{ evento.nome }} — {{ evento.parque.nome }}
+                    </span>
+                </div>
+                <h4 class="fw-black text-white m-0 mt-1" style="letter-spacing: -0.5px;">
+                    Balcão da Secretaria Presencial (PDV de Inscrições)
+                </h4>
+            </div>
+
+            <div class="text-end">
+                <span class="text-secondary small d-block">Operador Logado:</span>
+                <strong class="text-warning fs-6">
+                    <i class="bi bi-shield-lock-fill me-1"></i> {{ request.user.first_name|default:request.user.username }}
+                </strong>
+            </div>
         </div>
 
-        <!-- Seletor do Dia da Corrida -->
-        <div class="d-flex align-items-center gap-2 small">
-            <span class="text-secondary fw-semibold">Qual dia você quer correr?</span>
-            <select class="form-select form-select-sm bg-dark text-white border-secondary w-auto" onchange="location = this.value;">
-                <option value="?categoria={{ categoria_atual.id }}&dia=Quinta" {% if dia_selecionado == 'Quinta' %}selected{% endif %}>Quinta</option>
-                <option value="?categoria={{ categoria_atual.id }}&dia=Sexta" {% if dia_selecionado == 'Sexta' %}selected{% endif %}>Sexta</option>
-                <option value="?categoria={{ categoria_atual.id }}&dia=Sábado" {% if dia_selecionado == 'Sábado' %}selected{% endif %}>Sábado</option>
-                <option value="?categoria={{ categoria_atual.id }}&dia=Domingo" {% if dia_selecionado == 'Domingo' %}selected{% endif %}>Domingo</option>
-            </select>
+        <!-- RÉGUA DO CAIXA DO BALCÃO HOJE -->
+        <div class="d-flex flex-wrap gap-2">
+            <div class="balcao-header-metric flex-fill">
+                <div>
+                    <div class="balcao-header-metric-title">Total no Balcão</div>
+                    <div class="balcao-header-metric-val text-warning">R$ {{ total_geral_balcao|floatformat:2 }}</div>
+                </div>
+                <i class="bi bi-cash-stack fs-3 text-warning opacity-75"></i>
+            </div>
+
+            <div class="balcao-header-metric flex-fill">
+                <div>
+                    <div class="balcao-header-metric-title">Dinheiro</div>
+                    <div class="balcao-header-metric-val text-success">R$ {{ total_dinheiro|floatformat:2 }}</div>
+                </div>
+                <i class="bi bi-currency-dollar fs-3 text-success opacity-75"></i>
+            </div>
+
+            <div class="balcao-header-metric flex-fill">
+                <div>
+                    <div class="balcao-header-metric-title">Débito</div>
+                    <div class="balcao-header-metric-val text-info">R$ {{ total_debito|floatformat:2 }}</div>
+                </div>
+                <i class="bi bi-credit-card-2-front fs-3 text-info opacity-75"></i>
+            </div>
+
+            <div class="balcao-header-metric flex-fill">
+                <div>
+                    <div class="balcao-header-metric-title">Crédito</div>
+                    <div class="balcao-header-metric-val text-primary">R$ {{ total_credito|floatformat:2 }}</div>
+                </div>
+                <i class="bi bi-credit-card fs-3 text-primary opacity-75"></i>
+            </div>
+
+            <div class="balcao-header-metric flex-fill">
+                <div>
+                    <div class="balcao-header-metric-title">Pix Balcão</div>
+                    <div class="balcao-header-metric-val text-warning">R$ {{ total_pix|floatformat:2 }}</div>
+                </div>
+                <i class="bi bi-qr-code fs-3 text-warning opacity-75"></i>
+            </div>
+
+            <div class="balcao-header-metric flex-fill">
+                <div>
+                    <div class="balcao-header-metric-title">Cortesias</div>
+                    <div class="balcao-header-metric-val text-secondary">{{ total_cortesias }} un</div>
+                </div>
+                <i class="bi bi-gift fs-3 text-secondary opacity-75"></i>
+            </div>
+
+            <div class="balcao-header-metric flex-fill">
+                <div>
+                    <div class="balcao-header-metric-title">Senhas Hoje</div>
+                    <div class="balcao-header-metric-val text-white">{{ qtd_senhas_balcao }} emitidas</div>
+                </div>
+                <i class="bi bi-ticket-detailed fs-3 text-white opacity-75"></i>
+            </div>
         </div>
     </div>
 
-    <!-- MAPA VISUAL DE SENHAS COM OS 4 ESTADOS VISUAIS (MOCKUP IMAGEM 7) -->
-    <div class="my-4">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 small mb-2 fw-semibold">
-            <div class="d-flex flex-wrap align-items-center gap-3">
-                <div class="d-flex align-items-center gap-1.5">
-                    <span class="d-inline-block rounded-circle" style="width: 14px; height: 14px; background: #E8ECEF;"></span>
-                    <span class="text-light">Disponível</span>
-                </div>
-                <div class="d-flex align-items-center gap-1.5">
-                    <span class="d-inline-block rounded-circle" style="width: 14px; height: 14px; background: #FF8C00;"></span>
-                    <span class="text-warning">Reservada (Pix)</span>
-                </div>
-                <div class="d-flex align-items-center gap-1.5">
-                    <span class="d-inline-block rounded-circle" style="width: 14px; height: 14px; background: #DC3545;"></span>
-                    <span class="text-danger">Paga / Feita</span>
-                </div>
-                <div class="d-flex align-items-center gap-1.5">
-                    <span class="d-inline-block rounded-circle" style="width: 14px; height: 14px; background: #00FC00; box-shadow: 0 0 6px #00fc00;"></span>
-                    <span class="text-success fw-bold">Selecionada</span>
-                </div>
-            </div>
+    <!-- ──────────────── 2. CORPO OPERACIONAL DIVIDIDO EM 2 COLUNAS ──────────────── -->
+    <div class="row g-3">
+        
+        <!-- ═════════ COLUNA ESQUERDA: GRADE DE SENHAS & HISTÓRICO ═════════ -->
+        <div class="col-lg-5">
+            <div class="card p-3 border-0 rounded-4 shadow h-100" style="background-color: var(--balcao-card); border: 1px solid var(--balcao-border) !important;">
+                
+                <!-- Abas das Categorias -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2 pb-2 border-bottom border-secondary border-opacity-25">
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for cat in categorias %}
+                        <a href="?categoria={{ cat.id }}&dia={{ dia_selecionado }}" 
+                           class="btn btn-sm text-uppercase fw-bold px-2.5 py-1 rounded-pill {% if cat.id == categoria_atual.id %}btn-warning text-black shadow{% else %}btn-dark text-secondary border-secondary{% endif %}"
+                           style="font-size: 0.75rem;">
+                            {{ cat.nome_exibicao }}
+                        </a>
+                        {% endfor %}
+                    </div>
 
-            <div class="d-flex gap-2 text-secondary small fw-bold">
-                <span class="badge bg-secondary bg-opacity-25 text-light">{{ total_disponiveis }} Livres</span>
-                <span class="badge bg-warning bg-opacity-25 text-warning">{{ total_reservadas }} Aguardando Pix</span>
-                <span class="badge bg-danger bg-opacity-25 text-danger">{{ total_pagas }} Pagas</span>
+                    <!-- Seletor do Dia -->
+                    <select class="form-select form-select-sm bg-dark text-warning fw-bold border-secondary w-auto" onchange="location = this.value;">
+                        <option value="?categoria={{ categoria_atual.id }}&dia=Quarta" {% if dia_selecionado == 'Quarta' %}selected{% endif %}>Quarta</option>
+                        <option value="?categoria={{ categoria_atual.id }}&dia=Quinta" {% if dia_selecionado == 'Quinta' %}selected{% endif %}>Quinta</option>
+                        <option value="?categoria={{ categoria_atual.id }}&dia=Sexta" {% if dia_selecionado == 'Sexta' %}selected{% endif %}>Sexta</option>
+                        <option value="?categoria={{ categoria_atual.id }}&dia=Sábado" {% if dia_selecionado == 'Sábado' %}selected{% endif %}>Sábado</option>
+                        <option value="?categoria={{ categoria_atual.id }}&dia=Domingo" {% if dia_selecionado == 'Domingo' %}selected{% endif %}>Domingo</option>
+                    </select>
+                </div>
+
+                <!-- Legenda Rápida -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 small mb-2 fw-semibold text-secondary">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #E5E7EB;"></span> Livre ({{ total_disponiveis }})
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #DC2626;"></span> Paga ({{ total_pagas }})
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FF8C00;"></span> Pix ({{ total_reservadas }})
+                        <span style="width: 12px; height: 12px; border-radius: 50%; background: #00FC00; box-shadow: 0 0 6px #00FC00;"></span> Ativa
+                    </div>
+                    <div class="text-white fw-bold">
+                        Valor: <span class="text-warning">R$ {{ categoria_atual.valor_senha|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                <!-- Grade Interativa com Clique Direto -->
+                <div class="grade-balcao mb-3" id="gradeBalcao">
+                    {% for s in grade_senhas %}
+                    <a href="?categoria={{ categoria_atual.id }}&dia={{ dia_selecionado }}&senha_num={{ s.numero }}"
+                       class="dot-balcao {% if s.numero == senha_selecionada %}dot-selecionada{% elif s.estado == 'paga' %}dot-paga pe-none{% elif s.estado == 'reservada' %}dot-reservada pe-none{% else %}dot-disponivel{% endif %}"
+                       onclick="selecionarNumeroNoFormulario({{ s.numero }}); return {% if s.ocupada %}false{% else %}false{% endif %};"
+                       title="Senha #{{ s.numero }} - {{ s.estado|upper }}">
+                        {{ s.numero }}
+                    </a>
+                    {% endfor %}
+                </div>
+
+                <!-- Histórico de Últimas Senhas Emitidas no Balcão Hoje -->
+                <div class="mt-auto pt-2 border-top border-secondary border-opacity-25">
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                        <span class="text-secondary small fw-bold text-uppercase">Últimas do Balcão Hoje</span>
+                        <span class="badge bg-secondary small">{{ ultimas_senhas_balcao|length }} recentes</span>
+                    </div>
+                    <div class="vstack gap-1">
+                        {% for u in ultimas_senhas_balcao %}
+                        <div class="d-flex justify-content-between align-items-center p-1.5 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25 small text-light">
+                            <div>
+                                <span class="badge bg-warning text-dark fw-bold me-1">#{{ u.numero_senha }}</span>
+                                <strong>{{ u.vaqueiro_puxador.first_name|default:u.vaqueiro_puxador.username }}</strong>
+                                <span class="text-secondary" style="font-size: 0.7rem;">({{ u.categoria.nome_exibicao }})</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-dark border border-secondary text-secondary" style="font-size: 0.65rem;">
+                                    {{ u.get_forma_pagamento_display }}
+                                </span>
+                                <a href="/senhas/recibo/{{ u.codigo_autenticidade }}/?auto_print=1" target="_blank" class="btn btn-outline-warning btn-sm p-0 px-1" title="Reimprimir Comprovante">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-secondary small py-2">
+                            Nenhuma senha emitida no balcão hoje ainda.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <!-- Grade com Estilo Arredondado Moderno -->
-        <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
-            <div class="d-flex flex-wrap gap-1.5 justify-content-start">
-                {% for s in grade_senhas %}
-                <a href="?categoria={{ categoria_atual.id }}&dia={{ dia_selecionado }}&senha_num={{ s.numero }}"
-                    class="d-flex align-items-center justify-content-center text-decoration-none fw-bold rounded-circle transition 
-                    {% if s.numero == senha_selecionada %}bg-success text-black ring-2 shadow border border-white
-                    {% elif s.estado == 'paga' %}bg-danger text-white pe-none opacity-65
-                    {% elif s.estado == 'reservada' %}bg-warning text-dark pe-none opacity-90
-                    {% else %}bg-light text-dark hover-bg-gray{% endif %}"
-                    style="width: 40px; height: 40px; font-size: 0.8rem; {% if s.numero == senha_selecionada %}background-color: #00FC00 !important; box-shadow: 0 0 10px #00fc00;{% endif %}">
-                    {{ s.numero }}
-                </a>
-                {% endfor %}
+        <!-- ═════════ COLUNA DIREITA: FORMULÁRIO DE EMISSÃO EXPRESS (PDV) ═════════ -->
+        <div class="col-lg-7">
+            <div class="card p-3 p-md-4 border-0 rounded-4 shadow-lg text-white" style="background-color: var(--balcao-card); border: 1.5px solid var(--balcao-gold) !important;">
+                
+                <form method="POST" action="/senhas/finalizar-inscricao/" id="formBalcaoSecretaria">
+                    {% csrf_token %}
+                    <input type="hidden" name="categoria_id" value="{{ categoria_atual.id }}">
+                    <input type="hidden" name="dia_corrida" value="{{ dia_selecionado }}">
+                    <input type="hidden" name="forma_pagamento" id="inputFormaPagamento" value="DINHEIRO">
+
+                    <!-- SEÇÃO 1: COMPETIDOR (BUSCA RÁPIDA VIA CPF) -->
+                    <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom border-secondary border-opacity-25">
+                        <span class="fw-black text-warning text-uppercase small">
+                            <i class="bi bi-person-fill me-1"></i> 1. Identificação do Vaqueiro
+                        </span>
+                        <span id="badgeCpfStatus" class="badge bg-secondary small">Digite o CPF para busca express</span>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold mb-1">CPF do Vaqueiro *</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="cpf" id="campoCpf" value="" placeholder="000.000.000-00" class="form-control bg-dark text-warning fw-bold border-secondary" required onblur="buscarVaqueiroPorCpf(this.value)">
+                                <button type="button" class="btn btn-warning fw-bold" onclick="buscarVaqueiroPorCpf(document.getElementById('campoCpf').value)" title="Buscar">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label text-secondary small fw-bold mb-1">Nome Completo *</label>
+                            <input type="text" name="nome" id="campoNome" value="" placeholder="Ex: Romulo Emanuel" required class="form-control form-control-sm bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-secondary small fw-bold mb-1">Locução (Apelido) *</label>
+                            <input type="text" name="apelido" id="campoApelido" value="" placeholder="Ex: Romulo" required class="form-control form-control-sm bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold mb-1">WhatsApp / Telefone</label>
+                            <input type="text" name="telefone" id="campoTelefone" value="" placeholder="(81) 99999-9999" class="form-control form-control-sm bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label text-secondary small fw-bold mb-1">Cidade</label>
+                            <input type="text" name="cidade" id="campoCidade" value="Caruaru" class="form-control form-control-sm bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-secondary small fw-bold mb-1">UF</label>
+                            <input type="text" name="estado" id="campoEstado" value="PE" maxlength="2" class="form-control form-control-sm bg-dark text-white border-secondary text-center text-uppercase">
+                        </div>
+                    </div>
+
+                    <!-- SEÇÃO 2: NÚMEROS DA SENHA E CASADINHA -->
+                    <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom border-secondary border-opacity-25">
+                        <span class="fw-black text-warning text-uppercase small">
+                            <i class="bi bi-ticket-perforated-fill me-1"></i> 2. Inscrição & Senha — {{ categoria_atual.nome_exibicao }}
+                        </span>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" id="checkCasadinhaKit" name="eh_kit" onchange="toggleCasadinha(this.checked)">
+                            <label class="form-check-label small fw-bold text-light" for="checkCasadinhaKit">Casadinha (2ª Senha)</label>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-warning small fw-bold mb-1">Nº da 1ª Senha *</label>
+                            <input type="number" name="numero_senha" id="inputNumeroSenha" value="{{ senha_selecionada }}" required class="form-control bg-dark text-warning fw-black fs-5 border-warning text-center" min="1" max="500">
+                        </div>
+                        <div class="col-md-4" id="boxSegundaSenha" style="display: none;">
+                            <label class="form-label text-info small fw-bold mb-1">Nº da 2ª Senha (Kit)</label>
+                            <input type="number" name="numero_segunda_senha" id="inputSegundaSenha" value="" placeholder="Ex: 11" class="form-control bg-dark text-info fw-black fs-5 border-info text-center" min="1" max="500">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <!-- Switch Boi na TV -->
+                            <div class="p-2 rounded bg-dark border border-warning border-opacity-50 w-100">
+                                <div class="form-check form-switch d-flex justify-content-between align-items-center p-0 m-0">
+                                    <label class="form-check-label small fw-bold text-light" for="checkBoiTvBalcao">
+                                        <i class="bi bi-tv-fill text-warning me-1"></i> Boi na TV (+ R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }})
+                                    </label>
+                                    <input class="form-check-input ms-2" type="checkbox" id="checkBoiTvBalcao" name="tem_boi_tv" checked onchange="atualizarTotalBalcao()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEÇÃO 3: ANIMAIS & EQUIPE -->
+                    <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom border-secondary border-opacity-25">
+                        <span class="fw-black text-warning text-uppercase small">
+                            <i class="bi bi-trophy-fill me-1"></i> 3. Equipe & Animais
+                        </span>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-warning small fw-bold mb-1">Cavalo Puxador *</label>
+                            <input type="text" name="cavalo_puxador" id="campoCavPuxador" value="Silver Wild SLN" required class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ex: Silver Wild">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-info small fw-bold mb-1">Vaqueiro Esteireiro</label>
+                            <input type="text" name="esteireiro" id="campoEsteireiro" value="Matheus Leonardo" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ex: Matheus">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-info small fw-bold mb-1">Cavalo Esteira</label>
+                            <input type="text" name="cavalo_esteira" id="campoCavEsteira" value="King" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ex: King">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold mb-1">Haras / Representação</label>
+                            <input type="text" name="representacao" id="campoRepresentacao" value="Haras QIRO" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ex: Haras QIRO — Caruaru/PE">
+                        </div>
+                    </div>
+
+                    <!-- SEÇÃO 4: FORMAS DE PAGAMENTO NO BALCÃO (SELEÇÃO TÁTIL) -->
+                    <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom border-secondary border-opacity-25">
+                        <span class="fw-black text-warning text-uppercase small">
+                            <i class="bi bi-cash-coin me-1"></i> 4. Forma de Pagamento no Balcão
+                        </span>
+                        <span class="badge bg-dark border border-secondary text-warning" id="labelMetodoAtivo">Dinheiro em Espécie</span>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <div class="btn-pagamento-balcao active" id="btnPay-DINHEIRO" onclick="selecionarFormaPagamento('DINHEIRO')">
+                            <i class="bi bi-cash-stack fs-4 text-success"></i>
+                            <span>DINHEIRO</span>
+                        </div>
+                        <div class="btn-pagamento-balcao" id="btnPay-CARTAO_DEBITO" onclick="selecionarFormaPagamento('CARTAO_DEBITO')">
+                            <i class="bi bi-credit-card-2-front fs-4 text-info"></i>
+                            <span>DÉBITO</span>
+                        </div>
+                        <div class="btn-pagamento-balcao" id="btnPay-CARTAO_CREDITO" onclick="selecionarFormaPagamento('CARTAO_CREDITO')">
+                            <i class="bi bi-credit-card fs-4 text-primary"></i>
+                            <span>CRÉDITO</span>
+                        </div>
+                        <div class="btn-pagamento-balcao" id="btnPay-PIX" onclick="selecionarFormaPagamento('PIX')">
+                            <i class="bi bi-qr-code fs-4 text-warning"></i>
+                            <span>PIX BALCÃO</span>
+                        </div>
+                        <div class="btn-pagamento-balcao" id="btnPay-CORTESIA" onclick="selecionarFormaPagamento('CORTESIA')">
+                            <i class="bi bi-gift fs-4 text-secondary"></i>
+                            <span>CORTESIA</span>
+                        </div>
+                    </div>
+
+                    <!-- CAMPO DINÂMICO PARA DINHEIRO (VALOR RECEBIDO E TROCO) -->
+                    <div id="boxDinheiroTroco" class="p-2.5 mb-2 rounded bg-black border border-secondary border-opacity-50">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold mb-1">Valor Entregue pelo Cliente (R$)</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-dark border-secondary text-success fw-bold">R$</span>
+                                    <input type="text" name="valor_recebido" id="inputValorRecebido" placeholder="0,00" class="form-control bg-dark text-white fw-bold border-secondary" onkeyup="calcularTroco(this.value)">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="troco-box mt-3 mt-md-0">
+                                    <span class="text-secondary small fw-bold text-uppercase">Troco a Devolver:</span>
+                                    <span class="fs-4 fw-black text-success" id="displayTroco">R$ 0,00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CAMPO DINÂMICO PARA CORTESIA -->
+                    <div id="boxCortesiaAutorizacao" class="p-2.5 mb-2 rounded bg-black border border-secondary border-opacity-50" style="display: none;">
+                        <label class="form-label text-warning small fw-bold mb-1">Autorizado por (Diretoria / Organizador):</label>
+                        <input type="text" name="autorizado_por" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ex: Autorizado pelo Diretor de Prova">
+                    </div>
+
+                    <!-- SEÇÃO 5: TOTALIZAÇÃO E DISPARO DA EMISSÃO -->
+                    <div class="p-3 my-2 rounded-3 bg-black border border-warning d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-secondary small text-uppercase fw-bold">Total a Cobrar no Balcão:</span>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="checkImprimirRecibo" name="imprimir_recibo" checked>
+                                <label class="form-check-label small text-secondary" for="checkImprimirRecibo">
+                                    <i class="bi bi-printer me-1"></i> Imprimir comprovante após confirmar
+                                </label>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="display-6 fw-black text-warning" id="displayTotalBalcao">R$ 510,00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 py-3 fw-black fs-5 rounded-3 shadow mt-2" style="background: linear-gradient(135deg, #F5C842 0%, #D4A017 100%); border: none;">
+                        <i class="bi bi-check-circle-fill me-2"></i> CONCLUIR VENDA & EMITIR SENHA [ENTER]
+                    </button>
+                </form>
+
             </div>
         </div>
+
     </div>
-
-    <!-- FORMULÁRIO DE INSCRIÇÃO DA SENHA (MOCKUP IMAGEM 8) -->
-    <form method="POST" action="/senhas/finalizar-inscricao/" class="p-4 rounded-4 bg-dark border border-secondary border-opacity-25 mt-3">
-        {% csrf_token %}
-        <input type="hidden" name="categoria_id" value="{{ categoria_atual.id }}">
-        <input type="hidden" name="dia_corrida" value="{{ dia_selecionado }}">
-
-        <div class="mb-3">
-            <h5 class="fw-black text-white text-uppercase m-0">
-                {{ categoria_atual.nome_exibicao }} — SENHA SELECIONADA #{{ senha_selecionada }}
-            </h5>
-            <div class="text-danger small fw-bold mt-1">
-                <i class="bi bi-exclamation-octagon-fill me-1"></i> EVITE PROBLEMAS! Preencha o CPF com o dado do vaqueiro que irá correr a senha.
-            </div>
-        </div>
-
-        <div class="row g-2 small mb-3">
-            <div class="col-md-3">
-                <label class="form-label text-secondary mb-1">CPF do vaqueiro *</label>
-                <input type="text" name="cpf" value="055.483.014-30" required class="form-control form-control-sm bg-black text-white border-secondary">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label text-secondary mb-1">Nome completo do vaqueiro *</label>
-                <input type="text" name="nome" value="Romulo Emanuel" required class="form-control form-control-sm bg-black text-white border-secondary">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label text-secondary mb-1">Nome chamado pela locução *</label>
-                <input type="text" name="apelido" value="Romulo Emanuel" required class="form-control form-control-sm bg-black text-white border-secondary">
-            </div>
-            <div class="col-md-1">
-                <label class="form-label text-secondary mb-1">UF</label>
-                <input type="text" name="estado" value="PE" class="form-control form-control-sm bg-black text-white border-secondary text-center">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label text-secondary mb-1">Cidade</label>
-                <input type="text" name="cidade" value="Caruaru" class="form-control form-control-sm bg-black text-white border-secondary">
-            </div>
-        </div>
-
-        <!-- Card da 1ª Senha com Boi na TV -->
-        <div class="card bg-qiro-card border-secondary border-opacity-50 p-3 rounded-3">
-            <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 mb-3 border-bottom border-secondary border-opacity-25">
-                <span class="fw-bold fs-6 text-white">
-                    <i class="bi bi-ticket-perforated-fill text-warning me-1"></i> 1ª Senha — R$ {{ categoria_atual.valor_senha }}
-                </span>
-
-                <!-- CHECKBOX OPCIONAL DE BOI NA TV (MOCKUP IMAGEM 8) -->
-                <div class="form-check p-2 rounded bg-dark border border-warning border-opacity-50">
-                    <input class="form-check-input ms-0 me-2" type="checkbox" name="tem_boi_tv" id="checkBoiTv" checked onchange="atualizarTotal()">
-                    <label class="form-check-label text-warning small fw-bold cursor-pointer" for="checkBoiTv">
-                        Prêmio extra + Boi na TV + R$ {{ categoria_atual.valor_boi_tv }} <span class="badge bg-secondary" style="font-size: 0.6rem;">OPCIONAL</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="row g-2 small">
-                <div class="col-md-2">
-                    <label class="form-label text-secondary mb-1">Nº da senha *</label>
-                    <input type="number" name="numero_senha" value="{{ senha_selecionada }}" readonly class="form-control form-control-sm bg-dark text-warning fw-bold border-secondary">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label text-secondary mb-1">Cavalo puxador *</label>
-                    <input type="text" name="cavalo_puxador" value="Silver Wild SLN" required class="form-control form-control-sm bg-black text-white border-secondary">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label text-secondary mb-1">Esteireiro</label>
-                    <input type="text" name="esteireiro" value="Matheus Leonardo" class="form-control form-control-sm bg-black text-white border-secondary">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label text-secondary mb-1">Cavalo esteireiro</label>
-                    <input type="text" name="cavalo_esteira" value="King" class="form-control form-control-sm bg-black text-white border-secondary">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label text-secondary mb-1">Representação</label>
-                    <input type="text" name="representacao" value="Haras QIRO" class="form-control form-control-sm bg-black text-white border-secondary">
-                </div>
-            </div>
-
-            <!-- Botão de Finalização -->
-            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-secondary border-opacity-25">
-                <div class="fs-6 fw-bold">
-                    Total: <strong class="text-success fs-5" id="valorTotalTexto">R$ 510,00</strong>
-                </div>
-
-                <button type="submit" class="btn btn-success fw-bold px-4 py-2 rounded-3 shadow">
-                    <i class="bi bi-cart-check-fill me-1"></i> Escolher forma de pagamento
-                </button>
-            </div>
-        </div>
-
-    </form>
 
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    function atualizarTotal() {
-        const base = parseFloat("{{ categoria_atual.valor_senha }}") || 410.0;
-        const adicionalTv = parseFloat("{{ categoria_atual.valor_boi_tv }}") || 100.0;
-        const temTv = document.getElementById('checkBoiTv').checked;
-        const total = base + (temTv ? adicionalTv : 0);
-        document.getElementById('valorTotalTexto').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    const valorBaseCategoria = parseFloat("{{ categoria_atual.valor_senha }}") || 410.0;
+    const valorTvCategoria   = parseFloat("{{ categoria_atual.valor_boi_tv }}") || 100.0;
+
+    let formaPagamentoAtual = 'DINHEIRO';
+    let ehCasadinha = false;
+
+    // ── ATUALIZA O TOTAL NO BALCÃO ──
+    function atualizarTotalBalcao() {
+        const temTv = document.getElementById('checkBoiTvBalcao').checked;
+        const displayTotal = document.getElementById('displayTotalBalcao');
+
+        if (formaPagamentoAtual === 'CORTESIA') {
+            displayTotal.innerText = 'CORTESIA (R$ 0,00)';
+            displayTotal.classList.remove('text-warning');
+            displayTotal.classList.add('text-secondary');
+            return;
+        }
+
+        displayTotal.classList.remove('text-secondary');
+        displayTotal.classList.add('text-warning');
+
+        let total = valorBaseCategoria + (temTv ? valorTvCategoria : 0);
+        if (ehCasadinha) {
+            total = total * 2;
+        }
+
+        displayTotal.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        
+        // Recalcula troco se campo de dinheiro estiver preenchido
+        const valRec = document.getElementById('inputValorRecebido').value;
+        if (valRec) calcularTroco(valRec);
     }
-    atualizarTotal();
+
+    // ── SELEÇÃO DA FORMA DE PAGAMENTO NO BALCÃO ──
+    function selecionarFormaPagamento(metodo) {
+        formaPagamentoAtual = metodo;
+        document.getElementById('inputFormaPagamento').value = metodo;
+
+        // Atualiza botões
+        document.querySelectorAll('.btn-pagamento-balcao').forEach(btn => btn.classList.remove('active'));
+        const btnAtivo = document.getElementById(`btnPay-${metodo}`);
+        if (btnAtivo) btnAtivo.classList.add('active');
+
+        // Labels e boxes condicionais
+        const boxDinheiro = document.getElementById('boxDinheiroTroco');
+        const boxCortesia = document.getElementById('boxCortesiaAutorizacao');
+        const labelMetodo = document.getElementById('labelMetodoAtivo');
+
+        const nomes = {
+            'DINHEIRO': 'Dinheiro em Espécie',
+            'CARTAO_DEBITO': 'Cartão de Débito',
+            'CARTAO_CREDITO': 'Cartão de Crédito',
+            'PIX': 'Pix Presencial no Balcão',
+            'CORTESIA': 'Cortesia da Organização'
+        };
+        labelMetodo.innerText = nomes[metodo] || metodo;
+
+        if (metodo === 'DINHEIRO') {
+            boxDinheiro.style.display = 'block';
+            boxCortesia.style.display = 'none';
+        } else if (metodo === 'CORTESIA') {
+            boxDinheiro.style.display = 'none';
+            boxCortesia.style.display = 'block';
+        } else {
+            boxDinheiro.style.display = 'none';
+            boxCortesia.style.display = 'none';
+        }
+
+        atualizarTotalBalcao();
+    }
+
+    // ── CÁLCULO DE TROCO EM TEMPO REAL ──
+    function calcularTroco(valorEntregueStr) {
+        const displayTroco = document.getElementById('displayTroco');
+        if (!valorEntregueStr) {
+            displayTroco.innerText = 'R$ 0,00';
+            return;
+        }
+
+        const temTv = document.getElementById('checkBoiTvBalcao').checked;
+        let total = valorBaseCategoria + (temTv ? valorTvCategoria : 0);
+        if (ehCasadinha) total = total * 2;
+
+        const valorEntregue = parseFloat(valorEntregueStr.replace(',', '.')) || 0;
+        const troco = valorEntregue - total;
+
+        if (troco >= 0) {
+            displayTroco.innerText = `R$ ${troco.toFixed(2).replace('.', ',')}`;
+            displayTroco.style.color = '#00FC00';
+        } else {
+            displayTroco.innerText = `Falta R$ ${Math.abs(troco).toFixed(2).replace('.', ',')}`;
+            displayTroco.style.color = '#FF5C6C';
+        }
+    }
+
+    // ── SELEÇÃO DE CASADINHA / KIT ──
+    function toggleCasadinha(ativado) {
+        ehCasadinha = ativado;
+        const box = document.getElementById('boxSegundaSenha');
+        const input2 = document.getElementById('inputSegundaSenha');
+        if (ativado) {
+            box.style.display = 'block';
+            input2.required = true;
+        } else {
+            box.style.display = 'none';
+            input2.required = false;
+            input2.value = '';
+        }
+        atualizarTotalBalcao();
+    }
+
+    // ── CLIQUE NA GRADE SELECIONA O NÚMERO NO FORMULÁRIO ──
+    function selecionarNumeroNoFormulario(num) {
+        document.getElementById('inputNumeroSenha').value = num;
+
+        // Atualiza destaque visual na grade
+        document.querySelectorAll('.dot-balcao').forEach(dot => {
+            if (dot.classList.contains('dot-selecionada')) {
+                dot.classList.remove('dot-selecionada');
+                dot.classList.add('dot-disponivel');
+            }
+        });
+
+        // Encontra o dot clicado e marca como selecionado
+        const dots = document.querySelectorAll('.dot-balcao');
+        dots.forEach(dot => {
+            if (dot.innerText.trim() === String(num)) {
+                dot.classList.remove('dot-disponivel');
+                dot.classList.add('dot-selecionada');
+            }
+        });
+    }
+
+    // ── BUSCA RÁPIDA DE COMPETIDOR POR CPF ──
+    function buscarVaqueiroPorCpf(cpf) {
+        cpf = cpf.trim();
+        if (!cpf || cpf.length < 8) return;
+
+        const badge = document.getElementById('badgeCpfStatus');
+        badge.innerText = 'Buscando cadastro...';
+        badge.className = 'badge bg-warning text-dark small';
+
+        fetch(`/senhas/api/buscar-vaqueiro/?cpf=${encodeURIComponent(cpf)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.sucesso) {
+                    badge.innerText = `Cadastro encontrado: ${data.nome}`;
+                    badge.className = 'badge bg-success small';
+
+                    if (data.nome) document.getElementById('campoNome').value = data.nome;
+                    if (data.apelido) document.getElementById('campoApelido').value = data.apelido;
+                    if (data.telefone) document.getElementById('campoTelefone').value = data.telefone;
+                    if (data.cidade) document.getElementById('campoCidade').value = data.cidade;
+                    if (data.estado) document.getElementById('campoEstado').value = data.estado;
+
+                    if (data.cavalo_puxador) document.getElementById('campoCavPuxador').value = data.cavalo_puxador;
+                    if (data.esteireiro) document.getElementById('campoEsteireiro').value = data.esteireiro;
+                    if (data.cavalo_esteira) document.getElementById('campoCavEsteira').value = data.cavalo_esteira;
+                    if (data.representacao) document.getElementById('campoRepresentacao').value = data.representacao;
+                } else {
+                    badge.innerText = 'Novo competidor (preencha os dados)';
+                    badge.className = 'badge bg-info text-dark small';
+                }
+            })
+            .catch(() => {
+                badge.innerText = 'Pronto para emissão';
+                badge.className = 'badge bg-secondary small';
+            });
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+        atualizarTotalBalcao();
+    });
 </script>
 {% endblock %}
