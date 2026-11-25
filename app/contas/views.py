@@ -188,7 +188,7 @@ def equipe_hub(request):
     """
     Console Central da Área Restrita (Hub Operacional).
     Exibe os cartões de controle e cabines baseados estritamente no papel do usuário:
-    - ADM Geral: Controle total (Vaquejadas, Auditoria, Locução, Juiz, Secretaria, Telão, TV Vaqueiro).
+    - ADM Geral: Controle total (Vaquejadas, Auditoria, Locução, Juiz, Secretaria, Telão).
     - Coordenador: Painel de relatórios financeiros e auditoria de inscrições do seu evento.
     - Locutor: Acesso à Cabine Oficial de Locução.
     - Juiz: Acesso ao Terminal de Julgamento da Bateria Oficial.

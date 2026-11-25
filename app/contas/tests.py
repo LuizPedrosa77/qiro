@@ -157,14 +157,11 @@ class ClienteFluxoTestCase(TestCase):
         self.assertContains(res, 'Cabine de Locução')
         self.assertContains(res, 'Mesa de Julgamento')
 
-    def test_tv_vaqueiro_e_telao_limpo(self):
-        """Verifica se a TV Vaqueiro abre com paywall R$ 39,90 e o Telão está limpo de botões de teste."""
-        # 1. TV Vaqueiro
+    def test_tv_vaqueiro_removida_e_telao_limpo(self):
+        """Verifica que a TV Vaqueiro foi removida (404) e o Telão está limpo de botões de teste."""
+        # 1. TV Vaqueiro removida
         res_tv = self.client.get('/tv-vaqueiro/')
-        self.assertEqual(res_tv.status_code, 200)
-        self.assertContains(res_tv, 'tv vaqueiro')
-        self.assertContains(res_tv, 'R$ 39,90')
-        self.assertContains(res_tv, 'Grade de Programação 24 Horas')
+        self.assertEqual(res_tv.status_code, 404)
 
         # 2. Telão Limpo
         res_telao = self.client.get('/publico/ao-vivo/')
