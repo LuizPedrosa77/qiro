@@ -238,3 +238,21 @@ class SenhasInscricaoTestCase(TestCase):
         })
         self.assertEqual(res_ok.status_code, 302)
         self.assertEqual(SenhaInscricao.objects.filter(evento=self.evento).count(), 0)
+
+    def test_central_webhooks_guia_n8n(self):
+        """Verifica se a central de webhooks carrega o passo a passo e o payload de exemplo para o ADM."""
+        admin_user = Usuario.objects.create_user(
+            username='admin_central_webhook',
+            password='testpassword',
+            papel=Usuario.Papel.ADMIN
+        )
+        self.client.login(username='admin_central_webhook', password='testpassword')
+        res = self.client.get('/senhas/integracoes/webhook/')
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'Central de Integrações & Webhook')
+        self.assertContains(res, 'Crie o Nó Webhook no n8n')
+        self.assertContains(res, 'Envie Mensagem no WhatsApp')
+        self.assertContains(res, 'Salve no Google Sheets')
+        self.assertContains(res, 'Testar Conexão Agora')
+        self.assertContains(res, 'INSCRICAO_CONFIRMADA')
+

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QIRO — Central de Webhooks & Integrações (n8n / WhatsApp)</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/static/css/qiro-design.css">
+
+    <style>
+        :root {
+            --qiro-bg: #0D1612;
+            --qiro-dark-header: #080E0B;
+            --qiro-card-bg: #14241B;
+            --qiro-card-inner: #192D22;
+            --qiro-border: #233C2D;
+            --qiro-yellow: #EAB308;
+            --qiro-yellow-hover: #FACC15;
+            --qiro-text-main: #F3F4F6;
+            --qiro-text-muted: #9CA3AF;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--qiro-bg);
+            color: var(--qiro-text-main);
+            min-height: 100vh;
+        }
+
+        .topbar-webhook {
+            background-color: var(--qiro-dark-header);
+            border-bottom: 2px solid var(--qiro-border);
+            padding: 0.9rem 1.5rem;
+        }
+
+        .card-custom {
+            background-color: var(--qiro-card-bg);
+            border: 1px solid var(--qiro-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .card-inner {
+            background-color: var(--qiro-card-inner);
+            border: 1px solid var(--qiro-border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+
+        .code-box {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #070D0A;
+            border: 1px solid var(--qiro-border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            color: #A7F3D0;
+            font-size: 0.82rem;
+            max-height: 420px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .step-badge {
+            width: 32px;
+            height: 32px;
+            background: var(--qiro-yellow);
+            color: #000;
+            font-weight: 900;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .btn-copy {
+            background: rgba(234, 179, 8, 0.15);
+            color: var(--qiro-yellow);
+            border: 1px solid var(--qiro-yellow);
+            font-weight: 600;
+            font-size: 0.8rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        .btn-copy:hover {
+            background: var(--qiro-yellow);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ──────────────── TOPBAR ──────────────── -->
+    <header class="topbar-webhook sticky-top">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <a href="/equipe/hub/" class="btn btn-sm btn-outline-secondary text-white d-flex align-items-center gap-2">
+                    <i class="bi bi-arrow-left"></i> Voltar ao Hub
+                </a>
+                <div class="vr bg-secondary opacity-50 d-none d-sm-block"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-4 fw-black text-warning">QIRO</span>
+                    <span class="badge bg-dark border border-secondary text-secondary small">Webhooks & n8n</span>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="small text-secondary d-none d-md-inline">
+                    Operador: <strong class="text-white">{{ usuario.get_full_name|default:usuario.username }}</strong>
+                </span>
+                <span class="badge bg-danger">ADMIN GERAL</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ──────────────── CONTEÚDO PRINCIPAL ──────────────── -->
+    <main class="container py-4 my-2">
+
+        <!-- CABEÇALHO DO MÓDULO -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+            <div>
+                <h2 class="fw-black text-white mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-diagram-3-fill text-warning"></i> Central de Integrações & Webhook
+                </h2>
+                <p class="text-secondary small mb-0">
+                    Conecte o QIRO ao <strong>n8n</strong> para automatizar disparos de WhatsApp, arquivamento no Google Sheets e notificações em tempo real.
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-warning text-black fw-bold d-flex align-items-center gap-2" id="btnTestarWebhook" onclick="testarWebhookN8N()">
+                    <i class="bi bi-send-fill"></i> Testar Conexão Agora
+                </button>
+            </div>
+        </div>
+
+        <!-- PAINEL DE STATUS DA CONEXÃO -->
+        <div class="card-custom mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-7">
+                    <div class="text-secondary small text-uppercase fw-bold mb-1">URL de Destino do Webhook (POST):</div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-warning">
+                            <i class="bi bi-link-45deg fs-5"></i>
+                        </span>
+                        <input type="text" class="form-control bg-dark text-white border-secondary font-monospace" value="{{ webhook_url }}" id="inputWebhookUrl" readonly>
+                        <button class="btn btn-outline-warning" type="button" onclick="copiarTexto('inputWebhookUrl')">
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                    </div>
+                    <div class="text-muted small mt-1">
+                        * Pode ser alterada via variável de ambiente <code>N8N_WEBHOOK_URL</code> no arquivo <code>settings.py</code> / <code>.env</code>.
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="card-inner d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small fw-bold text-white">Status da Transmissão:</div>
+                            <div class="text-secondary" style="font-size: 0.78rem;">Disparo em segundo plano (Thread Daemon não-bloqueante)</div>
+                        </div>
+                        <div>
+                            {% if webhook_ativo %}
+                            <span class="badge bg-success-subtle text-success border border-success px-3 py-2 fw-bold">
+                                <i class="bi bi-check-circle-fill me-1"></i> ATIVO
+                            </span>
+                            {% else %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-2 fw-bold">
+                                <i class="bi bi-x-circle-fill me-1"></i> INATIVO
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toast / Alerta de Resultado do Teste -->
+            <div id="alertaTesteWebhook" class="mt-3 d-none"></div>
+        </div>
+
+        <!-- GUIA PASSO A PASSO -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-7">
+                <div class="card-custom h-100">
+                    <h4 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-book-half text-warning"></i> Como Configurar no n8n (Passo a Passo)
+                    </h4>
+
+                    <!-- PASSO 1 -->
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="step-badge flex-shrink-0">1</div>
+                        <div>
+                            <h5 class="fw-bold text-white mb-1">Crie o Nó Webhook no n8n</h5>
+                            <p class="text-secondary small mb-2">
+                                Abra seu fluxo no n8n, adicione o nó <code>Webhook</code> e configure:
+                            </p>
+                            <ul class="text-secondary small ps-3 mb-2">
+                                <li><strong>HTTP Method:</strong> <code>POST</code></li>
+                                <li><strong>Path:</strong> <code>nova-inscricao-qiro</code></li>
+                                <li><strong>Response Mode:</strong> <code>On Received</code> (para resposta imediata em 200 ms)</li>
+                                <li><strong>Response Code:</strong> <code>200</code></li>
+                            </ul>
+                            <div class="alert alert-dark border-secondary py-1.5 px-3 small text-warning mb-0">
+                                <i class="bi bi-info-circle me-1"></i> Use a <em>Production URL</em> no QIRO quando o fluxo for ativado no n8n.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASSO 2 -->
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="step-badge flex-shrink-0">2</div>
+                        <div>
+                            <h5 class="fw-bold text-white mb-1">Envie Mensagem no WhatsApp do Coordenador</h5>
+                            <p class="text-secondary small mb-2">
+                                Conecte um nó de WhatsApp (Evolution API, Z-API, Baileys, WPPConnect ou WhatsApp Cloud). Utilize as variáveis do payload para formatar a mensagem:
+                            </p>
+                            <div class="position-relative">
+                                <textarea class="form-control bg-dark text-white border-secondary font-monospace small mb-2" id="txtMsgWhatsApp" rows="7" readonly>{{ exemplo_whatsapp }}</textarea>
+                                <button class="btn btn-copy position-absolute top-0 end-0 m-2" onclick="copiarTexto('txtMsgWhatsApp')">
+                                    <i class="bi bi-clipboard"></i> Copiar Mensagem
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASSO 3 -->
+                    <div class="d-flex gap-3">
+                        <div class="step-badge flex-shrink-0">3</div>
+                        <div>
+                            <h5 class="fw-bold text-white mb-1">Salve no Google Sheets ou Planilha Excel</h5>
+                            <p class="text-secondary small mb-2">
+                                Adicione um nó <strong>Google Sheets</strong> (opção <em>Append Row</em>) para registrar cada comprador em colunas separadas:
+                            </p>
+                            <div class="card-inner small text-secondary">
+                                <span class="badge bg-secondary me-1 mb-1">Nº Senha</span>
+                                <span class="badge bg-secondary me-1 mb-1">Dia</span>
+                                <span class="badge bg-secondary me-1 mb-1">Categoria</span>
+                                <span class="badge bg-secondary me-1 mb-1">Vaqueiro Puxador</span>
+                                <span class="badge bg-secondary me-1 mb-1">CPF</span>
+                                <span class="badge bg-secondary me-1 mb-1">WhatsApp</span>
+                                <span class="badge bg-secondary me-1 mb-1">Esteireiro</span>
+                                <span class="badge bg-secondary me-1 mb-1">Cavalo Puxar</span>
+                                <span class="badge bg-secondary me-1 mb-1">Cavalo Esteira</span>
+                                <span class="badge bg-secondary me-1 mb-1">Representação</span>
+                                <span class="badge bg-secondary me-1 mb-1">Valor Total (R$)</span>
+                                <span class="badge bg-secondary me-1 mb-1">Boi TV (Sim/Não)</span>
+                                <span class="badge bg-secondary me-1 mb-1">Forma de Pagamento</span>
+                                <span class="badge bg-secondary me-1 mb-1">Data / Hora</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ESTRUTURA DO PAYLOAD JSON -->
+            <div class="col-lg-5">
+                <div class="card-custom h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-filetype-json text-warning"></i> Payload JSON (Exemplo)
+                        </h4>
+                        <button class="btn btn-copy" onclick="copiarTexto('jsonPayloadBox')">
+                            <i class="bi bi-clipboard"></i> Copiar JSON
+                        </button>
+                    </div>
+                    <p class="text-secondary small mb-3">
+                        Estrutura enviada em toda venda (tanto <strong>Online</strong> quanto <strong>Secretaria Presencial</strong>):
+                    </p>
+                    <textarea class="code-box w-100" id="jsonPayloadBox" rows="18" readonly>{{ exemplo_payload_json }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRÓXIMAS ETAPAS (WEBHOOKS FUTUROS) -->
+        <div class="card-custom">
+            <h5 class="fw-bold text-white mb-2 d-flex align-items-center gap-2">
+                <i class="bi bi-clock-history text-warning"></i> Próximos Webhooks da Esteira de Corrida
+            </h5>
+            <p class="text-secondary small mb-3">
+                Conforme o evento for ocorrendo na pista, estes novos eventos serão emitidos automaticamente para a mesma URL:
+            </p>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card-inner">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-info text-black fw-bold">LOCUTOR</span>
+                            <strong class="text-white small">CHAMADA_PISTA</strong>
+                        </div>
+                        <div class="text-secondary small">
+                            Disparado quando o locutor chama a próxima senha para o brete. Permite enviar WhatsApp de alerta para o vaqueiro ir para o aquecimento.
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-inner">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-success text-white fw-bold">JUIZ</span>
+                            <strong class="text-white small">JULGAMENTO_CONCLUIDO</strong>
+                        </div>
+                        <div class="text-secondary small">
+                            Disparado quando a mesa digita "Valeu Boi", "Zero" ou "Retorno". Alimenta tabelas de pontuação e envia o resultado oficial ao coordenador.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script de Interação e Teste do Webhook -->
+    <script>
+        function copiarTexto(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const texto = el.value || el.innerText;
+            navigator.clipboard.writeText(texto).then(() => {
+                alert('Conteúdo copiado com sucesso para a área de transferência!');
+            }).catch(() => {
+                el.select();
+                document.execCommand('copy');
+                alert('Copiado com sucesso!');
+            });
+        }
+
+        function testarWebhookN8N() {
+            const btn = document.getElementById('btnTestarWebhook');
+            const alertBox = document.getElementById('alertaTesteWebhook');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Disparando Teste...';
+            alertBox.className = 'mt-3 d-none';
+
+            fetch('/senhas/api/testar-webhook/', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, body: data })))
+            .then(result => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send-fill"></i> Testar Conexão Agora';
+                alertBox.classList.remove('d-none');
+
+                if (result.ok && result.body.sucesso) {
+                    alertBox.className = 'mt-3 alert alert-success border-success text-white';
+                    alertBox.innerHTML = `
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle-fill fs-5 text-success"></i>
+                            <div>
+                                <strong>Sucesso!</strong> O n8n respondeu com código <strong>HTTP ${result.body.status_code}</strong>.<br>
+                                <small class="text-light">Sua automação está conectada e pronta para receber inscrições em tempo real.</small>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    alertBox.className = 'mt-3 alert alert-warning border-warning text-white bg-dark';
+                    alertBox.innerHTML = `
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 text-warning"></i>
+                            <div>
+                                <strong>Atenção:</strong> ${result.body.mensagem || 'Falha ao conectar com o n8n.'}<br>
+                                <small class="text-secondary">Certifique-se de que o n8n está aberto e ouvindo na URL: <code>${result.body.url || ''}</code>.</small>
+                            </div>
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send-fill"></i> Testar Conexão Agora';
+                alertBox.classList.remove('d-none');
+                alertBox.className = 'mt-3 alert alert-danger border-danger text-white bg-dark';
+                alertBox.innerHTML = `
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-x-octagon-fill fs-5 text-danger"></i>
+                        <div>
+                            <strong>Erro de Conexão:</strong> Não foi possível alcançar o servidor local do n8n.<br>
+                            <small class="text-secondary">${err.message}</small>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

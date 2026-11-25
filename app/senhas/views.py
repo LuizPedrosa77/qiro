@@ -1,6 +1,7 @@
 import uuid
 from decimal import Decimal
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
@@ -486,3 +487,112 @@ def api_testar_webhook_n8n(request):
             'mensagem': f'n8n não respondeu ou retornou código de erro ({status_code}). Verifique se o n8n está ativo e escutando a rota.',
             'url': url
         }, status=502 if not status_code else 400)
+
+
+@login_required(login_url='/equipe/login/')
+def webhook_central(request):
+    """
+    Central de Webhooks e Automações (n8n, WhatsApp e Planilhas).
+    Disponível para o Administrador Geral e Organizadores.
+    Exibe guia passo a passo, modelo de payload JSON, templates prontos para WhatsApp e disparador de teste.
+    """
+    user = request.user
+    if not (user.is_superuser or user.papel in [Usuario.Papel.ADMIN, Usuario.Papel.ORGANIZADOR]):
+        messages.error(request, 'Acesso restrito ao Administrador Geral.')
+        return redirect('/equipe/hub/')
+
+    from django.conf import settings
+    webhook_url = getattr(settings, 'N8N_WEBHOOK_URL', 'http://localhost:5678/webhook/nova-inscricao-qiro')
+    webhook_ativo = getattr(settings, 'N8N_WEBHOOK_ATIVO', True)
+
+    import json
+    exemplo_payload = {
+        "evento_tipo": "INSCRICAO_CONFIRMADA",
+        "sistema": "QIRO — Gestão de Vaquejada",
+        "versao": "2.0",
+        "inscricao": {
+            "id": "e4f8b912-32a1-43e8-9bc7-111122223333",
+            "codigo_autenticidade": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "numero_senha": 42,
+            "dia_corrida": "Sexta",
+            "eh_kit": False,
+            "numero_segunda_senha": None,
+            "tem_boi_tv": True,
+            "status": "PAGA",
+            "status_descricao": "Inscrição Paga & Confirmada",
+            "origem_venda": "ONLINE",
+            "origem_venda_descricao": "Venda Online (Site)",
+            "forma_pagamento": "PIX",
+            "forma_pagamento_descricao": "Pix Instantâneo",
+            "valor_total": 510.00,
+            "data_hora": timezone.now().strftime("%d/%m/%Y %H:%M:%S"),
+            "link_recibo": "/senhas/recibo/a1b2c3d4-e5f6-7890-abcd-ef1234567890/"
+        },
+        "evento": {
+            "id": "99b1a2c3-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
+            "nome": "Grande Vaquejada do Milhão",
+            "parque": "Parque Millany",
+            "cidade": "Caruaru",
+            "estado": "PE",
+            "circuito_chancela": "Campeonato Portal Vaquejada"
+        },
+        "categoria": {
+            "id": "88c2b3a4-5d6e-7f8a-9b0c-1d2e3f4a5b6c",
+            "nome": "Profissional",
+            "tipo": "PROFISSIONAL",
+            "valor_unitario": 450.00,
+            "valor_boi_tv": 60.00
+        },
+        "atleta_puxador": {
+            "id": "77d3c4b5-6e7f-8a9b-0c1d-2e3f4a5b6c7d",
+            "nome": "Junior Vaqueiro",
+            "apelido_locucao": "O Furacão das Pistas",
+            "cpf": "123.456.789-00",
+            "telefone_whatsapp": "(81) 98888-7777",
+            "email": "junior@email.com",
+            "cidade": "Caruaru",
+            "estado": "PE"
+        },
+        "atleta_esteireiro": {
+            "id": "66e4d5c6-7f8a-9b0c-1d2e-3f4a5b6c7d8e",
+            "nome": "Beto Esteira",
+            "apelido_locucao": "Beto da Esteira"
+        },
+        "animais": {
+            "cavalo_puxador": "Iron Man Ease",
+            "cavalo_esteira": "Don Diego Bar"
+        },
+        "equipe": {
+            "representacao": "Haras Estrela do Norte"
+        },
+        "secretaria": {
+            "operador": "secretaria_presencial"
+        }
+    }
+    exemplo_payload_json = json.dumps(exemplo_payload, indent=2, ensure_ascii=False)
+
+    exemplo_whatsapp = (
+        "📢 *NOVA INSCRIÇÃO CONFIRMADA — QIRO*\n\n"
+        "🐎 *Vaquejada:* Grande Vaquejada do Milhão\n"
+        "📍 *Parque:* Parque Millany (Caruaru - PE)\n"
+        "🏷️ *Categoria:* Profissional\n"
+        "🔢 *Senha Nº:* #42 (Sexta)\n\n"
+        "🤠 *Puxador:* Junior Vaqueiro (O Furacão das Pistas)\n"
+        "🤝 *Esteireiro:* Beto Esteira\n"
+        "🐴 *Cavalos:* Iron Man Ease x Don Diego Bar\n"
+        "🏡 *Representação:* Haras Estrela do Norte\n\n"
+        "💰 *Valor:* R$ 510,00 (Pix Instantâneo)\n"
+        "📺 *Boi de TV:* Sim\n"
+        "📅 *Data:* " + timezone.now().strftime("%d/%m/%Y %H:%M:%S") + "\n"
+        "━━━━━━━━━━━━━━━━━━━━━━\n"
+        "✅ Inscrição garantida no sistema QIRO!"
+    )
+
+    return render(request, 'senhas/webhook_central.html', {
+        'usuario': user,
+        'webhook_url': webhook_url,
+        'webhook_ativo': webhook_ativo,
+        'exemplo_payload_json': exemplo_payload_json,
+        'exemplo_whatsapp': exemplo_whatsapp,
+    })
+

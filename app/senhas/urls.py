@@ -8,4 +8,5 @@ urlpatterns = [
     path('recibo/<uuid:codigo_autenticidade>/', views.recibo_balcao, name='recibo_balcao'),
     path('admin/zerar-senhas/', views.admin_zerar_senhas, name='admin_zerar_senhas'),
     path('api/testar-webhook/', views.api_testar_webhook_n8n, name='api_testar_webhook_n8n'),
+    path('integracoes/webhook/', views.webhook_central, name='webhook_central'),
 ]
