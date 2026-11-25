@@ -11,6 +11,7 @@ from senhas.models import Categoria, SenhaInscricao
 from competidores.models import Animal
 from contas.models import Usuario
 from financeiro.models import Transacao
+from senhas.webhooks import disparar_webhook_n8n
 
 
 def mapa_senhas(request):
@@ -346,6 +347,9 @@ def finalizar_inscricao(request):
             pago_em=timezone.now()
         )
 
+        # Dispara automação assíncrona para o n8n (WhatsApp / Google Sheets / Alertas)
+        disparar_webhook_n8n(senha, evento_tipo='INSCRICAO_CONFIRMADA')
+
         # Mensagem rica para o operador
         troco_info = ""
         valor_recebido_str = request.POST.get('valor_recebido', '').replace(',', '.').strip()
@@ -393,3 +397,92 @@ def recibo_balcao(request, codigo_autenticidade):
         'senha': senha,
         'auto_print': auto_print,
     })
+
+
+def admin_zerar_senhas(request):
+    """
+    Ação exclusiva do Administrador Geral / Secretaria do Parque para reiniciar
+    as senhas do evento ou de uma categoria específica (limpeza de testes ou reabertura de lotes).
+    Exige confirmação digitando a palavra ZERAR.
+    """
+    if request.method == 'POST':
+        evento_id = request.POST.get('evento_id')
+        categoria_id = request.POST.get('categoria_id')
+        escopo = request.POST.get('escopo', 'TODAS')  # 'TODAS' ou 'RESERVAS_EXPIRADAS'
+        confirmacao = request.POST.get('confirmacao', '').strip().upper()
+
+        if confirmacao != 'ZERAR':
+            messages.error(request, 'Operação cancelada: para confirmar a limpeza, você deve digitar exatamente a palavra ZERAR.')
+            redirect_url = f"/senhas/mapa/?categoria={categoria_id}" if categoria_id and categoria_id != 'TODAS' else "/senhas/mapa/"
+            return redirect(redirect_url)
+
+        senhas_qs = SenhaInscricao.objects.all()
+        if evento_id:
+            senhas_qs = senhas_qs.filter(evento_id=evento_id)
+        if categoria_id and categoria_id != 'TODAS':
+            senhas_qs = senhas_qs.filter(categoria_id=categoria_id)
+
+        if escopo == 'RESERVAS_EXPIRADAS':
+            senhas_qs = senhas_qs.filter(
+                status=SenhaInscricao.StatusSenha.RESERVADA,
+                reservada_ate__lt=timezone.now()
+            )
+            qtd = senhas_qs.count()
+            senhas_qs.delete()
+            messages.success(request, f'Limpeza concluída: {qtd} reserva(s) expirada(s) foram canceladas e seus números liberados.')
+        else:
+            qtd = senhas_qs.count()
+            # Deleta transações financeiras vinculadas antes para evitar erro de integridade relacional
+            Transacao.objects.filter(senha__in=senhas_qs).delete()
+            senhas_qs.delete()
+            messages.success(request, f'Grade reiniciada com sucesso! {qtd} senha(s) foram zeradas e todos os números estão 100% livres para comercialização.')
+
+        redirect_url = f"/senhas/mapa/?categoria={categoria_id}" if categoria_id and categoria_id != 'TODAS' else "/senhas/mapa/"
+        return redirect(redirect_url)
+
+    return redirect("/senhas/mapa/")
+
+
+def api_testar_webhook_n8n(request):
+    """
+    Endpoint de teste para verificar a conectividade do webhook do Django com o n8n.
+    Envia um payload simulado e retorna a resposta do n8n em JSON.
+    """
+    from senhas.webhooks import _enviar_post_http
+    from django.conf import settings
+
+    url = getattr(settings, 'N8N_WEBHOOK_URL', '')
+    if not url:
+        return JsonResponse({'sucesso': False, 'erro': 'N8N_WEBHOOK_URL não configurada no settings.'}, status=400)
+
+    payload_teste = {
+        'evento_tipo': 'TESTE_CONEXAO_QIRO',
+        'sistema': 'QIRO — Gestão de Vaquejada',
+        'mensagem': 'Teste de conectividade bem-sucedido entre o QIRO e o n8n!',
+        'timestamp': timezone.now().isoformat(),
+        'exemplo_inscricao': {
+            'numero_senha': 10,
+            'categoria': 'Aberta',
+            'vaqueiro': 'Competidor de Teste',
+            'cpf': '000.000.000-00',
+            'whatsapp': '(81) 99999-9999',
+            'valor_total': 410.00,
+            'status': 'PAGA'
+        }
+    }
+
+    status_code = _enviar_post_http(url, payload_teste)
+    if status_code and 200 <= status_code < 300:
+        return JsonResponse({
+            'sucesso': True,
+            'status_code': status_code,
+            'mensagem': f'Webhook recebido pelo n8n com sucesso (HTTP {status_code})!',
+            'url': url
+        })
+    else:
+        return JsonResponse({
+            'sucesso': False,
+            'status_code': status_code,
+            'mensagem': f'n8n não respondeu ou retornou código de erro ({status_code}). Verifique se o n8n está ativo e escutando a rota.',
+            'url': url
+        }, status=502 if not status_code else 400)

@@ -114,3 +114,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ═══════════════════════════════════════════════════════════════
+# INTEGRAÇÃO N8N & WEBHOOKS DE VAQUEJADA
+# ═══════════════════════════════════════════════════════════════
+import os
+N8N_WEBHOOK_URL = os.environ.get(
+    'N8N_WEBHOOK_URL', 
+    'http://localhost:5678/webhook/nova-inscricao-qiro'
+)
+N8N_WEBHOOK_ATIVO = os.environ.get('N8N_WEBHOOK_ATIVO', 'True').lower() in ('true', '1', 'yes')

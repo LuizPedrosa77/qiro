@@ -178,11 +178,19 @@
                 </h4>
             </div>
 
-            <div class="text-end">
-                <span class="text-secondary small d-block">Operador Logado:</span>
-                <strong class="text-warning fs-6">
-                    <i class="bi bi-shield-lock-fill me-1"></i> {{ request.user.first_name|default:request.user.username }}
-                </strong>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-bold" onclick="testarConexaoN8N()" title="Testar conectividade do Webhook com o n8n">
+                    <i class="bi bi-diagram-3-fill me-1"></i> Testar n8n
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalZerarSenhas" title="Reiniciar senhas do evento ou limpar testes">
+                    <i class="bi bi-trash3-fill me-1"></i> Zerar Senhas
+                </button>
+                <div class="text-end ms-2">
+                    <span class="text-secondary small d-block">Operador:</span>
+                    <strong class="text-warning fs-6">
+                        <i class="bi bi-shield-lock-fill me-1"></i> {{ request.user.first_name|default:request.user.username }}
+                    </strong>
+                </div>
             </div>
         </div>
 
@@ -700,9 +708,102 @@
             });
     }
 
+    // ── TESTE DE CONECTIVIDADE COM O N8N ──
+    function testarConexaoN8N() {
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Testando...';
+
+        fetch('/senhas/api/testar-webhook/')
+            .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, body: data })))
+            .then(res => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                if (res.ok && res.body.sucesso) {
+                    alert(`✅ CONEXÃO COM N8N BEM-SUCEDIDA!\n\n${res.body.mensagem}\n\nEndpoint: ${res.body.url}`);
+                } else {
+                    alert(`⚠️ STATUS DO N8N:\n\n${res.body.mensagem}\n\nURL configurada: ${res.body.url}`);
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                alert(`❌ Erro de rede ao disparar teste: ${err.message}`);
+            });
+    }
+
     // Inicialização
     document.addEventListener('DOMContentLoaded', function() {
         atualizarTotalBalcao();
     });
 </script>
+
+<!-- ═════════ MODAL DE SEGURANÇA: ZERAR SENHAS DO EVENTO ═════════ -->
+<div class="modal fade" id="modalZerarSenhas" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger text-white shadow-lg" style="background-color: #16281F; border: 1.5px solid #DC2626;">
+            <div class="modal-header border-secondary border-opacity-25 pb-2">
+                <h5 class="modal-title fw-black text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Zerar Grade de Senhas
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="/senhas/admin/zerar-senhas/">
+                {% csrf_token %}
+                <input type="hidden" name="evento_id" value="{{ evento.id }}">
+                
+                <div class="modal-body py-3">
+                    <p class="small text-secondary mb-3">
+                        Esta ação foi criada para limpeza de senhas de teste antes da abertura oficial ou para cancelar reservas pendentes que expiraram.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label text-warning small fw-bold">Categoria Alvo</label>
+                        <select name="categoria_id" class="form-select bg-dark text-white border-secondary">
+                            <option value="TODAS">Todas as Categorias do Evento</option>
+                            {% for cat in categorias %}
+                            <option value="{{ cat.id }}" {% if cat.id == categoria_atual.id %}selected{% endif %}>
+                                Somente: {{ cat.nome_exibicao }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-warning small fw-bold">Tipo de Limpeza</label>
+                        <div class="vstack gap-2">
+                            <div class="form-check p-2.5 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
+                                <input class="form-check-input ms-0 me-2" type="radio" name="escopo" id="escopoTodas" value="TODAS" checked>
+                                <label class="form-check-label text-light small fw-bold" for="escopoTodas">
+                                    <strong class="text-danger">Zerar Todas as Inscrições:</strong> Exclui todas as senhas (1 a 200) e deixa a grade 100% livre para venda oficial.
+                                </label>
+                            </div>
+                            <div class="form-check p-2.5 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
+                                <input class="form-check-input ms-0 me-2" type="radio" name="escopo" id="escopoExpiradas" value="RESERVAS_EXPIRADAS">
+                                <label class="form-check-label text-light small fw-bold" for="escopoExpiradas">
+                                    <strong class="text-warning">Limpar Apenas Reservas Expiradas:</strong> Mantém as senhas pagas e cancela apenas os Pix não pagos após 15 min.
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-danger bg-opacity-10 border border-danger mb-2">
+                        <label class="form-label text-danger small fw-bold mb-1">
+                            Para confirmar, digite a palavra <strong class="text-white">ZERAR</strong> abaixo:
+                        </label>
+                        <input type="text" name="confirmacao" class="form-control bg-dark text-white border-danger text-center fw-black" placeholder="Digite ZERAR" required autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="modal-footer border-secondary border-opacity-25 pt-2">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-black">
+                        <i class="bi bi-trash3-fill me-1"></i> EXECUTAR LIMPEZA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

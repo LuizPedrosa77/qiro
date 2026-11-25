@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Sum
 from datetime import datetime
+import uuid
 from django.utils import timezone
 
 from contas.models import Usuario
@@ -11,6 +12,7 @@ from eventos.models import Evento
 from senhas.models import Categoria, SenhaInscricao
 from competidores.models import Animal
 from financeiro.models import Transacao
+from senhas.webhooks import disparar_webhook_n8n
 
 
 def tela_inicial(request):
@@ -343,11 +345,6 @@ def cliente_comprar(request):
                 else:
                     senhas_reservadas.add(s.numero_senha)
 
-    # Simulação para demonstração visual se a categoria tiver poucas senhas no banco
-    if len(senhas_pagas) + len(senhas_reservadas) < 10:
-        senhas_pagas.update(range(1, 140))
-        senhas_reservadas.update([142, 145, 148, 150])
-
     total_grid = categoria_atual.limite_senhas if (categoria_atual and categoria_atual.limite_senhas) else 200
     grade_senhas = []
     total_disponiveis = 0
@@ -410,6 +407,18 @@ def cliente_comprar(request):
         representacao = request.POST.get('representacao', '').strip() or 'Haras Independente'
         tem_boi_tv = request.POST.get('tem_boi_tv') == 'on'
 
+        # Vaqueiro esteireiro
+        vaq_esteira = None
+        if esteireiro_nome:
+            vaq_esteira = Usuario.objects.filter(first_name=esteireiro_nome.split()[0]).first()
+            if not vaq_esteira:
+                vaq_esteira = Usuario.objects.create(
+                    username=f"est_{uuid.uuid4().hex[:8]}",
+                    first_name=esteireiro_nome.split()[0],
+                    last_name=' '.join(esteireiro_nome.split()[1:]) if len(esteireiro_nome.split()) > 1 else '',
+                    papel=Usuario.Papel.COMPETIDOR
+                )
+
         # Cavalos
         cav_pux, _ = Animal.objects.get_or_create(
             nome=cavalo_puxador_nome,
@@ -420,7 +429,9 @@ def cliente_comprar(request):
             defaults={'funcao': Animal.Funcao.ESTEIRA, 'proprietario': request.user}
         )
 
-        valor_total_unidade = categoria.valor_senha + (categoria.valor_boi_tv if tem_boi_tv else 0)
+        valor_base = categoria.valor_senha
+        valor_tv = categoria.valor_boi_tv if tem_boi_tv else Decimal('0.00')
+        valor_total_unidade = valor_base + valor_tv
 
         senhas_geradas = []
         eh_kit_casadinha = len(numeros_selecionados) >= 2
@@ -433,6 +444,7 @@ def cliente_comprar(request):
                 numero_senha=num_s,
                 vaqueiro_puxador=request.user,
                 cavalo_puxador=cav_pux,
+                vaqueiro_esteireiro=vaq_esteira,
                 cavalo_esteireiro=cav_est,
                 representacao=representacao,
                 tem_boi_tv=tem_boi_tv,
@@ -445,6 +457,22 @@ def cliente_comprar(request):
                 numero_segunda_senha=segunda_num if idx == 0 else None
             )
             senhas_geradas.append(senha_obj)
+
+            # Registra a Transação financeira da senha
+            Transacao.objects.create(
+                senha=senha_obj,
+                usuario=request.user,
+                valor_base=valor_base,
+                valor_adicional_tv=valor_tv,
+                valor_total=valor_total_unidade,
+                metodo=Transacao.MetodoPagamento.PIX,
+                status=Transacao.StatusPagamento.PAGO,
+                comprovante_id=f"ONLINE-{senha_obj.codigo_autenticidade.hex[:8].upper()}",
+                pago_em=timezone.now()
+            )
+
+            # Dispara automação assíncrona para n8n (WhatsApp / Planilhas)
+            disparar_webhook_n8n(senha_obj, evento_tipo='INSCRICAO_CONFIRMADA')
 
         if len(senhas_geradas) == 1:
             messages.success(request, f'Parabéns! Senha #{numeros_selecionados[0]} garantida com sucesso na {categoria.nome_exibicao} ({evento.nome})!')

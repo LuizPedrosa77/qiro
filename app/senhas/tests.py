@@ -181,3 +181,60 @@ class SenhasInscricaoTestCase(TestCase):
         self.assertEqual(data['nome'], 'Manoel')
         self.assertEqual(data['apelido'], 'Manoel Vaqueiro')
         self.assertEqual(data['cidade'], 'Bezerros')
+
+    def test_webhook_payload_structure(self):
+        """Verifica se o payload gerado para o n8n contém todos os campos necessários."""
+        from senhas.webhooks import montar_payload_inscricao
+        senha = SenhaInscricao.objects.create(
+            evento=self.evento,
+            categoria=self.categoria,
+            numero_senha=55,
+            vaqueiro_puxador=self.operador,
+            cavalo_puxador=Animal.objects.create(nome='Cavalo Teste Webhook', funcao=Animal.Funcao.PUXADOR),
+            representacao='Haras Webhook N8N',
+            valor_total=500.00,
+            forma_pagamento=SenhaInscricao.FormaPagamento.PIX,
+            status=SenhaInscricao.StatusSenha.PAGA
+        )
+        payload = montar_payload_inscricao(senha)
+        self.assertEqual(payload['evento_tipo'], 'INSCRICAO_CONFIRMADA')
+        self.assertEqual(payload['inscricao']['numero_senha'], 55)
+        self.assertEqual(payload['atleta_puxador']['nome'], 'Claudio')
+        self.assertEqual(payload['animais']['cavalo_puxador'], 'Cavalo Teste Webhook')
+        self.assertEqual(payload['equipe']['representacao'], 'Haras Webhook N8N')
+        self.assertIn('link_recibo', payload['inscricao'])
+
+    def test_admin_zerar_senhas_com_confirmacao(self):
+        """Verifica a segurança do zeramento de senhas: exige a palavra ZERAR."""
+        # Cria 3 senhas de teste
+        for n in [1, 2, 3]:
+            SenhaInscricao.objects.create(
+                evento=self.evento,
+                categoria=self.categoria,
+                numero_senha=n,
+                vaqueiro_puxador=self.operador,
+                cavalo_puxador=Animal.objects.create(nome=f'Cavalo {n}', funcao=Animal.Funcao.PUXADOR),
+                representacao='Haras Teste',
+                valor_total=500.00
+            )
+        self.assertEqual(SenhaInscricao.objects.filter(evento=self.evento).count(), 3)
+
+        # Tentativa com confirmação errada
+        res_erro = self.client.post('/senhas/admin/zerar-senhas/', data={
+            'evento_id': str(self.evento.id),
+            'categoria_id': 'TODAS',
+            'escopo': 'TODAS',
+            'confirmacao': 'SIM'
+        })
+        self.assertEqual(res_erro.status_code, 302)
+        self.assertEqual(SenhaInscricao.objects.filter(evento=self.evento).count(), 3)
+
+        # Confirmação correta digitando 'ZERAR'
+        res_ok = self.client.post('/senhas/admin/zerar-senhas/', data={
+            'evento_id': str(self.evento.id),
+            'categoria_id': 'TODAS',
+            'escopo': 'TODAS',
+            'confirmacao': 'ZERAR'
+        })
+        self.assertEqual(res_ok.status_code, 302)
+        self.assertEqual(SenhaInscricao.objects.filter(evento=self.evento).count(), 0)
