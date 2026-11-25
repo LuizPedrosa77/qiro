@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QIRO — Dashboard Analítico de Senhas & Vendas</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/static/css/qiro-design.css">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --qiro-bg: #0B120E;
+            --qiro-dark-header: #070B09;
+            --qiro-card-bg: #111E16;
+            --qiro-card-inner: #16281E;
+            --qiro-border: #1F3627;
+            --qiro-yellow: #EAB308;
+            --qiro-yellow-hover: #FACC15;
+            --qiro-green: #22C55E;
+            --qiro-blue: #0284C7;
+            --qiro-cyan: #06B6D4;
+            --qiro-purple: #A855F7;
+            --qiro-orange: #F97316;
+            --qiro-text-main: #F3F4F6;
+            --qiro-text-muted: #9CA3AF;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--qiro-bg);
+            color: var(--qiro-text-main);
+            min-height: 100vh;
+        }
+
+        .topbar-dash {
+            background-color: var(--qiro-dark-header);
+            border-bottom: 2px solid var(--qiro-border);
+            padding: 0.85rem 1.5rem;
+        }
+
+        .card-kpi {
+            background: linear-gradient(145deg, #13241A 0%, #0D1812 100%);
+            border: 1px solid var(--qiro-border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .card-kpi:hover {
+            transform: translateY(-2px);
+            border-color: rgba(234, 179, 8, 0.4);
+        }
+
+        .kpi-icon-bg {
+            position: absolute;
+            right: -10px;
+            bottom: -15px;
+            font-size: 5rem;
+            opacity: 0.06;
+            color: #FFF;
+            pointer-events: none;
+        }
+
+        .card-chart {
+            background-color: var(--qiro-card-bg);
+            border: 1px solid var(--qiro-border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            height: 100%;
+        }
+
+        .chart-container-box {
+            position: relative;
+            width: 100%;
+            height: 280px;
+        }
+
+        .chart-container-box-sm {
+            position: relative;
+            width: 100%;
+            height: 220px;
+        }
+
+        .btn-filter-pill {
+            background-color: #16281E;
+            border: 1px solid var(--qiro-border);
+            color: #D1D5DB;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.4rem 0.9rem;
+            border-radius: 2rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-filter-pill:hover {
+            border-color: var(--qiro-yellow);
+            color: #FFF;
+        }
+        .btn-filter-pill.active {
+            background-color: var(--qiro-yellow);
+            color: #000;
+            border-color: var(--qiro-yellow);
+            font-weight: 700;
+        }
+
+        .table-custom {
+            color: var(--qiro-text-main);
+            background-color: transparent;
+        }
+        .table-custom thead th {
+            background-color: #0F1C14;
+            border-bottom: 2px solid var(--qiro-border);
+            color: #9CA3AF;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+        }
+        .table-custom tbody td {
+            background-color: transparent;
+            border-bottom: 1px solid #1C3023;
+            font-size: 0.85rem;
+            vertical-align: middle;
+            padding: 0.75rem 1rem;
+        }
+        .table-custom tbody tr:hover td {
+            background-color: rgba(234, 179, 8, 0.04);
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #FFF !important; color: #000 !important; }
+            .card-kpi, .card-chart { border: 1px solid #DDD !important; background: #FFF !important; color: #000 !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ──────────────── TOPBAR ──────────────── -->
+    <header class="topbar-dash sticky-top no-print">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <a href="/equipe/hub/" class="btn btn-sm btn-outline-secondary text-white d-flex align-items-center gap-2">
+                    <i class="bi bi-arrow-left"></i> Hub Operacional
+                </a>
+                <div class="vr bg-secondary opacity-50 d-none d-sm-block"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-4 fw-black text-warning">QIRO</span>
+                    <span class="badge bg-warning text-black fw-bold">Dashboard de Senhas</span>
+                </div>
+            </div>
+
+            <!-- Ações Direitas -->
+            <div class="d-flex align-items-center gap-2">
+                <a href="/senhas/mapa/{% if categoria_id_selecionada and categoria_id_selecionada != 'TODAS' %}?categoria={{ categoria_id_selecionada }}{% endif %}" class="btn btn-sm btn-outline-warning fw-bold d-flex align-items-center gap-1">
+                    <i class="bi bi-grid-3x3-gap-fill"></i> <span class="d-none d-md-inline">Abrir</span> Mapa de Senhas
+                </a>
+                <a href="/senhas/dashboard/exportar-csv/?evento={{ evento.id }}" class="btn btn-sm btn-outline-success fw-bold d-flex align-items-center gap-1" title="Baixar Planilha CSV para Excel">
+                    <i class="bi bi-file-earmark-excel-fill"></i> Exportar CSV
+                </a>
+                <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary text-white d-none d-sm-inline-flex align-items-center gap-1">
+                    <i class="bi bi-printer-fill"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ──────────────── CONTEÚDO PRINCIPAL ──────────────── -->
+    <main class="container-fluid px-3 px-md-4 py-4">
+
+        <!-- CABEÇALHO DO EVENTO & SELETOR DE CATEGORIAS -->
+        <div class="d-flex flex-column flex-xl-row justify-content-between align-items-start align-items-xl-center gap-3 mb-4">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-danger text-uppercase fw-bold" style="font-size: 0.7rem;">AO VIVO</span>
+                    <h2 class="fw-black text-white mb-0" style="letter-spacing: -0.5px;">{{ evento.nome }}</h2>
+                </div>
+                <p class="text-secondary small mb-0">
+                    <i class="bi bi-geo-alt-fill text-warning me-1"></i>{{ evento.parque.nome }} — {{ evento.parque.cidade }}/{{ evento.parque.estado }}
+                    <span class="mx-2">•</span>
+                    <i class="bi bi-calendar-event me-1"></i>{{ evento.data_inicio|date:"d/m/Y" }} até {{ evento.data_fim|date:"d/m/Y" }}
+                </p>
+            </div>
+
+            <!-- Filtros de Categorias (Opções: Todas, Aberta, Amador, Aspirante, etc.) -->
+            <div class="d-flex flex-wrap align-items-center gap-1.5 no-print">
+                <span class="text-secondary small fw-bold me-1 text-uppercase" style="font-size: 0.72rem;">Filtrar Categoria:</span>
+                <a href="/senhas/dashboard/?evento={{ evento.id }}" class="btn-filter-pill {% if not categoria_id_selecionada or categoria_id_selecionada == 'TODAS' %}active{% endif %}">
+                    Todas as Categorias
+                </a>
+                {% for cat in categorias %}
+                <a href="/senhas/dashboard/?evento={{ evento.id }}&categoria={{ cat.id }}" class="btn-filter-pill {% if categoria_id_selecionada == cat.id|stringformat:'s' %}active{% endif %}">
+                    {{ cat.nome_exibicao }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ──────────────── 1. LINHA DE CARDS DE MÉTRICAS (KPIS) ──────────────── -->
+        <div class="row g-3 mb-4">
+            <!-- Total Vendidas -->
+            <div class="col-6 col-lg-3">
+                <div class="card-kpi">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="text-secondary small fw-bold text-uppercase">Senhas Vendidas</span>
+                        <span class="badge bg-success-subtle text-success border border-success fw-bold">{{ taxa_ocupacao }}%</span>
+                    </div>
+                    <div class="fs-2 fw-black text-white mt-1 mb-0">{{ total_vendidas }} <span class="fs-6 text-secondary fw-normal">/ {{ limite_total_vagas }}</span></div>
+                    <div class="text-secondary small mt-1" style="font-size: 0.72rem;">
+                        <i class="bi bi-check2-circle text-success me-1"></i>{{ total_livres }} senhas ainda disponíveis
+                    </div>
+                    <i class="bi bi-ticket-perforated-fill kpi-icon-bg"></i>
+                </div>
+            </div>
+
+            <!-- Faturamento Total -->
+            <div class="col-6 col-lg-3">
+                <div class="card-kpi">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="text-secondary small fw-bold text-uppercase">Faturamento Total</span>
+                        <span class="badge bg-warning text-black fw-bold">R$</span>
+                    </div>
+                    <div class="fs-2 fw-black text-warning mt-1 mb-0">R$ {{ faturamento_total|floatformat:2 }}</div>
+                    <div class="text-secondary small mt-1" style="font-size: 0.72rem;">
+                        Ticket médio: <strong class="text-white">R$ {{ ticket_medio }}</strong> / senha
+                    </div>
+                    <i class="bi bi-cash-stack kpi-icon-bg"></i>
+                </div>
+            </div>
+
+            <!-- Boi de TV -->
+            <div class="col-6 col-lg-3">
+                <div class="card-kpi">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="text-secondary small fw-bold text-uppercase">Com Boi de TV</span>
+                        <span class="badge bg-info text-black fw-bold">{{ pct_com_boi_tv }}%</span>
+                    </div>
+                    <div class="fs-2 fw-black text-info mt-1 mb-0">{{ qtd_com_boi_tv }} <span class="fs-6 text-secondary fw-normal">({{ qtd_sem_boi_tv }} sem)</span></div>
+                    <div class="text-secondary small mt-1" style="font-size: 0.72rem;">
+                        Receita extra de TV: <strong class="text-white">+ R$ {{ receita_boi_tv|floatformat:2 }}</strong>
+                    </div>
+                    <i class="bi bi-tv-fill kpi-icon-bg"></i>
+                </div>
+            </div>
+
+            <!-- Canal de Venda (Online vs Balcão) -->
+            <div class="col-6 col-lg-3">
+                <div class="card-kpi">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="text-secondary small fw-bold text-uppercase">Canais de Venda</span>
+                        <span class="badge bg-primary text-white fw-bold">Origem</span>
+                    </div>
+                    <div class="fs-2 fw-black text-white mt-1 mb-0">{{ vendas_online }} <span class="fs-6 text-secondary fw-normal">Online</span> | {{ vendas_balcao }} <span class="fs-6 text-secondary fw-normal">Balcão</span></div>
+                    <div class="text-secondary small mt-1" style="font-size: 0.72rem;">
+                        <i class="bi bi-globe2 text-primary me-1"></i>{{ pct_online }}% site • <i class="bi bi-shop text-warning me-1"></i>{{ pct_balcao }}% secretaria
+                    </div>
+                    <i class="bi bi-diagram-2-fill kpi-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- ──────────────── 2. PRIMEIRA FILEIRA DE GRÁFICOS (TORRE & PIZZA/DONUT) ──────────────── -->
+        <div class="row g-3 mb-4">
+            
+            <!-- GRÁFICO 1: TORRE (COLUNAS) - OCUPAÇÃO POR CATEGORIA (LIVRE, AMADOR, ASPIRANTE...) -->
+            <div class="col-lg-8">
+                <div class="card-chart">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-bar-chart-fill text-warning"></i> Grade por Categoria (Gráfico de Torre)
+                            </h5>
+                            <span class="text-secondary small" style="font-size: 0.75rem;">Comparativo de Senhas Vendidas vs Senhas Livres em cada modalidade</span>
+                        </div>
+                        <span class="badge bg-dark border border-secondary text-secondary">Vagas & Capacidade</span>
+                    </div>
+                    <div class="chart-container-box">
+                        <canvas id="chartTorreCategorias"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRÁFICO 2: PIZZA / DONUT - BOI DE TV VS SEM BOI DE TV -->
+            <div class="col-lg-4">
+                <div class="card-chart">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-pie-chart-fill text-info"></i> Adesão Boi de TV (Pizza)
+                            </h5>
+                            <span class="text-secondary small" style="font-size: 0.75rem;">Proporção de inscritos que contrataram Boi de TV</span>
+                        </div>
+                        <span class="badge bg-info text-black fw-bold">Vídeo & Imagem</span>
+                    </div>
+                    <div class="chart-container-box">
+                        <canvas id="chartBoiTvPizza"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ──────────────── 3. SEGUNDA FILEIRA DE GRÁFICOS (LINHAS, TORRE DE RECEITA & ROSCA PAGAMENTO) ──────────────── -->
+        <div class="row g-3 mb-4">
+
+            <!-- GRÁFICO 3: LINHAS - EVOLUÇÃO TEMPORAL DAS VENDAS (RITMO DIÁRIO) -->
+            <div class="col-lg-5">
+                <div class="card-chart">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-graph-up text-success"></i> Ritmo de Vendas (Gráfico de Linha)
+                            </h5>
+                            <span class="text-secondary small" style="font-size: 0.75rem;">Evolução do volume de inscrições confirmadas ao longo dos dias</span>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success">Evolução</span>
+                    </div>
+                    <div class="chart-container-box">
+                        <canvas id="chartLinhaVendas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRÁFICO 4: ROSCA - FORMAS DE PAGAMENTO -->
+            <div class="col-lg-3">
+                <div class="card-chart">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-wallet2 text-warning"></i> Pagamento (Rosca)
+                            </h5>
+                            <span class="text-secondary small" style="font-size: 0.75rem;">Distribuição dos métodos</span>
+                        </div>
+                    </div>
+                    <div class="chart-container-box">
+                        <canvas id="chartFormasPagamento"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRÁFICO 5: BARRAS HORIZONTAIS - DIAS DE CORRIDA (QUINTA, SEXTA, SÁBADO, DOMINGO) -->
+            <div class="col-lg-4">
+                <div class="card-chart">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-calendar3-range text-orange"></i> Dias de Corrida
+                            </h5>
+                            <span class="text-secondary small" style="font-size: 0.75rem;">Carga de duplas por dia</span>
+                        </div>
+                        <span class="badge bg-dark border border-secondary text-secondary">Cronograma</span>
+                    </div>
+                    <div class="chart-container-box">
+                        <canvas id="chartDiasCorrida"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ──────────────── 4. TERCEIRA FILEIRA (GRÁFICO DE FATURAMENTO POR CATEGORIA & ORIGEM) ──────────────── -->
+        <div class="row g-3 mb-4">
+            
+            <!-- GRÁFICO 6: COLUNAS - ARRECADAÇÃO FINANCEIRA (R$) POR CATEGORIA -->
+            <div class="col-lg-8">
+                <div class="card-chart">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-currency-dollar text-warning"></i> Faturamento por Categoria (R$)
+                            </h5>
+                            <span class="text-secondary small" style="font-size: 0.75rem;">Total arrecadado em cada categoria cadastrada</span>
+                        </div>
+                        <span class="badge bg-warning text-black fw-bold">Receita</span>
+                    </div>
+                    <div class="chart-container-box">
+                        <canvas id="chartReceitaCategorias"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRÁFICO 7: POLAR / DONUT - ORIGEM ONLINE VS BALCÃO -->
+            <div class="col-lg-4">
+                <div class="card-chart">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-hdd-network text-primary"></i> Origem da Venda
+                            </h5>
+                            <span class="text-secondary small" style="font-size: 0.75rem;">Online no Site vs Balcão Físico</span>
+                        </div>
+                    </div>
+                    <div class="chart-container-box">
+                        <canvas id="chartOrigemVenda"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ──────────────── 5. TABELA ANALÍTICA DETALHADA POR CATEGORIA ──────────────── -->
+        <div class="card-chart mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+                <div>
+                    <h5 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-table text-warning"></i> Detalhamento Consolidado por Categoria
+                    </h5>
+                    <span class="text-secondary small" style="font-size: 0.75rem;">Resumo numérico, taxa de preenchimento, adesão ao Boi de TV e receita</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="/senhas/dashboard/exportar-csv/?evento={{ evento.id }}" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-download me-1"></i> Baixar Relatório Completo (CSV)
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-custom table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th>Tipo</th>
+                            <th class="text-center">Preço Base</th>
+                            <th class="text-center">Vagas Totais</th>
+                            <th class="text-center">Vendidas</th>
+                            <th class="text-center">Disponíveis</th>
+                            <th style="min-width: 140px;">Ocupação (%)</th>
+                            <th class="text-center">Com Boi de TV</th>
+                            <th class="text-end">Faturamento (R$)</th>
+                            <th class="text-center no-print">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in detalhes_tabela %}
+                        <tr>
+                            <td class="fw-bold text-white">{{ row.nome }}</td>
+                            <td><span class="badge bg-dark border border-secondary text-secondary">{{ row.tipo }}</span></td>
+                            <td class="text-center text-secondary">R$ {{ row.valor_unitario|floatformat:2 }}</td>
+                            <td class="text-center fw-bold">{{ row.limite }}</td>
+                            <td class="text-center fw-bold text-success">{{ row.vendidas }}</td>
+                            <td class="text-center fw-bold text-warning">{{ row.livres }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 8px; background-color: #1F3627;">
+                                        <div class="progress-bar {% if row.ocupacao >= 80 %}bg-danger{% elif row.ocupacao >= 50 %}bg-warning text-black{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ row.ocupacao }}%"></div>
+                                    </div>
+                                    <span class="small fw-bold" style="font-size: 0.72rem;">{{ row.ocupacao }}%</span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info-subtle text-info border border-info px-2 py-1">
+                                    <i class="bi bi-tv-fill me-1"></i>{{ row.com_boi_tv }}
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold text-warning">R$ {{ row.faturamento|floatformat:2 }}</td>
+                            <td class="text-center no-print">
+                                <a href="/senhas/mapa/?categoria={{ row.id }}" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size: 0.75rem;">
+                                    <i class="bi bi-grid-3x3 me-1"></i>Mapa
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center text-secondary py-4">Nenhuma categoria cadastrada para este evento.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr style="border-top: 2px solid var(--qiro-border);">
+                            <td colspan="3" class="fw-black text-uppercase text-white">Total Consolidado</td>
+                            <td class="text-center fw-black text-white">{{ limite_total_vagas }}</td>
+                            <td class="text-center fw-black text-success">{{ total_vendidas }}</td>
+                            <td class="text-center fw-black text-warning">{{ total_livres }}</td>
+                            <td class="fw-bold text-white">{{ taxa_ocupacao }}% Média</td>
+                            <td class="text-center fw-black text-info">{{ qtd_com_boi_tv }}</td>
+                            <td class="text-end fw-black text-warning fs-6">R$ {{ faturamento_total|floatformat:2 }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ──────────────── SCRIPTS DE RENDERIZAÇÃO DOS GRÁFICOS (CHART.JS) ──────────────── -->
+    <script>
+        // Configuração Global de Cores e Estilos dos Gráficos
+        Chart.defaults.color = '#9CA3AF';
+        Chart.defaults.font.family = "'Montserrat', sans-serif";
+        Chart.defaults.plugins.tooltip.backgroundColor = '#070B09';
+        Chart.defaults.plugins.tooltip.borderColor = '#1F3627';
+        Chart.defaults.plugins.tooltip.borderWidth = 1;
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
+        // Dados passados pelo Django
+        const torreLabels = {{ chart_torre_labels|safe }};
+        const torreVendidas = {{ chart_torre_vendidas|safe }};
+        const torreLivres = {{ chart_torre_livres|safe }};
+        const torreReceita = {{ chart_torre_receita|safe }};
+        const tvData = {{ chart_tv_data|safe }};
+        const pagLabels = {{ chart_pagamentos_labels|safe }};
+        const pagData = {{ chart_pagamentos_data|safe }};
+        const diasLabels = {{ chart_dias_labels|safe }};
+        const diasData = {{ chart_dias_data|safe }};
+        const origemData = {{ chart_origem_data|safe }};
+        const linhaLabels = {{ chart_linha_labels|safe }};
+        const linhaValores = {{ chart_linha_valores|safe }};
+
+        // 1. Gráfico de Torre (Barras Duplas) - Ocupação por Categoria
+        const ctxTorre = document.getElementById('chartTorreCategorias').getContext('2d');
+        new Chart(ctxTorre, {
+            type: 'bar',
+            data: {
+                labels: torreLabels,
+                datasets: [
+                    {
+                        label: 'Senhas Vendidas',
+                        data: torreVendidas,
+                        backgroundColor: '#22C55E',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Senhas Disponíveis (Livres)',
+                        data: torreLivres,
+                        backgroundColor: '#1E3A2B',
+                        borderColor: '#233C2D',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: 'rgba(31, 54, 39, 0.5)' }
+                    }
+                }
+            }
+        });
+
+        // 2. Gráfico de Pizza - Boi de TV vs Sem Boi de TV
+        const ctxTv = document.getElementById('chartBoiTvPizza').getContext('2d');
+        new Chart(ctxTv, {
+            type: 'pie',
+            data: {
+                labels: ['Com Boi de TV', 'Sem Boi de TV'],
+                datasets: [{
+                    data: tvData,
+                    backgroundColor: ['#06B6D4', '#1E3A2B'],
+                    borderColor: '#0B120E',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // 3. Gráfico de Linha - Ritmo Temporal de Vendas
+        const ctxLinha = document.getElementById('chartLinhaVendas').getContext('2d');
+        new Chart(ctxLinha, {
+            type: 'line',
+            data: {
+                labels: linhaLabels,
+                datasets: [{
+                    label: 'Vendas Confirmadas',
+                    data: linhaValores,
+                    fill: true,
+                    borderColor: '#22C55E',
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    tension: 0.35,
+                    pointBackgroundColor: '#EAB308',
+                    pointBorderColor: '#FFF',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { color: 'rgba(31, 54, 39, 0.5)' }
+                    }
+                }
+            }
+        });
+
+        // 4. Gráfico de Rosca (Donut) - Formas de Pagamento
+        const ctxPag = document.getElementById('chartFormasPagamento').getContext('2d');
+        new Chart(ctxPag, {
+            type: 'doughnut',
+            data: {
+                labels: pagLabels,
+                datasets: [{
+                    data: pagData,
+                    backgroundColor: [
+                        '#22C55E', // Pix
+                        '#EAB308', // Crédito
+                        '#0284C7', // Débito
+                        '#F97316', // Dinheiro
+                        '#A855F7'  // Cortesia
+                    ],
+                    borderColor: '#0B120E',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // 5. Gráfico de Barras Horizontais - Dias de Corrida
+        const ctxDias = document.getElementById('chartDiasCorrida').getContext('2d');
+        new Chart(ctxDias, {
+            type: 'bar',
+            data: {
+                labels: diasLabels,
+                datasets: [{
+                    label: 'Duplas Escaladas',
+                    data: diasData,
+                    backgroundColor: '#F97316',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { 
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { color: 'rgba(31, 54, 39, 0.5)' }
+                    },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 6. Gráfico de Colunas - Arrecadação por Categoria (R$)
+        const ctxRec = document.getElementById('chartReceitaCategorias').getContext('2d');
+        new Chart(ctxRec, {
+            type: 'bar',
+            data: {
+                labels: torreLabels,
+                datasets: [{
+                    label: 'Receita Total (R$)',
+                    data: torreReceita,
+                    backgroundColor: '#EAB308',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: 'rgba(31, 54, 39, 0.5)' },
+                        ticks: {
+                            callback: function(value) { return 'R$ ' + value; }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 7. Gráfico de Rosca - Origem Online vs Balcão
+        const ctxOrigem = document.getElementById('chartOrigemVenda').getContext('2d');
+        new Chart(ctxOrigem, {
+            type: 'doughnut',
+            data: {
+                labels: ['Online (Site)', 'Balcão (Secretaria)'],
+                datasets: [{
+                    data: origemData,
+                    backgroundColor: ['#0284C7', '#EAB308'],
+                    borderColor: '#0B120E',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    </script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

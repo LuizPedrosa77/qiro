@@ -256,3 +256,46 @@ class SenhasInscricaoTestCase(TestCase):
         self.assertContains(res, 'Testar Conexão Agora')
         self.assertContains(res, 'INSCRICAO_CONFIRMADA')
 
+    def test_dashboard_senhas_e_graficos(self):
+        """Verifica se o Dashboard Analítico de Senhas carrega KPIs, gráficos variados e detalhamento."""
+        self.client.login(username='organizador_senhas', password='testpassword')
+        
+        # Cria uma senha de teste com Boi de TV
+        SenhaInscricao.objects.create(
+            evento=self.evento,
+            categoria=self.categoria,
+            numero_senha=77,
+            vaqueiro_puxador=self.operador,
+            cavalo_puxador=Animal.objects.create(nome='Cavalo Dash', funcao=Animal.Funcao.PUXADOR),
+            representacao='Haras Dash',
+            valor_total=600.00,
+            tem_boi_tv=True,
+            status=SenhaInscricao.StatusSenha.PAGA,
+            forma_pagamento=SenhaInscricao.FormaPagamento.PIX,
+            origem_venda=SenhaInscricao.OrigemVenda.ONLINE
+        )
+
+        res = self.client.get(f'/senhas/dashboard/?evento={self.evento.id}')
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'Dashboard Analítico de Senhas')
+        self.assertContains(res, 'Grade por Categoria (Gráfico de Torre)')
+        self.assertContains(res, 'Adesão Boi de TV (Pizza)')
+        self.assertContains(res, 'Ritmo de Vendas (Gráfico de Linha)')
+        self.assertContains(res, 'Pagamento (Rosca)')
+        self.assertContains(res, 'Dias de Corrida')
+        self.assertContains(res, 'Faturamento por Categoria (R$)')
+        self.assertContains(res, 'chartTorreCategorias')
+        self.assertContains(res, 'chartBoiTvPizza')
+        self.assertContains(res, 'chartLinhaVendas')
+
+    def test_exportar_relatorio_senhas_csv(self):
+        """Verifica se o relatório de senhas em CSV é gerado corretamente com cabeçalhos."""
+        self.client.login(username='organizador_senhas', password='testpassword')
+        res = self.client.get(f'/senhas/dashboard/exportar-csv/?evento={self.evento.id}')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res['Content-Type'], 'text/csv; charset=utf-8')
+        content = res.content.decode('utf-8')
+        self.assertIn('Senha;Dia;Categoria;Status;Puxador', content)
+        self.assertIn('Boi TV;Valor Total;Forma Pagamento', content)
+
+

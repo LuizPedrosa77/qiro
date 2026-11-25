@@ -9,4 +9,6 @@ urlpatterns = [
     path('admin/zerar-senhas/', views.admin_zerar_senhas, name='admin_zerar_senhas'),
     path('api/testar-webhook/', views.api_testar_webhook_n8n, name='api_testar_webhook_n8n'),
     path('integracoes/webhook/', views.webhook_central, name='webhook_central'),
+    path('dashboard/', views.senhas_dashboard, name='senhas_dashboard'),
+    path('dashboard/exportar-csv/', views.exportar_relatorio_senhas_csv, name='exportar_relatorio_senhas_csv'),
 ]

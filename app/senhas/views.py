@@ -1,11 +1,14 @@
 import uuid
+import csv
+import json
 from decimal import Decimal
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Count
+from django.db.models.functions import TruncDate
 
 from eventos.models import Evento
 from senhas.models import Categoria, SenhaInscricao
@@ -595,4 +598,258 @@ def webhook_central(request):
         'exemplo_payload_json': exemplo_payload_json,
         'exemplo_whatsapp': exemplo_whatsapp,
     })
+
+
+@login_required(login_url='/equipe/login/')
+def senhas_dashboard(request):
+    """
+    Dashboard Analítico Completo de Senhas e Vendas do Evento.
+    Exibe:
+    - KPIs Gerais: Total vendido, taxa de ocupação, faturamento total, ticket médio
+    - Boi de TV vs Sem Boi de TV: quantidades, porcentagens e faturamento extra de vídeo
+    - Gráfico de Torres (Colunas): Senhas vendidas vs vagas por categoria (Aberta, Amador, etc.)
+    - Gráfico de Pizza / Donut: Proporção Boi de TV e Formas de Pagamento (Pix, Cartão, Dinheiro)
+    - Gráfico de Linhas com Área: Ritmo diário de vendas (evolução temporal)
+    - Gráfico de Barras Horizontais: Distribuição das corridas por dia da semana (Quinta a Domingo)
+    - Gráfico de Origem: Vendas Online vs Balcão da Secretaria
+    - Tabela analítica completa com barra de progresso por categoria
+    """
+    user = request.user
+    if not (user.is_superuser or user.papel in [
+        Usuario.Papel.ADMIN, Usuario.Papel.COORDENADOR, Usuario.Papel.ORGANIZADOR, Usuario.Papel.SECRETARIA
+    ]):
+        messages.error(request, 'Acesso não autorizado ao Dashboard de Senhas.')
+        return redirect('/equipe/hub/')
+
+    # Evento selecionado
+    evento_id = request.GET.get('evento')
+    if evento_id:
+        evento = Evento.objects.filter(id=evento_id).first()
+    else:
+        evento = Evento.objects.filter(status=Evento.Status.EM_ANDAMENTO).first() or Evento.objects.first()
+
+    eventos = Evento.objects.all().order_by('-data_inicio')
+    if not evento:
+        return render(request, 'senhas/dashboard.html', {'evento': None, 'eventos': []})
+
+    # Categoria selecionada para filtro
+    categoria_id = request.GET.get('categoria', '').strip()
+    categorias_qs = Categoria.objects.filter(evento=evento, ativo=True).order_by('ordem_apresentacao')
+
+    # Status considerados válidos / confirmados
+    status_vendidas = [
+        SenhaInscricao.StatusSenha.PAGA,
+        SenhaInscricao.StatusSenha.NA_BOIADA,
+        SenhaInscricao.StatusSenha.NA_PISTA,
+        SenhaInscricao.StatusSenha.BATIDA,
+        SenhaInscricao.StatusSenha.ELIMINADA,
+        SenhaInscricao.StatusSenha.DESCLASSIFICADA,
+    ]
+
+    # Query base
+    senhas_evento = SenhaInscricao.objects.filter(evento=evento)
+    senhas_filtradas = senhas_evento
+    if categoria_id and categoria_id != 'TODAS':
+        senhas_filtradas = senhas_filtradas.filter(categoria_id=categoria_id)
+
+    senhas_pagas = senhas_filtradas.filter(status__in=status_vendidas)
+    senhas_reservadas = senhas_filtradas.filter(status=SenhaInscricao.StatusSenha.RESERVADA)
+
+    # 1. KPIs Gerais
+    total_vendidas = senhas_pagas.count()
+    total_reservadas = senhas_reservadas.count()
+    faturamento_total = senhas_pagas.aggregate(tot=Sum('valor_total'))['tot'] or Decimal('0.00')
+
+    if categoria_id and categoria_id != 'TODAS':
+        cat_filtro = categorias_qs.filter(id=categoria_id).first()
+        limite_total_vagas = cat_filtro.limite_senhas if cat_filtro else 0
+    else:
+        limite_total_vagas = sum(c.limite_senhas for c in categorias_qs)
+
+    total_livres = max(0, limite_total_vagas - total_vendidas - total_reservadas)
+    taxa_ocupacao = round((total_vendidas / limite_total_vagas * 100), 1) if limite_total_vagas > 0 else 0
+    ticket_medio = round(faturamento_total / total_vendidas, 2) if total_vendidas > 0 else Decimal('0.00')
+
+    # 2. Métricas de Boi de TV
+    qtd_com_boi_tv = senhas_pagas.filter(tem_boi_tv=True).count()
+    qtd_sem_boi_tv = max(0, total_vendidas - qtd_com_boi_tv)
+    pct_com_boi_tv = round((qtd_com_boi_tv / total_vendidas * 100), 1) if total_vendidas > 0 else 0
+    pct_sem_boi_tv = round((qtd_sem_boi_tv / total_vendidas * 100), 1) if total_vendidas > 0 else 0
+
+    receita_boi_tv = sum(
+        (s.categoria.valor_boi_tv for s in senhas_pagas.filter(tem_boi_tv=True).select_related('categoria')),
+        Decimal('0.00')
+    )
+
+    # 3. Origem da Venda: Online vs Secretaria Balcão
+    vendas_online = senhas_pagas.filter(origem_venda=SenhaInscricao.OrigemVenda.ONLINE).count()
+    vendas_balcao = senhas_pagas.filter(origem_venda=SenhaInscricao.OrigemVenda.BALCAO_PRESENCIAL).count()
+    pct_online = round((vendas_online / total_vendidas * 100), 1) if total_vendidas > 0 else 0
+    pct_balcao = round((vendas_balcao / total_vendidas * 100), 1) if total_vendidas > 0 else 0
+
+    # 4. Formas de Pagamento
+    pagamentos_data = {
+        'Pix': senhas_pagas.filter(forma_pagamento=SenhaInscricao.FormaPagamento.PIX).count(),
+        'Cartão de Crédito': senhas_pagas.filter(forma_pagamento=SenhaInscricao.FormaPagamento.CARTAO_CREDITO).count(),
+        'Cartão de Débito': senhas_pagas.filter(forma_pagamento=SenhaInscricao.FormaPagamento.CARTAO_DEBITO).count(),
+        'Dinheiro': senhas_pagas.filter(forma_pagamento=SenhaInscricao.FormaPagamento.DINHEIRO).count(),
+        'Cortesia': senhas_pagas.filter(forma_pagamento=SenhaInscricao.FormaPagamento.CORTESIA).count(),
+    }
+
+    # 5. Dias de Corrida
+    dias_ordenados = ['Quinta', 'Sexta', 'Sábado', 'Domingo', 'A Definir']
+    dias_counts = {d: 0 for d in dias_ordenados}
+    for s in senhas_pagas:
+        d = s.dia_corrida.strip() if s.dia_corrida else 'A Definir'
+        if d in dias_counts:
+            dias_counts[d] += 1
+        else:
+            dias_counts['A Definir'] += 1
+
+    # 6. Detalhamento por Categoria (Tabela + Gráficos de Torre)
+    detalhes_tabela = []
+    torre_labels = []
+    torre_vendidas = []
+    torre_livres = []
+    torre_receita = []
+
+    for cat in categorias_qs:
+        pagas_cat = senhas_evento.filter(categoria=cat, status__in=status_vendidas)
+        qtd_cat_vend = pagas_cat.count()
+        qtd_cat_tv = pagas_cat.filter(tem_boi_tv=True).count()
+        tot_cat_rec = pagas_cat.aggregate(t=Sum('valor_total'))['t'] or Decimal('0.00')
+        livres_cat = max(0, cat.limite_senhas - qtd_cat_vend)
+        ocup_cat = round((qtd_cat_vend / cat.limite_senhas * 100), 1) if cat.limite_senhas > 0 else 0
+
+        detalhes_tabela.append({
+            'id': str(cat.id),
+            'nome': cat.nome_exibicao,
+            'tipo': cat.get_tipo_display(),
+            'valor_unitario': cat.valor_senha,
+            'limite': cat.limite_senhas,
+            'vendidas': qtd_cat_vend,
+            'livres': livres_cat,
+            'ocupacao': ocup_cat,
+            'com_boi_tv': qtd_cat_tv,
+            'faturamento': tot_cat_rec,
+        })
+
+        torre_labels.append(cat.nome_exibicao)
+        torre_vendidas.append(qtd_cat_vend)
+        torre_livres.append(livres_cat)
+        torre_receita.append(float(tot_cat_rec))
+
+    # 7. Timeline de Vendas (Evolução por dia - Gráfico de Linha)
+    timeline_qs = (
+        senhas_pagas.filter(criado_em__isnull=False)
+        .annotate(data_venda=TruncDate('criado_em'))
+        .values('data_venda')
+        .annotate(total=Count('id'))
+        .order_by('data_venda')
+    )
+    linha_labels = [item['data_venda'].strftime('%d/%m') for item in timeline_qs if item['data_venda']]
+    linha_valores = [item['total'] for item in timeline_qs if item['data_venda']]
+
+    if not linha_labels:
+        linha_labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Hoje']
+        linha_valores = [0, 0, 0, 0, 0, 0, total_vendidas]
+
+    contexto = {
+        'usuario': user,
+        'evento': evento,
+        'eventos': eventos,
+        'categorias': categorias_qs,
+        'categoria_id_selecionada': categoria_id,
+        # KPIs
+        'total_vendidas': total_vendidas,
+        'total_reservadas': total_reservadas,
+        'total_livres': total_livres,
+        'limite_total_vagas': limite_total_vagas,
+        'taxa_ocupacao': taxa_ocupacao,
+        'faturamento_total': faturamento_total,
+        'ticket_medio': ticket_medio,
+        # TV
+        'qtd_com_boi_tv': qtd_com_boi_tv,
+        'qtd_sem_boi_tv': qtd_sem_boi_tv,
+        'pct_com_boi_tv': pct_com_boi_tv,
+        'pct_sem_boi_tv': pct_sem_boi_tv,
+        'receita_boi_tv': receita_boi_tv,
+        # Origem
+        'vendas_online': vendas_online,
+        'vendas_balcao': vendas_balcao,
+        'pct_online': pct_online,
+        'pct_balcao': pct_balcao,
+        # Tabela
+        'detalhes_tabela': detalhes_tabela,
+        # Dados serializados em JSON para o Chart.js
+        'chart_torre_labels': json.dumps(torre_labels),
+        'chart_torre_vendidas': json.dumps(torre_vendidas),
+        'chart_torre_livres': json.dumps(torre_livres),
+        'chart_torre_receita': json.dumps(torre_receita),
+        'chart_tv_data': json.dumps([qtd_com_boi_tv, qtd_sem_boi_tv]),
+        'chart_pagamentos_labels': json.dumps(list(pagamentos_data.keys())),
+        'chart_pagamentos_data': json.dumps(list(pagamentos_data.values())),
+        'chart_dias_labels': json.dumps(list(dias_counts.keys())),
+        'chart_dias_data': json.dumps(list(dias_counts.values())),
+        'chart_origem_data': json.dumps([vendas_online, vendas_balcao]),
+        'chart_linha_labels': json.dumps(linha_labels),
+        'chart_linha_valores': json.dumps(linha_valores),
+    }
+
+    return render(request, 'senhas/dashboard.html', contexto)
+
+
+@login_required(login_url='/equipe/login/')
+def exportar_relatorio_senhas_csv(request):
+    """
+    Exportação rápida das senhas do evento em formato CSV para Excel/Google Sheets.
+    """
+    user = request.user
+    if not (user.is_superuser or user.papel in [
+        Usuario.Papel.ADMIN, Usuario.Papel.COORDENADOR, Usuario.Papel.ORGANIZADOR, Usuario.Papel.SECRETARIA
+    ]):
+        return HttpResponse('Acesso negado', status=403)
+
+    evento_id = request.GET.get('evento')
+    evento = Evento.objects.filter(id=evento_id).first() if evento_id else Evento.objects.first()
+    if not evento:
+        return HttpResponse('Evento não encontrado', status=404)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="senhas_{evento.id}.csv"'
+    response.write(u'\ufeff'.encode('utf8'))  # BOM para o Excel no Windows abrir com acentuação correta
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'Senha', 'Dia', 'Categoria', 'Status', 'Puxador', 'CPF Puxador', 'WhatsApp',
+        'Esteireiro', 'Cavalo Puxador', 'Cavalo Esteira', 'Representacao',
+        'Boi TV', 'Valor Total', 'Forma Pagamento', 'Origem Venda', 'Data Emissao'
+    ])
+
+    senhas = SenhaInscricao.objects.filter(evento=evento).select_related(
+        'categoria', 'vaqueiro_puxador', 'vaqueiro_esteireiro', 'cavalo_puxador', 'cavalo_esteireiro'
+    ).order_by('categoria__ordem_apresentacao', 'numero_senha')
+
+    for s in senhas:
+        writer.writerow([
+            s.numero_senha,
+            s.dia_corrida or 'A Definir',
+            s.categoria.nome_exibicao,
+            s.get_status_display(),
+            s.vaqueiro_puxador.get_full_name() or s.vaqueiro_puxador.username,
+            s.vaqueiro_puxador.cpf if hasattr(s.vaqueiro_puxador, 'cpf') else '',
+            getattr(s.vaqueiro_puxador, 'telefone', ''),
+            s.vaqueiro_esteireiro.get_full_name() if s.vaqueiro_esteireiro else '',
+            s.cavalo_puxador.nome if s.cavalo_puxador else '',
+            s.cavalo_esteireiro.nome if s.cavalo_esteireiro else '',
+            s.representacao,
+            'SIM' if s.tem_boi_tv else 'NAO',
+            f"{s.valor_total:.2f}".replace('.', ','),
+            s.get_forma_pagamento_display(),
+            s.get_origem_venda_display(),
+            s.criado_em.strftime('%d/%m/%Y %H:%M') if s.criado_em else ''
+        ])
+
+    return response
+
 
