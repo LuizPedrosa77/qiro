@@ -1,135 +1,181 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap');
 
-/* QIRO Design System — a restrained, editorial visual language for the platform. */
-:root {
-  --qiro-ink: #10100e;
-  --qiro-panel: #191916;
-  --qiro-panel-raised: #22221e;
-  --qiro-paper: #f4f0e8;
-  --qiro-sand: #d7c8ae;
-  --qiro-muted: #9d988e;
-  --qiro-line: rgba(215, 200, 174, .18);
-  --qiro-gold: #c8912b;
-  --qiro-gold-light: #e2b557;
-  --qiro-green: #4e7b59;
-  --qiro-red: #b64a3d;
+/* ═══════════════════════════════════════════════════════════════
+   QIRO DESIGN SYSTEM — SUPORTE MULTI-TEMA (LIGHT & BLACK)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. PALETA NORMAL / BLACK (Preto Profundo e Dourado QIRO) ── */
+:root,
+html[data-theme="black"],
+html[data-theme="dark"] {
+  --qiro-ink: #0D0D0D;
+  --qiro-panel: #161616;
+  --qiro-panel-raised: #1E1E1E;
+  --qiro-paper: #FFFFFF;
+  --qiro-sand: #A0AEC0;
+  --qiro-muted: #9CA3AF;
+  --qiro-line: rgba(255, 255, 255, 0.12);
+  --qiro-gold: #D4A017;
+  --qiro-gold-light: #F5C842;
+  --qiro-green: #00FC00;
+  --qiro-red: #DC3545;
+  --qiro-btn-text: #000000;
+  --qiro-input-bg: #111827;
+  --qiro-input-border: #2D3748;
+}
+
+/* ── 2. PALETA LIGHT (Branco com Marrom Coureiro de Vaquejada) ── */
+html[data-theme="light"] {
+  --qiro-ink: #F8F5F0;
+  --qiro-panel: #FFFFFF;
+  --qiro-panel-raised: #F4EEE5;
+  --qiro-paper: #352318;
+  --qiro-sand: #695240;
+  --qiro-muted: #796453;
+  --qiro-line: rgba(112, 68, 31, 0.18);
+  --qiro-gold: #70441F;
+  --qiro-gold-light: #8B5428;
+  --qiro-green: #2E7D32;
+  --qiro-red: #DC2626;
+  --qiro-btn-text: #FFFFFF;
+  --qiro-input-bg: #FFFFFF;
+  --qiro-input-border: rgba(112, 68, 31, 0.22);
 }
 
 body {
-  background: var(--qiro-ink) !important;
-  color: var(--qiro-paper) !important;
-  font-family: "Barlow", "Montserrat", Arial, sans-serif !important;
+  background: var(--qiro-ink);
+  color: var(--qiro-paper);
+  font-family: "Barlow", "Montserrat", Arial, sans-serif;
   letter-spacing: .01em;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
-  font-family: "Barlow Condensed", "Arial Narrow", "Montserrat", sans-serif !important;
+  font-family: "Barlow Condensed", "Montserrat", sans-serif;
   font-weight: 700;
   letter-spacing: .025em;
+  color: var(--qiro-paper);
 }
 
 a { color: inherit; }
 .text-warning, .text-qiro-yellow { color: var(--qiro-gold-light) !important; }
 .text-secondary { color: var(--qiro-muted) !important; }
-.bg-dark, .bg-qiro-dark, .bg-qiro-black { background-color: var(--qiro-panel) !important; }
 
-/* Surfaces */
-.card, .modal-content, .offcanvas, .bg-qiro-card, .sidebar-qiro, .how-card, .event-card,
+/* Superfícies e Cards */
+.card, .modal-content, .offcanvas, .bg-qiro-card, .how-card, .event-card,
 .purchase-card, .summary-card, .dashboard-card {
-  background: var(--qiro-panel) !important;
-  border: 1px solid var(--qiro-line) !important;
-  border-radius: 8px !important;
-  box-shadow: none !important;
+  background: var(--qiro-panel);
+  border: 1px solid var(--qiro-line);
+  color: var(--qiro-paper);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
-.card:hover, .event-card:hover { border-color: rgba(200, 145, 43, .62) !important; transform: none !important; }
 
-/* Buttons and form controls */
-.btn, button, .btn-top-login, .btn-top-cadastro, .btn-qiro-tab {
-  border-radius: 5px !important;
-  font-weight: 700 !important;
-  letter-spacing: .045em;
-  text-transform: uppercase;
+.card:hover, .event-card:hover {
+  border-color: var(--qiro-gold);
 }
+
+/* Botões */
 .btn-warning, .btn-qiro-primary, .btn-top-cadastro {
   background: var(--qiro-gold) !important;
   border-color: var(--qiro-gold) !important;
-  color: #16130d !important;
+  color: var(--qiro-btn-text) !important;
+  font-weight: 700;
+  letter-spacing: .045em;
+  text-transform: uppercase;
 }
+
 .btn-warning:hover, .btn-qiro-primary:hover, .btn-top-cadastro:hover {
   background: var(--qiro-gold-light) !important;
   border-color: var(--qiro-gold-light) !important;
+  color: var(--qiro-btn-text) !important;
 }
+
 .btn-outline-warning, .btn-top-login {
   border-color: var(--qiro-gold) !important;
-  color: var(--qiro-gold-light) !important;
+  color: var(--qiro-gold) !important;
   background: transparent !important;
 }
-.form-control, .form-select, .input-group-text {
-  background: #141412 !important;
+
+.btn-outline-warning:hover {
+  background: var(--qiro-gold) !important;
+  color: var(--qiro-btn-text) !important;
+}
+
+/* Navegação Pública */
+.topbar-qiro, .top-navbar {
+  background: var(--qiro-panel) !important;
   border-color: var(--qiro-line) !important;
+}
+.sidebar-link.active {
+  background: var(--qiro-gold) !important;
+  color: var(--qiro-btn-text) !important;
+}
+.sidebar-link:hover {
+  background: var(--qiro-panel-raised) !important;
+}
+
+.table {
+  color: var(--qiro-paper);
+}
+
+/* ── REGRAS ESPECÍFICAS DE SOBREPOSIÇÃO PARA O TEMA LIGHT ── */
+html[data-theme="light"] .text-white,
+html[data-theme="light"] .text-light {
   color: var(--qiro-paper) !important;
-  border-radius: 4px !important;
-}
-.form-control:focus, .form-select:focus {
-  border-color: var(--qiro-gold) !important;
-  box-shadow: 0 0 0 .2rem rgba(200, 145, 43, .14) !important;
 }
 
-/* Public navigation */
-.topbar-qiro, .top-navbar, header.border-b {
-  background: rgba(16,16,14,.96) !important;
+html[data-theme="light"] .text-warning,
+html[data-theme="light"] .text-qiro-yellow {
+  color: var(--qiro-gold) !important;
+}
+
+html[data-theme="light"] .bg-dark,
+html[data-theme="light"] .bg-black,
+html[data-theme="light"] .bg-qiro-dark {
+  background-color: var(--qiro-panel-raised) !important;
+  color: var(--qiro-paper) !important;
+}
+
+html[data-theme="light"] .border-secondary,
+html[data-theme="light"] .border-dark {
   border-color: var(--qiro-line) !important;
-  box-shadow: none !important;
 }
-.nav-link-custom, .sidebar-link { border-radius: 4px !important; }
-.nav-link-custom:hover { color: var(--qiro-gold-light) !important; }
-.sidebar-link.active { background: var(--qiro-gold) !important; color: #16130d !important; }
-.sidebar-link:hover { background: var(--qiro-panel-raised) !important; }
 
-/* Content cadence */
-.hero-section, .page-hero { border-bottom: 1px solid var(--qiro-line); }
-.section-label, .eyebrow, .text-uppercase { letter-spacing: .14em; }
-.badge { border-radius: 3px !important; letter-spacing: .055em; }
-.table { color: var(--qiro-paper) !important; }
-.table > :not(caption) > * > * { background: transparent !important; border-color: var(--qiro-line) !important; }
-
-/* Ticket map: operational rather than decorative. */
-.senha, .senha-numero, .aredondado, .ticket-number {
-  border-radius: 5px !important;
-  box-shadow: none !important;
-}
-.status-legend, .legend, .mapa-legenda { border-top: 1px solid var(--qiro-line); border-bottom: 1px solid var(--qiro-line); }
-
-/* Operational screens use hierarchy, not decorative gradients. */
-.hub-card { background: var(--qiro-panel) !important; border-radius: 7px !important; }
-.hub-card:hover { background: var(--qiro-panel-raised) !important; border-color: var(--qiro-gold) !important; }
-.hub-icon, .how-icon { border-radius: 5px !important; box-shadow: none !important; }
-.faixa-coluna-header, .faixa-coluna-header.faixa-atencao {
-  background: #25251f !important;
+html[data-theme="light"] .badge.bg-dark,
+html[data-theme="light"] .badge.bg-black {
+  background-color: var(--qiro-panel-raised) !important;
+  color: var(--qiro-paper) !important;
   border: 1px solid var(--qiro-line) !important;
-  border-bottom-color: var(--qiro-gold) !important;
-  border-radius: 5px 5px 0 0 !important;
-  box-shadow: none !important;
 }
-.card-conjunto-atual, .card-proximo, .card-cartao, .painel-juiz, .painel-locutor {
-  background: var(--qiro-panel) !important;
-  border-color: var(--qiro-line) !important;
-  box-shadow: none !important;
-}
-.locutor-topo-btn { background: transparent !important; border-radius: 4px !important; border-color: var(--qiro-gold) !important; color: var(--qiro-gold-light) !important; box-shadow: none !important; }
-.locutor-topo-btn:hover { background: var(--qiro-gold) !important; color: #16130d !important; transform: none !important; }
 
-/* Checkout avoids neon and gives the selection map a calm visual order. */
-.banner-urgencia, .countdown-box, .cart-panel, .checkout-summary, .pix-box {
-  background: var(--qiro-panel) !important;
-  border-color: var(--qiro-line) !important;
-  border-radius: 6px !important;
-  box-shadow: none !important;
+html[data-theme="light"] .badge.bg-warning {
+  background-color: var(--qiro-gold) !important;
+  color: var(--qiro-btn-text) !important;
 }
-.banner-urgencia::before { background: var(--qiro-gold) !important; animation: none !important; }
-.countdown-num { color: var(--qiro-gold-light) !important; text-shadow: none !important; }
+
+html[data-theme="light"] .form-control,
+html[data-theme="light"] .form-select {
+  background-color: var(--qiro-input-bg) !important;
+  color: var(--qiro-paper) !important;
+  border-color: var(--qiro-input-border) !important;
+}
+
+html[data-theme="light"] .form-control:focus,
+html[data-theme="light"] .form-select:focus {
+  border-color: var(--qiro-gold) !important;
+  box-shadow: 0 0 0 0.2rem rgba(112, 68, 31, 0.2) !important;
+  color: var(--qiro-paper) !important;
+}
+
+html[data-theme="light"] .btn-close {
+  filter: none !important;
+}
+
+html[data-theme="black"] .btn-close,
+html[data-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%);
+}
 
 @media (max-width: 767px) {
   h1 { font-size: clamp(2rem, 9vw, 3rem); }
-  .card, .modal-content { border-radius: 6px !important; }
 }

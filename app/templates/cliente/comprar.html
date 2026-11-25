@@ -4,37 +4,101 @@
 
 {% block extra_head %}
 <style>
-    /* ── TOKENS E PALETA DE CORES (QIRO / SENHA DIGITAL / VALEU BOI) ── */
-    :root {
-        --gold:         #D4A017;
-        --gold-light:   #F5C842;
-        --gold-glow:    rgba(212, 160, 23, 0.4);
-        --dark-bg:      #0D0D0D;
-        --dark-card:    #161616;
-        --dark-card-2:  #1E1E1E;
-        --dark-border:  #2D3748;
-        --neon-green:   #00FC00;
-        --neon-orange:  #FF8C00;
-        --neon-red:     #DC3545;
-        --text-light:   #E8E0D0;
-        --text-muted:   #8E887E;
+    /* ═══════════════════════════════════════════════════════════════
+       TOKENS DINÂMICOS DO MAPA DE SENHAS (LIGHT: BRANCO/MARROM | BLACK: NORMAL)
+       ═══════════════════════════════════════════════════════════════ */
+
+    /* ── 1. TEMA NORMAL / BLACK (Original: Preto Profundo, Dourado QIRO e Verde Neon) ── */
+    :root,
+    html[data-theme="black"],
+    html[data-theme="dark"] {
+        --comp-gold:            #D4A017;
+        --comp-gold-light:      #F5C842;
+        --comp-gold-glow:       rgba(212, 160, 23, 0.4);
+        --comp-bg-card:         #161616;
+        --comp-bg-card-2:       #1E1E1E;
+        --comp-border:          rgba(255, 255, 255, 0.12);
+        --comp-neon-green:      #00FC00;
+        --comp-neon-orange:     #FF8C00;
+        --comp-neon-red:        #DC3545;
+        --comp-text:            #FFFFFF;
+        --comp-text-muted:      #9CA3AF;
+        --comp-grade-bg:        #111111;
+        --comp-banner-bg:       linear-gradient(135deg, rgba(22, 22, 22, 0.95) 0%, rgba(20, 38, 28, 0.95) 100%);
+        --comp-banner-border:   rgba(212, 160, 23, 0.35);
+        --comp-stripe:          linear-gradient(90deg, #D4A017, #00FC00, #F5C842, #D4A017);
+        --comp-countdown-bg:    rgba(13, 13, 13, 0.9);
+        --comp-countdown-num:   #F5C842;
+        --comp-countdown-num-glow: 0 0 8px rgba(245, 200, 66, 0.5);
+        --comp-cart-bg:         rgba(13, 13, 13, 0.96);
+        --comp-cart-item:       #1C1C1C;
+        --comp-cart-border:     #D4A017;
+        --comp-checkout-btn:    linear-gradient(135deg, #F5C842 0%, #D4A017 100%);
+        --comp-checkout-txt:    #000000;
+        --comp-dot-avail-bg:    #E8ECEF;
+        --comp-dot-avail-txt:   #111111;
+        --comp-dot-avail-border: transparent;
+        --comp-dot-avail-hover: #FFFFFF;
+        --comp-dot-avail-hover-txt: #111111;
+        --comp-dot-sel-bg:      #00FC00;
+        --comp-dot-sel-txt:     #000000;
+        --comp-dot-sel-glow:    #00FC00;
+        --comp-input-bg:        #111827;
+        --comp-input-border:    #2D3748;
+    }
+
+    /* ── 2. TEMA LIGHT (100% Branco com Marrom Coureiro de Vaquejada) ── */
+    html[data-theme="light"] {
+        --comp-gold:            #70441F;
+        --comp-gold-light:      #8B5428;
+        --comp-gold-glow:       rgba(112, 68, 31, 0.25);
+        --comp-bg-card:         #FFFFFF;
+        --comp-bg-card-2:       #F4EEE5;
+        --comp-border:          rgba(112, 68, 31, 0.16);
+        --comp-neon-green:      #70441F;
+        --comp-neon-orange:     #D97706;
+        --comp-neon-red:        #DC2626;
+        --comp-text:            #352318;
+        --comp-text-muted:      #796453;
+        --comp-grade-bg:        #F4EEE5;
+        --comp-banner-bg:       linear-gradient(135deg, #FFFFFF 0%, #F5EFE6 100%);
+        --comp-banner-border:   rgba(112, 68, 31, 0.22);
+        --comp-stripe:          linear-gradient(90deg, #70441F, #8B5428, #D4A017, #70441F);
+        --comp-countdown-bg:    #FFFFFF;
+        --comp-countdown-num:   #70441F;
+        --comp-countdown-num-glow: none;
+        --comp-cart-bg:         rgba(255, 255, 255, 0.98);
+        --comp-cart-item:       #F8F5F0;
+        --comp-cart-border:     #70441F;
+        --comp-checkout-btn:    linear-gradient(135deg, #855125 0%, #633918 100%);
+        --comp-checkout-txt:    #FFFFFF;
+        --comp-dot-avail-bg:    #FFFFFF;
+        --comp-dot-avail-txt:   #352318;
+        --comp-dot-avail-border: #DDD2C4;
+        --comp-dot-avail-hover: #70441F;
+        --comp-dot-avail-hover-txt: #FFFFFF;
+        --comp-dot-sel-bg:      #70441F;
+        --comp-dot-sel-txt:     #FFFFFF;
+        --comp-dot-sel-glow:    rgba(112, 68, 31, 0.55);
+        --comp-input-bg:        #FFFFFF;
+        --comp-input-border:    rgba(112, 68, 31, 0.22);
     }
 
     /* ── BANNER DE URGÊNCIA E CONTAGEM REGRESSIVA ── */
     .banner-urgencia {
-        background: linear-gradient(135deg, rgba(22, 22, 22, 0.95) 0%, rgba(20, 38, 28, 0.95) 100%);
-        border: 1px solid rgba(212, 160, 23, 0.35);
+        background: var(--comp-banner-bg);
+        border: 1px solid var(--comp-banner-border);
         border-radius: 16px;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
 
     .banner-urgencia::before {
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0; height: 3px;
-        background: linear-gradient(90deg, #D4A017, #00FC00, #F5C842, #D4A017);
+        background: var(--comp-stripe);
         background-size: 300% 100%;
         animation: borderGradient 4s linear infinite;
     }
@@ -46,8 +110,8 @@
     }
 
     .countdown-box {
-        background: rgba(13, 13, 13, 0.9);
-        border: 1px solid rgba(212, 160, 23, 0.4);
+        background: var(--comp-countdown-bg);
+        border: 1px solid var(--comp-banner-border);
         border-radius: 12px;
         padding: 8px 16px;
         display: inline-flex;
@@ -66,15 +130,15 @@
         font-family: 'Barlow Condensed', 'Montserrat', sans-serif;
         font-size: 1.5rem;
         font-weight: 900;
-        color: var(--gold-light);
+        color: var(--comp-countdown-num);
         line-height: 1;
-        text-shadow: 0 0 8px rgba(245, 200, 66, 0.5);
+        text-shadow: var(--comp-countdown-num-glow);
     }
 
     .countdown-label {
         font-size: 0.65rem;
         text-transform: uppercase;
-        color: var(--text-muted);
+        color: var(--comp-text-muted);
         letter-spacing: 0.5px;
         font-weight: 600;
     }
@@ -82,7 +146,7 @@
     .countdown-sep {
         font-size: 1.2rem;
         font-weight: 800;
-        color: var(--gold);
+        color: var(--comp-gold);
         animation: blinkSep 1s infinite alternate;
     }
 
@@ -93,15 +157,15 @@
 
     /* ── CARDS DE PREÇO DOS LOTES ── */
     .preco-card {
-        background: var(--dark-card-2);
-        border: 1px solid rgba(212, 160, 23, 0.2);
+        background: var(--comp-bg-card-2);
+        border: 1px solid var(--comp-border);
         border-radius: 10px;
         padding: 0.75rem 1rem;
         transition: all 0.2s ease;
     }
 
     .preco-card:hover {
-        border-color: var(--gold);
+        border-color: var(--comp-gold);
         transform: translateY(-2px);
     }
 
@@ -109,12 +173,12 @@
         font-size: 0.78rem;
         font-weight: 700;
         text-transform: uppercase;
-        color: var(--text-muted);
+        color: var(--comp-text-muted);
         letter-spacing: 0.5px;
     }
 
     .preco-valor-site {
-        color: var(--gold-light);
+        color: var(--comp-gold);
         font-size: 1.1rem;
         font-weight: 900;
     }
@@ -126,7 +190,7 @@
         gap: 8px;
         font-size: 0.8rem;
         font-weight: 600;
-        color: var(--text-light);
+        color: var(--comp-text);
     }
 
     .legenda-bolinha {
@@ -137,15 +201,32 @@
         flex-shrink: 0;
     }
 
+    .bolinha-disp {
+        background: var(--comp-dot-avail-bg);
+        border: 2px solid var(--comp-dot-avail-border);
+    }
+    .bolinha-res {
+        background: var(--comp-neon-orange);
+        box-shadow: 0 0 6px var(--comp-neon-orange);
+    }
+    .bolinha-paga {
+        background: var(--comp-neon-red);
+        opacity: 0.7;
+    }
+    .bolinha-sel {
+        background: var(--comp-dot-sel-bg);
+        box-shadow: 0 0 8px var(--comp-dot-sel-glow);
+    }
+
     /* ── GRADE DE SENHAS INTERATIVA (OS 4 ESTADOS) ── */
     .grade-container {
         display: grid;
         grid-template-columns: repeat(20, 1fr);
         gap: 6px;
-        background: #111111;
+        background: var(--comp-grade-bg);
         padding: 16px;
         border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--comp-border);
         max-height: 480px;
         overflow-y: auto;
     }
@@ -158,8 +239,8 @@
 
     /* Estado 1: Disponível (.aredondado) */
     .aredondado {
-        background: #E8ECEF;
-        color: #111111;
+        background: var(--comp-dot-avail-bg);
+        color: var(--comp-dot-avail-txt);
         border-radius: 50%;
         aspect-ratio: 1;
         display: flex;
@@ -170,20 +251,21 @@
         cursor: pointer;
         user-select: none;
         transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-        border: 2px solid transparent;
+        border: 2px solid var(--comp-dot-avail-border);
     }
 
     .aredondado:hover {
         transform: scale(1.18);
-        background: #FFFFFF;
-        box-shadow: 0 0 12px rgba(212, 160, 23, 0.6);
-        border-color: var(--gold);
+        background: var(--comp-dot-avail-hover);
+        color: var(--comp-dot-avail-hover-txt);
+        box-shadow: 0 0 12px var(--comp-gold-glow);
+        border-color: var(--comp-gold);
         z-index: 2;
     }
 
     /* Estado 2: Reservada Aguardando Pix (.aredondadoLaranja) */
     .aredondadoLaranja {
-        background: #FF8C00;
+        background: var(--comp-neon-orange);
         color: #FFFFFF;
         border-radius: 50%;
         aspect-ratio: 1;
@@ -194,7 +276,7 @@
         font-size: 0.78rem;
         cursor: not-allowed;
         user-select: none;
-        border: 2px solid #FFA500;
+        border: 2px solid rgba(255, 140, 0, 0.6);
         animation: pulseOrange 2s infinite alternate;
         opacity: 0.95;
     }
@@ -206,7 +288,7 @@
 
     /* Estado 3: Paga / Indisponível (.aredondadoRed) */
     .aredondadoRed {
-        background: #DC3545;
+        background: var(--comp-neon-red);
         color: #FFFFFF;
         border-radius: 50%;
         aspect-ratio: 1;
@@ -223,8 +305,8 @@
 
     /* Estado 4: Selecionada no Carrinho (.selectedRedondo) */
     .selectedRedondo {
-        background: #00FC00 !important;
-        color: #000000 !important;
+        background: var(--comp-dot-sel-bg) !important;
+        color: var(--comp-dot-sel-txt) !important;
         border-radius: 50% !important;
         aspect-ratio: 1;
         display: flex;
@@ -233,7 +315,7 @@
         font-weight: 900 !important;
         font-size: 0.82rem !important;
         cursor: pointer;
-        box-shadow: 0 0 16px #00FC00, inset 0 0 6px #FFFFFF !important;
+        box-shadow: 0 0 16px var(--comp-dot-sel-glow), inset 0 0 6px #FFFFFF !important;
         transform: scale(1.2) !important;
         border: 2px solid #FFFFFF !important;
         z-index: 5 !important;
@@ -241,8 +323,8 @@
     }
 
     @keyframes neonGlow {
-        0% { box-shadow: 0 0 10px #00FC00; }
-        100% { box-shadow: 0 0 22px #00FC00, 0 0 6px #FFFFFF; }
+        0% { box-shadow: 0 0 10px var(--comp-dot-sel-glow); }
+        100% { box-shadow: 0 0 22px var(--comp-dot-sel-glow), 0 0 6px #FFFFFF; }
     }
 
     /* ── CARRINHO FLUTUANTE MULTI-SENHA (#cart) ── */
@@ -252,16 +334,17 @@
         right: 24px;
         width: 340px;
         max-width: 92vw;
-        background: rgba(13, 13, 13, 0.96);
+        background: var(--comp-cart-bg);
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
-        border: 1.5px solid var(--gold);
+        border: 1.5px solid var(--comp-cart-border);
         border-radius: 18px;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(212, 160, 23, 0.25);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 20px var(--comp-gold-glow);
         padding: 16px;
         z-index: 1060;
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
         display: none;
+        color: var(--comp-text);
     }
 
     #cart.ativo {
@@ -286,7 +369,7 @@
             border-left: none;
             border-right: none;
             padding: 16px 18px 22px 18px;
-            box-shadow: 0 -8px 30px rgba(0,0,0,0.9);
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
         }
     }
 
@@ -294,9 +377,10 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid rgba(212, 160, 23, 0.25);
+        border-bottom: 1px solid var(--comp-border);
         padding-bottom: 10px;
         margin-bottom: 10px;
+        color: var(--comp-text);
     }
 
     .cart-items-container {
@@ -310,16 +394,17 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: #1C1C1C;
-        border: 1px solid #2B2B2B;
+        background: var(--comp-cart-item);
+        border: 1px solid var(--comp-border);
         border-radius: 8px;
         padding: 6px 10px;
         margin-bottom: 6px;
+        color: var(--comp-text);
         transition: background 0.15s ease;
     }
 
     .cart-item-row:hover {
-        background: #252525;
+        background: var(--comp-bg-card-2);
     }
 
     .btn-remove-item {
@@ -338,8 +423,8 @@
     }
 
     .btn-checkout-gold {
-        background: linear-gradient(135deg, #F5C842 0%, #D4A017 100%);
-        color: #000000;
+        background: var(--comp-checkout-btn);
+        color: var(--comp-checkout-txt) !important;
         font-weight: 900;
         font-size: 0.95rem;
         letter-spacing: 0.5px;
@@ -351,15 +436,15 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        box-shadow: 0 4px 15px rgba(212, 160, 23, 0.4);
+        box-shadow: 0 4px 15px var(--comp-gold-glow);
         transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
     }
 
     .btn-checkout-gold:hover {
         transform: translateY(-2px);
         filter: brightness(1.08);
-        box-shadow: 0 6px 20px rgba(212, 160, 23, 0.6);
-        color: #000000;
+        box-shadow: 0 6px 20px var(--comp-gold-glow);
+        color: var(--comp-checkout-txt);
     }
 
     /* Tabs de categorias estilo chip */
@@ -375,20 +460,20 @@
     }
 
     .cat-chip.active {
-        background: linear-gradient(135deg, #F5C842 0%, #D4A017 100%);
-        color: #000000;
-        box-shadow: 0 0 12px rgba(212, 160, 23, 0.5);
+        background: var(--comp-checkout-btn);
+        color: var(--comp-checkout-txt);
+        box-shadow: 0 0 12px var(--comp-gold-glow);
     }
 
     .cat-chip.inactive {
-        background: #1E1E1E;
-        color: #A0AEC0;
-        border: 1px solid #2D3748;
+        background: var(--comp-bg-card-2);
+        color: var(--comp-text-muted);
+        border: 1px solid var(--comp-border);
     }
 
     .cat-chip.inactive:hover {
-        background: #2D3748;
-        color: #FFFFFF;
+        background: var(--comp-border);
+        color: var(--comp-text);
     }
 </style>
 {% endblock %}
@@ -469,7 +554,7 @@
     </div>
 
     <!-- ──────────────── 2. SELETOR DE CATEGORIA E TABELA DE PREÇOS ──────────────── -->
-    <div class="card p-3 mb-3 border-0 rounded-4" style="background-color: var(--dark-card);">
+    <div class="card p-3 mb-3 border-0 rounded-4" style="background-color: var(--comp-bg-card);">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25">
             <div>
                 <span class="text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Categorias Disponíveis</span>
@@ -530,7 +615,7 @@
     </div>
 
     <!-- ──────────────── 3. MAPA DE SENHAS COM OS 4 ESTADOS VISUAIS ──────────────── -->
-    <div class="card p-3 p-md-4 border-0 rounded-4 shadow-lg text-white mb-4" style="background-color: var(--dark-card);">
+    <div class="card p-3 p-md-4 border-0 rounded-4 shadow-lg mb-4" style="background-color: var(--comp-bg-card); color: var(--comp-text);">
         
         <!-- Header do Mapa + Busca Rápida -->
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25">
@@ -556,31 +641,31 @@
         </div>
 
         <!-- LEGENDA DOS 4 ESTADOS VISUAIS (SENHA DIGITAL REFERENCE) -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 p-2.5 rounded-3 mb-3" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.06);">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 p-2.5 rounded-3 mb-3" style="background: var(--comp-bg-card-2); border: 1px solid var(--comp-border);">
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <div class="legenda-item">
-                    <span class="legenda-bolinha" style="background: #E8ECEF; border: 2px solid #ccc;"></span>
+                    <span class="legenda-bolinha bolinha-disp"></span>
                     <span>Disponível</span>
                 </div>
                 <div class="legenda-item">
-                    <span class="legenda-bolinha" style="background: #FF8C00; box-shadow: 0 0 6px rgba(255, 140, 0, 0.7);"></span>
+                    <span class="legenda-bolinha bolinha-res"></span>
                     <span>Reservada (Pix)</span>
                 </div>
                 <div class="legenda-item">
-                    <span class="legenda-bolinha" style="background: #DC3545; opacity: 0.7;"></span>
+                    <span class="legenda-bolinha bolinha-paga"></span>
                     <span>Paga / Feita</span>
                 </div>
                 <div class="legenda-item">
-                    <span class="legenda-bolinha" style="background: #00FC00; box-shadow: 0 0 8px #00FC00;"></span>
-                    <span class="text-white fw-bold">No seu Carrinho</span>
+                    <span class="legenda-bolinha bolinha-sel"></span>
+                    <span class="fw-bold">No seu Carrinho</span>
                 </div>
             </div>
 
             <!-- Contadores em tempo real -->
             <div class="d-flex gap-2 text-secondary small fw-bold">
-                <span class="badge bg-secondary bg-opacity-25 text-light">{{ total_disponiveis }} Livres</span>
-                <span class="badge bg-warning bg-opacity-25 text-warning">{{ total_reservadas }} Aguardando Pix</span>
-                <span class="badge bg-danger bg-opacity-25 text-danger">{{ total_pagas }} Pagas</span>
+                <span class="badge bg-secondary bg-opacity-25" style="color: var(--comp-text);">{{ total_disponiveis }} Livres</span>
+                <span class="badge bg-warning bg-opacity-25" style="color: var(--comp-neon-orange);">{{ total_reservadas }} Aguardando Pix</span>
+                <span class="badge bg-danger bg-opacity-25" style="color: var(--comp-neon-red);">{{ total_pagas }} Pagas</span>
             </div>
         </div>
 
@@ -610,11 +695,11 @@
         <!-- Topo do Carrinho -->
         <div class="cart-header">
             <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-cart3 fs-5 text-warning"></i>
-                <h6 class="fw-black text-white m-0">Meu Carrinho</h6>
-                <span class="badge bg-warning text-dark fw-bold rounded-pill" id="cartCountBadge">0</span>
+                <i class="bi bi-cart3 fs-5" style="color: var(--comp-gold);"></i>
+                <h6 class="fw-black m-0" style="color: var(--comp-text);">Meu Carrinho</h6>
+                <span class="badge rounded-pill" style="background: var(--comp-gold); color: var(--comp-checkout-txt);" id="cartCountBadge">0</span>
             </div>
-            <button type="button" class="btn-close btn-close-white btn-sm" onclick="fecharCarrinho()" title="Minimizar"></button>
+            <button type="button" class="btn-close btn-sm" onclick="fecharCarrinho()" title="Minimizar"></button>
         </div>
 
         <!-- Lista dinâmica das senhas adicionadas -->
@@ -623,10 +708,10 @@
         </div>
 
         <!-- Switch Boi na TV dentro do Carrinho -->
-        <div class="p-2 mb-2 rounded bg-black border border-secondary border-opacity-50">
+        <div class="p-2 mb-2 rounded" style="background: var(--comp-bg-card-2); border: 1px solid var(--comp-border);">
             <div class="form-check form-switch d-flex justify-content-between align-items-center p-0 m-0">
-                <label class="form-check-label small fw-bold text-light" for="checkBoiTvCart">
-                    <i class="bi bi-tv-fill text-warning me-1"></i> Boi na TV (+ R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}/un)
+                <label class="form-check-label small fw-bold" style="color: var(--comp-text);" for="checkBoiTvCart">
+                    <i class="bi bi-tv-fill me-1" style="color: var(--comp-gold);"></i> Boi na TV (+ R$ {{ categoria_atual.valor_boi_tv|floatformat:2 }}/un)
                 </label>
                 <input class="form-check-input ms-2" type="checkbox" id="checkBoiTvCart" onchange="recalcularTotalCarrinho()">
             </div>
@@ -635,7 +720,7 @@
         <!-- Total acumulado -->
         <div class="d-flex justify-content-between align-items-center mb-3 pt-1 border-top border-secondary border-opacity-25">
             <span class="text-secondary small fw-bold text-uppercase">Total a Pagar:</span>
-            <span class="fs-4 fw-black text-warning" id="cartTotalDisplay">R$ 0,00</span>
+            <span class="fs-4 fw-black" style="color: var(--comp-gold);" id="cartTotalDisplay">R$ 0,00</span>
         </div>
 
         <!-- Botão CTA Avançar para Cadastro e Pagamento -->
@@ -650,22 +735,22 @@
     </div>
 
     <!-- ──────────────── 5. FORMULÁRIO DE CONFIRMAÇÃO / CHECKOUT ──────────────── -->
-    <div class="card p-4 mt-3 border border-warning rounded-4 shadow-lg text-white" id="boxCheckoutSenha" style="background-color: #14261C; display: none;">
+    <div class="card p-4 mt-3 rounded-4 shadow-lg" id="boxCheckoutSenha" style="background-color: var(--comp-bg-card-2); border: 1.5px solid var(--comp-gold); display: none; color: var(--comp-text);">
         
         <div class="d-flex flex-wrap justify-content-between align-items-center pb-2 mb-3 border-bottom border-secondary border-opacity-25">
             <div>
                 <span class="badge bg-warning text-black text-uppercase fw-bold px-3 py-1.5 rounded-pill mb-1">
                     Senhas Selecionadas no Carrinho
                 </span>
-                <h3 class="fw-black text-warning m-0" id="textoSenhaEscolhida">Nenhuma senha selecionada</h3>
+                <h3 class="fw-black m-0" style="color: var(--comp-gold);" id="textoSenhaEscolhida">Nenhuma senha selecionada</h3>
                 <div class="text-secondary small mt-0.5">
-                    Categoria: <strong class="text-white">{{ categoria_atual.nome_exibicao }}</strong> | 
-                    Dia da Corrida: <strong class="text-white" id="textoDiaCorrida">{{ dia_selecionado }}</strong>
+                    Categoria: <strong style="color: var(--comp-text);">{{ categoria_atual.nome_exibicao }}</strong> | 
+                    Dia da Corrida: <strong style="color: var(--comp-text);" id="textoDiaCorrida">{{ dia_selecionado }}</strong>
                 </div>
             </div>
             <div class="text-end">
                 <span class="text-secondary small d-block">Subtotal Previsto:</span>
-                <span class="fs-3 fw-black text-white" id="displaySubtotalCheckout">R$ 0,00</span>
+                <span class="fs-3 fw-black" style="color: var(--comp-text);" id="displaySubtotalCheckout">R$ 0,00</span>
             </div>
         </div>
 
@@ -680,28 +765,28 @@
             <div class="row g-2 mb-2">
                 <div class="col-md-6">
                     <label class="form-label text-secondary small fw-bold">Vaqueiro Puxador</label>
-                    <input type="text" class="form-control bg-dark text-white border-secondary opacity-75" value="{{ request.user.first_name }} {{ request.user.last_name }} (Você)" readonly>
+                    <input type="text" class="form-control opacity-75" style="background: var(--comp-bg-card); color: var(--comp-text); border: 1px solid var(--comp-border);" value="{{ request.user.first_name }} {{ request.user.last_name }} (Você)" readonly>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label text-warning small fw-bold">Nome do Cavalo Puxador *</label>
-                    <input type="text" name="cavalo_puxador" class="form-control bg-dark text-white border-secondary" placeholder="Ex: Jeck Yease" required>
+                    <label class="form-label small fw-bold" style="color: var(--comp-gold);">Nome do Cavalo Puxador *</label>
+                    <input type="text" name="cavalo_puxador" class="form-control" style="background: var(--comp-bg-card); color: var(--comp-text); border: 1px solid var(--comp-border);" placeholder="Ex: Jeck Yease" required>
                 </div>
             </div>
 
             <div class="row g-2 mb-2">
                 <div class="col-md-6">
-                    <label class="form-label text-info small fw-bold">Vaqueiro Esteireiro *</label>
-                    <input type="text" name="esteireiro" class="form-control bg-dark text-white border-secondary" placeholder="Ex: Junior" required>
+                    <label class="form-label small fw-bold" style="color: var(--comp-gold-light);">Vaqueiro Esteireiro *</label>
+                    <input type="text" name="esteireiro" class="form-control" style="background: var(--comp-bg-card); color: var(--comp-text); border: 1px solid var(--comp-border);" placeholder="Ex: Junior" required>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label text-info small fw-bold">Nome do Cavalo Esteira *</label>
-                    <input type="text" name="cavalo_esteira" class="form-control bg-dark text-white border-secondary" placeholder="Ex: King" required>
+                    <label class="form-label small fw-bold" style="color: var(--comp-gold-light);">Nome do Cavalo Esteira *</label>
+                    <input type="text" name="cavalo_esteira" class="form-control" style="background: var(--comp-bg-card); color: var(--comp-text); border: 1px solid var(--comp-border);" placeholder="Ex: King" required>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label text-secondary small fw-bold">Representação / Haras / Cidade *</label>
-                <input type="text" name="representacao" class="form-control bg-dark text-white border-secondary" placeholder="Ex: Haras Millany — Caruaru/PE" required>
+                <input type="text" name="representacao" class="form-control" style="background: var(--comp-bg-card); color: var(--comp-text); border: 1px solid var(--comp-border);" placeholder="Ex: Haras Millany — Caruaru/PE" required>
             </div>
 
             <input type="hidden" name="tem_boi_tv" id="inputHiddenTemBoiTv" value="">

@@ -1,39 +1,454 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" data-theme="black">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}QIRO — Área do Vaqueiro{% endblock %}</title>
+    
+    <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script>document.documentElement.dataset.theme=localStorage.getItem('qiro-client-theme')||'light';</script>
+    
+    <!-- Tipografia Oficial -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/qiro-design.css">
+
+    <!-- Inicialização Instantânea do Tema Sem Flash -->
+    <script>
+        (function() {
+            var salvo = localStorage.getItem('qiro-theme') || localStorage.getItem('qiro-client-theme');
+            var tema = (salvo === 'light') ? 'light' : 'black';
+            document.documentElement.dataset.theme = tema;
+        })();
+    </script>
+
     {% block extra_head %}{% endblock %}
+
     <style>
-        :root { --ink:#352318; --brown:#70441f; --cream:#f7f3ed; --cream-deep:#eee7dd; --surface:#fff; --surface-soft:#fcfaf6; --input:#fbf8f4; --line:#ded4c8; --muted:#796453; --danger:#c34235; --accent:#b2751b; --nav-text:#806c5b; --nav-hover:#f2ece4; --btn-text:#fff; }
-        html[data-theme="dark"] { --ink:#f3f4f6; --brown:#244432; --cream:#0f1f17; --cream-deep:#192d21; --surface:#14261c; --surface-soft:#122119; --input:#0d1612; --line:#254231; --muted:#a7b4aa; --danger:#ff7a72; --accent:#facc15; --nav-text:#b7c5ba; --nav-hover:#1a3426; --btn-text:#fff; }
-        * { box-sizing: border-box; } body { margin:0; color:var(--ink); background:var(--cream); font-family:'DM Sans',sans-serif; }
-        .app-shell { min-height:100vh; display:flex; }.client-sidebar { position:sticky; top:0; width:320px; height:100vh; padding:22px 20px; display:flex; flex-direction:column; background:var(--surface-soft); border-right:1px solid var(--line); }
-        .brand { display:flex; align-items:center; gap:12px; color:var(--ink); text-decoration:none; margin:0 12px 30px; }.brand-mark { width:48px; height:48px; display:grid; place-items:center; color:#fff7d8; background:var(--brown); border-radius:14px 14px 5px 5px; font-size:23px; }.brand-word { font:700 20px/1.05 'Outfit',sans-serif; letter-spacing:.02em; }
-        .client-profile { padding:15px; background:var(--cream-deep); border-radius:18px; margin-bottom:25px; }.client-profile small { display:block; color:var(--muted); margin-bottom:3px; }.client-profile strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:600 16px 'Outfit',sans-serif; }
-        .client-nav { display:grid; gap:7px; }.client-nav a { display:flex; align-items:center; gap:16px; padding:14px 15px; border-radius:14px; color:var(--nav-text); font-weight:600; text-decoration:none; transition:.18s ease; }.client-nav a i { font-size:21px; width:24px; text-align:center; }.client-nav a:hover { color:var(--ink); background:var(--nav-hover); }.client-nav a.active { background:var(--brown); color:#fff; box-shadow:0 3px 8px rgba(80,44,18,.18); }
-        .theme-toggle { display:flex; align-items:center; gap:14px; width:100%; margin-top:12px; padding:13px 15px; color:var(--nav-text); background:transparent; border:1px solid var(--line); border-radius:14px; font:600 14px 'DM Sans'; text-align:left; }.theme-toggle:hover { background:var(--nav-hover); color:var(--ink); }.theme-toggle i { font-size:20px; width:24px; text-align:center; }.theme-toggle .theme-label-dark { display:none; } html[data-theme="dark"] .theme-toggle .theme-label-light { display:none; } html[data-theme="dark"] .theme-toggle .theme-label-dark { display:inline; }
-        .sidebar-bottom { margin-top:auto; padding:12px 14px 0; color:var(--muted); font-size:12px; }.logout-link { color:var(--danger)!important; }.logout-link:hover { background:color-mix(in srgb, var(--danger) 12%, transparent)!important; }
-        .client-main { flex:1; min-width:0; padding:38px 40px 28px; background:var(--cream); }.page-wrap { max-width:1520px; margin:0 auto; }.page-eyebrow { color:var(--accent); font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }.page-title { margin:0; font:800 clamp(31px,3.3vw,43px)/1.08 'Outfit',sans-serif; letter-spacing:-.035em; }.page-subtitle { color:var(--muted); margin:8px 0 0; font-size:18px; }.client-card { background:var(--surface); border:1px solid var(--line); border-radius:20px; box-shadow:0 2px 4px rgba(0,0,0,.08); }.btn-client-primary { background:var(--brown); color:var(--btn-text); border:1px solid var(--brown); border-radius:14px; padding:13px 19px; font-weight:700; text-decoration:none; }.btn-client-primary:hover { filter:brightness(1.12); color:var(--btn-text); }.btn-client-soft { background:var(--cream-deep); color:var(--ink); border:1px solid var(--line); border-radius:12px; font-weight:700; }.form-control,.form-select { border:1px solid var(--line); border-radius:13px; padding:12px 15px; color:var(--ink); background:var(--input); }.form-control:focus,.form-select:focus { border-color:var(--accent); box-shadow:0 0 0 .2rem color-mix(in srgb, var(--accent) 18%, transparent); background:var(--surface); }
-        html[data-theme="dark"] .text-secondary { color:var(--muted)!important; } html[data-theme="dark"] .table { --bs-table-color:var(--ink); --bs-table-bg:var(--surface); --bs-table-border-color:var(--line); } html[data-theme="dark"] .table-light, html[data-theme="dark"] .text-bg-light { color:var(--ink)!important; background:var(--cream-deep)!important; }
-        /* The purchase flow has its own dense markup; these rules make it respect the selected theme too. */
-        html[data-theme="light"] .client-main .card, html[data-theme="light"] .client-main .banner-urgencia, html[data-theme="light"] .client-main .countdown-box, html[data-theme="light"] .client-main .preco-card, html[data-theme="light"] .client-main .grade-container, html[data-theme="light"] .client-main .cart-header { background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }
-        html[data-theme="light"] .client-main .bg-dark, html[data-theme="light"] .client-main .bg-black, html[data-theme="light"] .client-main .input-group-text { background:var(--input)!important; border-color:var(--line)!important; }
-        html[data-theme="light"] .client-main .text-white, html[data-theme="light"] .client-main .text-light { color:var(--ink)!important; }
-        html[data-theme="light"] .client-main .form-control, html[data-theme="light"] .client-main .form-select { background:var(--input)!important; color:var(--ink)!important; }
-        html[data-theme="dark"] .client-main .card, html[data-theme="dark"] .client-main .banner-urgencia, html[data-theme="dark"] .client-main .countdown-box, html[data-theme="dark"] .client-main .preco-card, html[data-theme="dark"] .client-main .grade-container, html[data-theme="dark"] .client-main .cart-header { border-color:var(--line)!important; box-shadow:none!important; }
-        @media(max-width:991px){.client-sidebar{display:none}.client-main{padding:22px 18px 28px}.mobile-bar{display:flex!important}.page-subtitle{font-size:16px}}
+        /* ═══════════════════════════════════════════════════════════════
+           SISTEMA DE TEMAS: LIGHT (BRANCO/MARROM) & BLACK (PALETA NORMAL)
+           ═══════════════════════════════════════════════════════════════ */
+
+        /* ── TEMA BLACK / NORMAL (Preto, Grafite, Dourado e Verde Neon) ── */
+        :root,
+        html[data-theme="black"],
+        html[data-theme="dark"] {
+            --bg-page:        #0D0D0D;
+            --bg-main:        #0D0D0D;
+            --bg-sidebar:     #121E17;
+            --bg-card:        #161616;
+            --bg-card-raised: #1A2720;
+            --bg-input:       #111827;
+            --border-line:    rgba(255, 255, 255, 0.1);
+            --border-soft:    #254231;
+            --text-heading:   #FFFFFF;
+            --text-body:      #E8E0D0;
+            --text-muted:     #9CA3AF;
+            --primary-accent: #D4A017;
+            --primary-light:  #F5C842;
+            --primary-btn-bg: linear-gradient(135deg, #F5C842 0%, #D4A017 100%);
+            --primary-btn-text: #000000;
+            --nav-text:       #9CA3AF;
+            --nav-hover-bg:   #1A2C21;
+            --nav-active-bg:  linear-gradient(135deg, #F5C842 0%, #D4A017 100%);
+            --nav-active-text: #000000;
+            --neon-highlight: #00FC00;
+        }
+
+        /* ── TEMA LIGHT (Branco Limpo com Marrom Nobre de Vaquejada) ── */
+        html[data-theme="light"] {
+            --bg-page:        #F8F5F0;
+            --bg-main:        #F8F5F0;
+            --bg-sidebar:     #EFE7DC;
+            --bg-card:        #FFFFFF;
+            --bg-card-raised: #F4EEE5;
+            --bg-input:       #FFFFFF;
+            --border-line:    rgba(112, 68, 31, 0.16);
+            --border-soft:    #DDD2C4;
+            --text-heading:   #352318;
+            --text-body:      #352318;
+            --text-muted:     #796453;
+            --primary-accent: #70441F;
+            --primary-light:  #8B5428;
+            --primary-btn-bg: linear-gradient(135deg, #855125 0%, #633918 100%);
+            --primary-btn-text: #FFFFFF;
+            --nav-text:       #695240;
+            --nav-hover-bg:   #E2D7C8;
+            --nav-active-bg:  #70441F;
+            --nav-active-text: #FFFFFF;
+            --neon-highlight: #70441F;
+        }
+
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            color: var(--text-body);
+            background: var(--bg-page);
+            font-family: 'DM Sans', sans-serif;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── SIDEBAR ── */
+        .client-sidebar {
+            position: sticky;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-line);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-heading);
+            text-decoration: none;
+            margin: 0 10px 26px;
+        }
+        .brand-mark {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            color: var(--primary-btn-text);
+            background: var(--primary-accent);
+            border-radius: 14px 14px 5px 5px;
+            font-size: 24px;
+            transition: all 0.2s ease;
+        }
+        .brand-word {
+            font: 800 22px/1.05 'Outfit', sans-serif;
+            letter-spacing: .02em;
+            color: var(--text-heading);
+        }
+
+        .client-profile {
+            padding: 16px;
+            background: var(--bg-card-raised);
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            margin-bottom: 22px;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .client-profile small {
+            display: block;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+        .client-profile strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font: 700 16px 'Outfit', sans-serif;
+            color: var(--text-heading);
+        }
+
+        .client-nav {
+            display: grid;
+            gap: 6px;
+        }
+        .client-nav a {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 13px 16px;
+            border-radius: 13px;
+            color: var(--nav-text);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.16s ease;
+        }
+        .client-nav a i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+        .client-nav a:hover {
+            color: var(--text-heading);
+            background: var(--nav-hover-bg);
+        }
+        .client-nav a.active {
+            background: var(--nav-active-bg);
+            color: var(--nav-active-text) !important;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ── BOTÃO DE TROCA DE TEMA ── */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px 16px;
+            color: var(--nav-text);
+            background: transparent;
+            border: 1px solid var(--border-line);
+            border-radius: 13px;
+            font: 600 14px 'DM Sans', sans-serif;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+        .theme-toggle:hover {
+            background: var(--nav-hover-bg);
+            color: var(--text-heading);
+        }
+        .theme-toggle i {
+            font-size: 19px;
+            width: 24px;
+            text-align: center;
+            color: var(--primary-accent);
+        }
+
+        /* Regras do rótulo do toggle */
+        html[data-theme="light"] .theme-label-to-light,
+        html[data-theme="light"] .theme-icon-to-light {
+            display: none !important;
+        }
+        html[data-theme="light"] .theme-label-to-black,
+        html[data-theme="light"] .theme-icon-to-black {
+            display: inline !important;
+        }
+
+        html[data-theme="black"] .theme-label-to-black,
+        html[data-theme="black"] .theme-icon-to-black,
+        html[data-theme="dark"] .theme-label-to-black,
+        html[data-theme="dark"] .theme-icon-to-black {
+            display: none !important;
+        }
+        html[data-theme="black"] .theme-label-to-light,
+        html[data-theme="black"] .theme-icon-to-light,
+        html[data-theme="dark"] .theme-label-to-light,
+        html[data-theme="dark"] .theme-icon-to-light {
+            display: inline !important;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 12px 14px 0;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .logout-link {
+            color: #DC2626 !important;
+        }
+        .logout-link:hover {
+            background: rgba(220, 38, 38, 0.12) !important;
+        }
+
+        /* ── ÁREA DE CONTEÚDO PRINCIPAL ── */
+        .client-main {
+            flex: 1;
+            min-width: 0;
+            padding: 36px 40px 28px;
+            background: var(--bg-main);
+            transition: background-color 0.2s ease;
+        }
+        .page-wrap {
+            max-width: 1520px;
+            margin: 0 auto;
+        }
+        .page-eyebrow {
+            color: var(--primary-accent);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .page-title {
+            margin: 0;
+            font: 900 clamp(30px, 3.2vw, 42px)/1.08 'Outfit', sans-serif;
+            letter-spacing: -.035em;
+            color: var(--text-heading);
+        }
+        .page-subtitle {
+            color: var(--text-muted);
+            margin: 8px 0 0;
+            font-size: 17px;
+        }
+
+        .client-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-soft);
+            border-radius: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            color: var(--text-body);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .btn-client-primary {
+            background: var(--primary-btn-bg);
+            color: var(--primary-btn-text) !important;
+            border: none;
+            border-radius: 13px;
+            padding: 13px 22px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+        .btn-client-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .btn-client-soft {
+            background: var(--bg-card-raised);
+            color: var(--text-body);
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.15s ease;
+        }
+        .btn-client-soft:hover {
+            background: var(--nav-hover-bg);
+            color: var(--text-heading);
+        }
+
+        .form-control, .form-select {
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            padding: 12px 15px;
+            color: var(--text-body);
+            background: var(--bg-input);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 .2rem rgba(112, 68, 31, 0.18);
+            background: var(--bg-card);
+            color: var(--text-body);
+        }
+
+        .table {
+            --bs-table-color: var(--text-body);
+            --bs-table-bg: var(--bg-card);
+            --bs-table-border-color: var(--border-line);
+        }
+
+        @media (max-width: 991px) {
+            .client-sidebar { display: none; }
+            .client-main { padding: 22px 18px 28px; }
+            .mobile-bar { display: flex !important; }
+        }
     </style>
 </head>
 <body>
-    <div class="mobile-bar d-none align-items-center justify-content-between p-3 border-bottom" style="background:var(--surface-soft);border-color:var(--line)!important;"><a href="/cliente/secretaria/" class="brand mb-0 ms-0"><span class="brand-mark" style="width:36px;height:36px;font-size:17px;"><i class="bi bi-trophy-fill"></i></span><span class="brand-word">QIRO</span></a><button class="btn btn-client-soft" data-bs-toggle="offcanvas" data-bs-target="#clientMenu"><i class="bi bi-list fs-5"></i></button></div>
-    <div class="app-shell"><aside class="client-sidebar"><a href="/cliente/secretaria/" class="brand"><span class="brand-mark"><i class="bi bi-trophy-fill"></i></span><span class="brand-word">QIRO<br><small style="font:500 12px 'DM Sans';letter-spacing:.08em;color:#9a795a;">ÁREA DO VAQUEIRO</small></span></a><div class="client-profile"><small>Vaqueiro</small><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><small>CPF {{ request.user.cpf|default:"não informado" }}</small></div>{% include "cliente/_menu.html" %}<div class="sidebar-bottom">QIRO · Plataforma do Vaqueiro</div></aside><main class="client-main"><div class="page-wrap">{% if messages %}{% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-4" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}{% block content %}{% endblock %}</div></main></div>
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="clientMenu" style="width:310px;background:var(--surface-soft);color:var(--ink);"><div class="offcanvas-header"><span class="brand-word">QIRO</span><button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div><div class="offcanvas-body"><div class="client-profile"><small>Vaqueiro</small><strong>{{ request.user.get_full_name|default:request.user.username }}</strong></div>{% include "cliente/_menu.html" %}</div></div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script>document.querySelectorAll('[data-theme-toggle]').forEach(function(button){button.addEventListener('click',function(){var next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;localStorage.setItem('qiro-client-theme',next);});});</script>{% block extra_js %}{% endblock %}
+
+    <!-- BARRA SUPERIOR MOBILE -->
+    <div class="mobile-bar d-none align-items-center justify-content-between p-3 border-bottom" style="background:var(--bg-sidebar); border-color:var(--border-line)!important;">
+        <a href="/cliente/secretaria/" class="brand mb-0 ms-0">
+            <span class="brand-mark" style="width:38px; height:38px; font-size:18px;">
+                <i class="bi bi-trophy-fill"></i>
+            </span>
+            <span class="brand-word">QIRO</span>
+        </a>
+        <button class="btn btn-client-soft" data-bs-toggle="offcanvas" data-bs-target="#clientMenu">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+    </div>
+
+    <!-- CONTAINER DA APLICAÇÃO -->
+    <div class="app-shell">
+        
+        <!-- SIDEBAR DESKTOP -->
+        <aside class="client-sidebar">
+            <a href="/cliente/secretaria/" class="brand">
+                <span class="brand-mark">
+                    <i class="bi bi-trophy-fill"></i>
+                </span>
+                <span class="brand-word">
+                    QIRO<br>
+                    <small style="font:600 11px 'DM Sans'; letter-spacing:.09em; opacity: 0.8;">ÁREA DO VAQUEIRO</small>
+                </span>
+            </a>
+
+            <div class="client-profile">
+                <small>Competidor Autenticado</small>
+                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                <small class="mt-1" style="opacity: 0.75;">CPF {{ request.user.cpf|default:"não informado" }}</small>
+            </div>
+
+            {% include "cliente/_menu.html" %}
+
+            <div class="sidebar-bottom">
+                QIRO · Gestão e Tradição na Palma da Mão
+            </div>
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="client-main">
+            <div class="page-wrap">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-4 fw-bold shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+    </div>
+
+    <!-- MENU OFFCANVAS MOBILE -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="clientMenu" style="width:310px; background:var(--bg-sidebar); color:var(--text-body);">
+        <div class="offcanvas-header border-bottom" style="border-color: var(--border-line) !important;">
+            <span class="brand-word">QIRO</span>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="client-profile mb-3">
+                <small>Competidor</small>
+                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+            </div>
+            {% include "cliente/_menu.html" %}
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SCRIPT DE CHAVEAMENTO DE TEMA (LIGHT <=> BLACK) -->
+    <script>
+        document.querySelectorAll('[data-theme-toggle]').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var atual = document.documentElement.dataset.theme;
+                var proximo = (atual === 'light') ? 'black' : 'light';
+                
+                document.documentElement.dataset.theme = proximo;
+                localStorage.setItem('qiro-theme', proximo);
+                localStorage.setItem('qiro-client-theme', proximo);
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
